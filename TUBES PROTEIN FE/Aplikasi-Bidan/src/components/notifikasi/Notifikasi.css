@@ -1,0 +1,200 @@
+/* Notifikasi Overlay */
+.notifikasi-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Notifikasi Modal */
+.notifikasi-modal {
+  background: linear-gradient(135deg, #E91E8C 0%, #F06FA8 100%);
+  border-radius: 20px;
+  padding: 40px;
+  min-width: 400px;
+  max-width: 500px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  position: relative;
+  text-align: center;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Icon Wrapper */
+.notifikasi-icon-wrapper {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #FDE3F0 0%, #FAC7E0 100%);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(233, 30, 140, 0.3);
+}
+
+.notifikasi-icon {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+/* Content */
+.notifikasi-content {
+  margin-top: 30px;
+  color: white;
+}
+
+.notifikasi-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+  color: white;
+}
+
+.notifikasi-message {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  color: white;
+  opacity: 0.95;
+}
+
+.notifikasi-detail {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 10px 0 20px 0;
+  color: white;
+  opacity: 0.9;
+}
+
+/* Actions */
+.notifikasi-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 25px;
+}
+
+.notifikasi-btn {
+  padding: 10px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+}
+
+.notifikasi-btn-cancel {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.notifikasi-btn-cancel:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.notifikasi-btn-confirm {
+  background-color: #C91E77;
+  color: white;
+}
+
+.notifikasi-btn-confirm:hover {
+  background-color: #A81864;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.notifikasi-btn-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.notifikasi-btn-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .notifikasi-modal {
+    min-width: 320px;
+    max-width: 90%;
+    padding: 35px 25px;
+  }
+
+  .notifikasi-icon-wrapper {
+    width: 70px;
+    height: 70px;
+    top: -35px;
+  }
+
+  .notifikasi-icon {
+    width: 45px;
+    height: 45px;
+  }
+
+  .notifikasi-title {
+    font-size: 18px;
+  }
+
+  .notifikasi-message {
+    font-size: 13px;
+  }
+
+  .notifikasi-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .notifikasi-btn {
+    width: 100%;
+  }
+}
