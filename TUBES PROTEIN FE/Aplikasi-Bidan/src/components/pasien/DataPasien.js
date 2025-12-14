@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react';
 import Sidebar from '../shared/Sidebar';
 import './DataPasien.css';
 import pinkLogo from '../../assets/images/pink-logo.png';
+import pasienService from '../../services/pasienService';
 
 function DataPasien({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi }) {
   const [formData, setFormData] = useState({
-    nama: 'Nama Pasien',
-    umur: 'Umur Pasien',
-    NIK: 'NIK Pasien',
-    no_hp: 'Nomor HP',
-    alamat: 'Alamat lengkap'
+    id_pasien: '',
+    nama: '',
+    umur: '',
+    NIK: '',
+    no_hp: '',
+    alamat: ''
   });
 
   const [riwayatLayanan, setRiwayatLayanan] = useState({
@@ -20,9 +22,31 @@ function DataPasien({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToPr
     'Kunjungan': []
   });
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
   useEffect(() => {
-    // Auto load mock data
-    loadMockData();
+    // Load pasien data dari localStorage (di-set oleh DaftarPasien saat klik detail)
+    const selectedPasien = localStorage.getItem('selectedPasien');
+    if (selectedPasien) {
+      const parsedPasien = JSON.parse(selectedPasien);
+      setFormData({
+        id_pasien: parsedPasien.id_pasien || '',
+        nama: parsedPasien.nama || '',
+        umur: parsedPasien.umur || '',
+        NIK: parsedPasien.NIK || '',
+        no_hp: parsedPasien.no_hp || '',
+        alamat: parsedPasien.alamat || ''
+      });
+      
+      // Load riwayat dari backend
+      loadRiwayatPasien(parsedPasien.id_pasien);
+    } else {
+      // Jika tidak ada data, gunakan mock data (untuk backward compatibility)
+      loadMockData();
+    }
+    setLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadMockData = () => {
@@ -41,39 +65,44 @@ function DataPasien({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToPr
     });
   };
 
-  const fetchRiwayatPasien = async (id_pasien) => {
+  const loadRiwayatPasien = async (id_pasien) => {
     try {
-      // TODO: Uncomment saat integrasi API
-      /*
-      const token = localStorage.getItem('token');
-      const response = await fetch(`https://api.bidan-digital.com/v1/pasien/${id_pasien}/riwayat`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      setLoading(true);
+      const result = await pasienService.getRiwayatPasien(id_pasien);
       
-      if (response.ok) {
-        const data = await response.json();
-        // Kelompokkan berdasarkan jenis_layanan
-        const grouped = {
+      if (result.success && result.data) {
+        // Transform riwayat data ke format yang dibutuhkan
+        const transformedData = {
+          'KB': result.data.filter(r => r.jenis_layanan === 'KB') || [],
+          'Persalinan': result.data.filter(r => r.jenis_layanan === 'Persalinan') || [],
+          'ANC': result.data.filter(r => r.jenis_layanan === 'ANC') || [],
+          'Imunisasi': result.data.filter(r => r.jenis_layanan === 'Imunisasi') || [],
+          'Kunjungan': result.data.filter(r => r.jenis_layanan === 'Kunjungan') || []
+        };
+        setRiwayatLayanan(transformedData);
+      } else {
+        // Jika gagal atau tidak ada data, gunakan array kosong
+        setRiwayatLayanan({
           'KB': [],
           'Persalinan': [],
           'ANC': [],
           'Imunisasi': [],
           'Kunjungan': []
-        };
-        data.forEach(item => {
-          if (grouped[item.jenis_layanan]) {
-            grouped[item.jenis_layanan].push(item);
-          }
         });
-        setRiwayatLayanan(grouped);
       }
-      */
-    } catch (error) {
-      console.error('Error fetching riwayat:', error);
+    } catch (err) {
+      console.error('Error loading riwayat:', err);
+      setError(err.message || 'Gagal memuat riwayat pasien');
+      // Gunakan data kosong jika error
+      setRiwayatLayanan({
+        'KB': [],
+        'Persalinan': [],
+        'ANC': [],
+        'Imunisasi': [],
+        'Kunjungan Pasien': []
+      });
+    } finally {
+      setLoading(false);
     }
   };
 

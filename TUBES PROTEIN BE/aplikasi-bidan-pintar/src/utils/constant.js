@@ -12,7 +12,7 @@ module.exports = {
     TOKEN_EXPIRY: '1d', // Token JWT berlaku 1 hari
 
     // Pengaturan OTP (BARU, diambil dari .env)
-    OTP_EXPIRY_MINUTES: parseInt(process.env.OTP_EXPIRY || 5), // Kode OTP berlaku sesuai .env atau default 5 menit
+    OTP_EXPIRY_MINUTES: parseInt(process.env.OTP_EXPIRY || 10), // Kode OTP berlaku sesuai .env atau default 10 menit (lebih aman)
     
     // Pengaturan Email (BARU, diambil dari .env)
     EMAIL_USER: process.env.EMAIL_USER, 

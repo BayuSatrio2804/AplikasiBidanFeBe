@@ -9,6 +9,8 @@ import Dashboard from './components/dashboard/Dashboard';
 import ProfilSaya from './components/profil/ProfilSaya';
 import InformasiPengguna from './components/profil/InformasiPengguna';
 import DataPasien from './components/pasien/DataPasien';
+import DaftarPasien from './components/pasien/DaftarPasien';
+import TambahPasien from './components/pasien/TambahPasien';
 import RiwayatUbahData from './components/pasien/RiwayatUbahData';
 import RiwayatMasukAkun from './components/profil/RiwayatMasukAkun';
 import Jadwal from './components/jadwal/Jadwal';
@@ -19,6 +21,7 @@ import LayananPersalinan from './components/layanan/LayananPersalinan';
 import LayananANC from './components/layanan/LayananANC';
 import LayananImunisasi from './components/layanan/LayananImunisasi';
 import LayananKunjunganPasien from './components/layanan/LayananKunjunganPasien';
+import FormulirLayanan from './components/layanan/FormulirLayanan';
 import Notifikasi from './components/notifikasi/NotifikasiComponent';
 import { useNotifikasi } from './components/notifikasi/useNotifikasi';
 
@@ -83,15 +86,11 @@ function App() {
   };
 
   const handleToDataPasien = () => {
-    setCurrentPage('data-pasien');
+    setCurrentPage('daftar-pasien'); // Changed to show list first
   };
 
   const handleToRiwayatDataMasuk = () => {
     setCurrentPage('riwayat-data-masuk');
-  };
-
-  const handleToRiwayatUbahData = () => {
-    setCurrentPage('riwayat-ubah-data');
   };
 
   const handleToRiwayatMasukAkun = () => {
@@ -111,19 +110,19 @@ function App() {
   };
 
   const handleToKB = () => {
-    setCurrentPage('kb');
+    setCurrentPage('formulir-kb');
   };
 
   const handleToPersalinan = () => {
-    setCurrentPage('persalinan');
+    setCurrentPage('formulir-persalinan');
   };
 
   const handleToANC = () => {
-    setCurrentPage('anc');
+    setCurrentPage('formulir-anc');
   };
 
   const handleToImunisasi = () => {
-    setCurrentPage('imunisasi');
+    setCurrentPage('formulir-imunisasi');
   };
 
   const handleToKunjunganPasien = () => {
@@ -181,6 +180,14 @@ function App() {
   };
 
   const handleToTambahPasien = () => {
+    setCurrentPage('tambah-pasien');
+  };
+
+  const handleToDaftarPasien = () => {
+    setCurrentPage('daftar-pasien');
+  };
+
+  const handleToDetailPasien = () => {
     setCurrentPage('data-pasien');
   };
 
@@ -255,9 +262,41 @@ function App() {
           onToImunisasi={handleToImunisasi}
         />
       )}
+      {isLoggedIn && currentPage === 'daftar-pasien' && (
+        <DaftarPasien 
+          onBack={handleBackToDashboard}
+          onToDetailPasien={handleToDetailPasien}
+          onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
+          onToRiwayatMasukAkun={handleToRiwayatMasukAkun}
+          onToProfil={handleToProfil}
+          onToTambahPasien={handleToTambahPasien}
+          onToTambahPengunjung={handleToTambahPengunjung}
+          onToBuatLaporan={handleToBuatLaporan}
+          onToPersalinan={handleToPersalinan}
+          onToANC={handleToANC}
+          onToKB={handleToKB}
+          onToImunisasi={handleToImunisasi}
+        />
+      )}
+      {isLoggedIn && currentPage === 'tambah-pasien' && (
+        <TambahPasien 
+          onBack={handleToDaftarPasien}
+          onSuccess={handleToDaftarPasien}
+          onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
+          onToRiwayatMasukAkun={handleToRiwayatMasukAkun}
+          onToProfil={handleToProfil}
+          onToTambahPasien={handleToTambahPasien}
+          onToTambahPengunjung={handleToTambahPengunjung}
+          onToBuatLaporan={handleToBuatLaporan}
+          onToPersalinan={handleToPersalinan}
+          onToANC={handleToANC}
+          onToKB={handleToKB}
+          onToImunisasi={handleToImunisasi}
+        />
+      )}
       {isLoggedIn && currentPage === 'data-pasien' && (
         <DataPasien 
-          onBack={handleBackToDashboard}
+          onBack={handleToDaftarPasien}
           onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
           onToRiwayatMasukAkun={handleToRiwayatMasukAkun}
           onToProfil={handleToProfil}
@@ -430,6 +469,72 @@ function App() {
         <LayananKunjunganPasien 
           onBack={handleToLayanan}
           userData={userData}
+          onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
+          onToRiwayatMasukAkun={handleToRiwayatMasukAkun}
+          onToProfil={handleToProfil}
+          onToTambahPasien={handleToTambahPasien}
+          onToTambahPengunjung={handleToTambahPengunjung}
+          onToBuatLaporan={handleToBuatLaporan}
+          onToPersalinan={handleToPersalinan}
+          onToANC={handleToANC}
+          onToKB={handleToKB}
+          onToImunisasi={handleToImunisasi}
+        />
+      )}
+
+      {/* Formulir Layanan - Unified Form */}
+      {isLoggedIn && currentPage === 'formulir-persalinan' && (
+        <FormulirLayanan 
+          initialJenisLayanan="Persalinan"
+          onBack={() => setCurrentPage('dashboard')}
+          onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
+          onToRiwayatMasukAkun={handleToRiwayatMasukAkun}
+          onToProfil={handleToProfil}
+          onToTambahPasien={handleToTambahPasien}
+          onToTambahPengunjung={handleToTambahPengunjung}
+          onToBuatLaporan={handleToBuatLaporan}
+          onToPersalinan={handleToPersalinan}
+          onToANC={handleToANC}
+          onToKB={handleToKB}
+          onToImunisasi={handleToImunisasi}
+        />
+      )}
+      {isLoggedIn && currentPage === 'formulir-anc' && (
+        <FormulirLayanan 
+          initialJenisLayanan="ANC"
+          onBack={() => setCurrentPage('dashboard')}
+          onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
+          onToRiwayatMasukAkun={handleToRiwayatMasukAkun}
+          onToProfil={handleToProfil}
+          onToTambahPasien={handleToTambahPasien}
+          onToTambahPengunjung={handleToTambahPengunjung}
+          onToBuatLaporan={handleToBuatLaporan}
+          onToPersalinan={handleToPersalinan}
+          onToANC={handleToANC}
+          onToKB={handleToKB}
+          onToImunisasi={handleToImunisasi}
+        />
+      )}
+      {isLoggedIn && currentPage === 'formulir-kb' && (
+        <FormulirLayanan 
+          initialJenisLayanan="KB"
+          onBack={() => setCurrentPage('dashboard')}
+          onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
+          onToRiwayatMasukAkun={handleToRiwayatMasukAkun}
+          onToProfil={handleToProfil}
+          onToTambahPasien={handleToTambahPasien}
+          onToTambahPengunjung={handleToTambahPengunjung}
+          onToBuatLaporan={handleToBuatLaporan}
+          onToPersalinan={handleToPersalinan}
+          onToANC={handleToANC}
+          onToKB={handleToKB}
+          onToImunisasi={handleToImunisasi}
+        />
+      )}
+      {isLoggedIn && currentPage === 'formulir-imunisasi' && (
+        <FormulirLayanan 
+          initialJenisLayanan="Imunisasi"
+          onBack={() => setCurrentPage('dashboard')}
           onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
           onToRiwayatMasukAkun={handleToRiwayatMasukAkun}
           onToProfil={handleToProfil}
