@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './Dashboard.css';
 import pinkLogo from '../../assets/images/pink-logo.png';
 import Sidebar from '../shared/Sidebar';
+import dashboardService from '../../services/dashboardService';
 
 function Dashboard({ 
   onLogout, 
@@ -26,36 +27,32 @@ function Dashboard({
     total: 0,
     data: []
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   // Fetch data dari API /dashboard/rekap-layanan
   useEffect(() => {
     const fetchRekapLayanan = async () => {
       try {
-        // TODO: Replace with actual API call GET /dashboard/rekap-layanan
-        // const response = await fetch('https://api.bidan-digital.com/v1/dashboard/rekap-layanan', {
-        //   headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        // });
-        // const result = await response.json();
-        // setRekapData({
-        //   total: result.total,
-        //   data: result.data
-        // });
+        setLoading(true);
+        setError('');
         
-        // Mock data sesuai struktur API baru
-        const mockData = {
-          message: "Data rekap pasien per kategori layanan berhasil diambil",
-          total: 128,
-          data: [
-            { layanan: "ANC", jumlah_pasien: 45, persentase: 35.15 },
-            { layanan: "Persalinan", jumlah_pasien: 23, persentase: 17.97 },
-            { layanan: "KB", jumlah_pasien: 26, persentase: 20.31 },
-            { layanan: "Imunisasi", jumlah_pasien: 20, persentase: 15.62 },
-            { layanan: "Kunjungan Pasien", jumlah_pasien: 14, persentase: 10.94 }
-          ]
-        };
-        setRekapData(mockData);
+        const result = await dashboardService.getRekapLayanan();
+        
+        if (result.success) {
+          setRekapData({
+            total: result.total,
+            data: result.data
+          });
+        } else {
+          setError(result.message || 'Gagal mengambil data dashboard');
+          console.error('Error fetching rekap layanan:', result.message);
+        }
       } catch (error) {
+        setError('Terjadi kesalahan saat mengambil data');
         console.error('Error fetching rekap layanan:', error);
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -156,42 +153,70 @@ function Dashboard({
             <div className="chart-container">
               <h2 className="chart-title">Rekap Pasien Per Kategori Layanan</h2>
               
-              <div className="chart-content">
-                <div className="pie-chart">
-                  <svg viewBox="0 0 200 200" className="pie-svg">
-                    {rekapData.data.map((item, index) => {
-                      const startAngle = rekapData.data
-                        .slice(0, index)
-                        .reduce((sum, d) => sum + (d.persentase * 3.6), 0);
-                      const angle = item.persentase * 3.6;
-                      
-                      return (
-                        <PieSlice
-                          key={index}
-                          startAngle={startAngle}
-                          angle={angle}
-                          color={pieColors[index]}
-                          percentage={item.persentase}
-                        />
-                      );
-                    })}
-                  </svg>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                  <p>Memuat data...</p>
                 </div>
+              ) : error ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#E91E8C' }}>
+                  <p>{error}</p>
+                  <button 
+                    onClick={() => window.location.reload()} 
+                    style={{
+                      marginTop: '10px',
+                      padding: '8px 20px',
+                      background: '#E91E8C',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '5px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Muat Ulang
+                  </button>
+                </div>
+              ) : rekapData.data.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                  <p>Belum ada data pasien</p>
+                </div>
+              ) : (
+                <div className="chart-content">
+                  <div className="pie-chart">
+                    <svg viewBox="0 0 200 200" className="pie-svg">
+                      {rekapData.data.map((item, index) => {
+                        const startAngle = rekapData.data
+                          .slice(0, index)
+                          .reduce((sum, d) => sum + (d.persentase * 3.6), 0);
+                        const angle = item.persentase * 3.6;
+                        
+                        return (
+                          <PieSlice
+                            key={index}
+                            startAngle={startAngle}
+                            angle={angle}
+                            color={pieColors[index]}
+                            percentage={item.persentase}
+                          />
+                        );
+                      })}
+                    </svg>
+                  </div>
 
-                <div className="chart-legend">
-                  {rekapData.data.map((item, index) => (
-                    <div key={index} className="legend-item">
-                      <span 
-                        className="legend-color" 
-                        style={{ backgroundColor: pieColors[index] }}
-                      ></span>
-                      <span className="legend-label">
-                        {item.layanan}: <span className="legend-value">X Pasien</span>
-                      </span>
-                    </div>
-                  ))}
+                  <div className="chart-legend">
+                    {rekapData.data.map((item, index) => (
+                      <div key={index} className="legend-item">
+                        <span 
+                          className="legend-color" 
+                          style={{ backgroundColor: pieColors[index] }}
+                        ></span>
+                        <span className="legend-label">
+                          {item.layanan}: <span className="legend-value">{item.jumlah_pasien} Pasien</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </main>

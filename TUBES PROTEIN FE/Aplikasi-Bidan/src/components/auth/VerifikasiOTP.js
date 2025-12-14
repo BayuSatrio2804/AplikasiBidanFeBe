@@ -58,29 +58,41 @@ function VerifikasiOTP({ onBack, onVerified, registerEmail, resetEmail, email })
     setError('');
     
     try {
-      // Get email: for registration, use localStorage first (more reliable)
+      // Get email from multiple sources with priority
       const loginEmail = localStorage.getItem('loginEmail');
       const localRegisterEmail = localStorage.getItem('registerEmail');
+      const localResetEmail = localStorage.getItem('resetEmail');
       const registrationType = localStorage.getItem('registrationType');
       
-      // For registration flow, prioritize localStorage registerEmail
-      let emailToUse;
-      if (registrationType === 'register' || localRegisterEmail) {
-        emailToUse = localRegisterEmail || registerEmail || email;
-      } else {
-        // For reset password or other flows
-        emailToUse = registerEmail || resetEmail || loginEmail || email;
+      // Priority: props -> localStorage -> fallback
+      let emailToUse = email || registerEmail || resetEmail || loginEmail || localRegisterEmail || localResetEmail;
+      
+      // If still no email, try to get from localStorage with different logic
+      if (!emailToUse) {
+        if (registrationType === 'register') {
+          emailToUse = localRegisterEmail;
+        } else {
+          emailToUse = loginEmail || localResetEmail;
+        }
       }
       
       console.log('[VERIFIKASIOTP] Props:', { registerEmail, resetEmail, email });
-      console.log('[VERIFIKASIOTP] LocalStorage:', { loginEmail, localRegisterEmail, registrationType });
+      console.log('[VERIFIKASIOTP] LocalStorage:', { loginEmail, localRegisterEmail, localResetEmail, registrationType });
       console.log('[VERIFIKASIOTP] Final emailToUse:', emailToUse, 'OTP Code:', otpCode);
+      
+      if (!emailToUse) {
+        setError('Email tidak ditemukan. Silakan kembali dan login ulang.');
+        return;
+      }
+      
       const result = await authService.verifyOTP(emailToUse, otpCode);
       
       if (result.success) {
         // Clear temp emails from localStorage
         localStorage.removeItem('loginEmail');
         localStorage.removeItem('registerEmail');
+        localStorage.removeItem('resetEmail');
+        localStorage.removeItem('registrationType');
         onVerified();
       } else {
         setError(result.message || 'Verifikasi OTP gagal');

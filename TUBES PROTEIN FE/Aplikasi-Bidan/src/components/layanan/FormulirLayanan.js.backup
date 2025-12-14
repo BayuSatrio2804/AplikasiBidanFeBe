@@ -1,0 +1,749 @@
+import { useState, useEffect } from 'react';
+import './FormulirLayanan.css';
+import pinkLogo from '../../assets/images/pink-logo.png';
+import Sidebar from '../shared/Sidebar';
+import pasienService from '../../services/pasienService';
+import persalinanService from '../../services/persalinan.service';
+import ancService from '../../services/anc.service';
+import kbService from '../../services/kb.service';
+import imunisasiService from '../../services/imunisasi.service';
+
+function FormulirLayanan({ 
+  initialJenisLayanan = 'Persalinan',
+  onBack, 
+  onToRiwayatDataMasuk, 
+  onToRiwayatMasukAkun, 
+  onToProfil,
+  onToTambahPasien,
+  onToTambahPengunjung,
+  onToBuatLaporan,
+  onToPersalinan,
+  onToANC,
+  onToKB,
+  onToImunisasi
+}) {
+  // State untuk jenis layanan yang aktif
+  const [jenisLayanan, setJenisLayanan] = useState(initialJenisLayanan);
+  
+  // State untuk form data (dynamic based on jenis layanan)
+  const [formData, setFormData] = useState({
+    // Informasi Layanan
+    jenis_layanan: '',
+    tanggal: '',
+    no_reg_lama: '',
+    no_reg_baru: '',
+    
+    // Data Ibu
+    nama_istri: '',
+    nik_ibu: '',
+    umur_ibu: '',
+    alamat: '',
+    
+    // Data Suami/Ayah
+    nama_suami: '',
+    nik_suami: '',
+    umur_suami: '',
+  });
+  
+  // Loading & error states
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Load pasien saat search
+  useEffect(() => {
+    if (searchPasien.length >= 2) {
+      loadPasien();
+    } else {
+      setDaftarPasien([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchPasien]);
+
+  // Reset form saat ganti jenis layanan
+  useEffect(() => {
+    resetForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jenisLayanan]);
+
+  const loadPasien = async () => {
+    try {
+      setLoadingPasien(true);
+      const result = await pasienService.getAllPasien(searchPasien);
+      if (result.success && result.data) {
+        setDaftarPasien(result.data);
+        setShowPasienDropdown(true);
+      }
+    } catch (err) {
+      console.error('Error loading pasien:', err);
+    } finally {
+      setLoadingPasien(false);
+    }
+  };
+
+  const handleSelectPasien = (pasien) => {
+    setSelectedPasien(pasien);
+    const nik = pasien.NIK || pasien.nik || '';
+    setSearchPasien(`${pasien.nama} - NIK: ${nik}`);
+    setShowPasienDropdown(false);
+    setDaftarPasien([]); // Clear list untuk hide dropdown
+    
+    // Auto-fill data pasien ke form
+    setFormData(prev => ({
+      ...prev,
+      id_pasien: pasien.id_pasien,
+      nama_ibu: pasien.nama,
+      umur: pasien.umur,
+      NIK: nik,
+      no_hp: pasien.no_hp,
+      alamat: pasien.alamat
+    }));
+  };
+
+  const resetForm = () => {
+    setFormData({});
+    setSelectedPasien(null);
+    setSearchPasien('');
+    setError('');
+    setSuccess('');
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    // Validasi
+    if (!selectedPasien) {
+      setError('Silakan pilih pasien terlebih dahulu');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      let result;
+
+      // Submit berdasarkan jenis layanan
+      switch (jenisLayanan) {
+        case 'Persalinan':
+          result = await persalinanService.createPersalinan(formData);
+          break;
+        case 'ANC':
+          result = await ancService.createANC(formData);
+          break;
+        case 'KB':
+          result = await kbService.createKB(formData);
+          break;
+        case 'Imunisasi':
+          result = await imunisasiService.createImunisasi(formData);
+          break;
+        default:
+          throw new Error('Jenis layanan tidak valid');
+      }
+
+      if (result.success) {
+        setSuccess(`Data ${jenisLayanan} berhasil disimpan dengan Nomor Registrasi: ${result.data?.nomor_registrasi || '-'}`);
+        setTimeout(() => {
+          resetForm();
+        }, 2000);
+      } else {
+        setError(result.message || `Gagal menyimpan data ${jenisLayanan}`);
+      }
+    } catch (err) {
+      console.error('Error submitting:', err);
+      setError(err.message || 'Terjadi kesalahan saat menyimpan data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Render form fields berdasarkan jenis layanan
+  const renderFormFields = () => {
+    switch (jenisLayanan) {
+      case 'Persalinan':
+        return renderPersalinanFields();
+      case 'ANC':
+        return renderANCFields();
+      case 'KB':
+        return renderKBFields();
+      case 'Imunisasi':
+        return renderImunisasiFields();
+      default:
+        return null;
+    }
+  };
+
+  const renderPersalinanFields = () => (
+    <>
+      <div className="form-row">
+        <div className="form-group">
+          <label>Tanggal Persalinan *</label>
+          <input
+            type="date"
+            name="tanggal_persalinan"
+            value={formData.tanggal_persalinan || ''}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Jenis Persalinan *</label>
+          <select
+            name="jenis_persalinan"
+            value={formData.jenis_persalinan || ''}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Pilih Jenis Persalinan</option>
+            <option value="Normal">Normal</option>
+            <option value="Caesar">Caesar</option>
+            <option value="Vakum">Vakum</option>
+            <option value="Forceps">Forceps</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Berat Bayi (gram) *</label>
+          <input
+            type="number"
+            name="berat_bayi"
+            value={formData.berat_bayi || ''}
+            onChange={handleInputChange}
+            placeholder="Contoh: 3200"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Panjang Bayi (cm) *</label>
+          <input
+            type="number"
+            name="panjang_bayi"
+            value={formData.panjang_bayi || ''}
+            onChange={handleInputChange}
+            placeholder="Contoh: 50"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Kondisi Ibu *</label>
+          <select
+            name="kondisi_ibu"
+            value={formData.kondisi_ibu || ''}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Pilih Kondisi</option>
+            <option value="Baik">Baik</option>
+            <option value="Lemah">Lemah</option>
+            <option value="Kritis">Kritis</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label>Kondisi Bayi *</label>
+          <select
+            name="kondisi_bayi"
+            value={formData.kondisi_bayi || ''}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Pilih Kondisi</option>
+            <option value="Sehat">Sehat</option>
+            <option value="Kuning">Kuning</option>
+            <option value="BBLR">BBLR (Berat Badan Lahir Rendah)</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Catatan</label>
+        <textarea
+          name="catatan"
+          value={formData.catatan || ''}
+          onChange={handleInputChange}
+          rows="3"
+          placeholder="Catatan tambahan (opsional)"
+        />
+      </div>
+    </>
+  );
+
+  const renderANCFields = () => (
+    <>
+      <div className="form-row">
+        <div className="form-group">
+          <label>Tanggal Pemeriksaan *</label>
+          <input
+            type="date"
+            name="tanggal_pemeriksaan"
+            value={formData.tanggal_pemeriksaan || ''}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Usia Kehamilan (minggu) *</label>
+          <input
+            type="number"
+            name="usia_kehamilan"
+            value={formData.usia_kehamilan || ''}
+            onChange={handleInputChange}
+            placeholder="Contoh: 20"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Berat Badan (kg) *</label>
+          <input
+            type="number"
+            step="0.1"
+            name="berat_badan"
+            value={formData.berat_badan || ''}
+            onChange={handleInputChange}
+            placeholder="Contoh: 65.5"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Tekanan Darah *</label>
+          <input
+            type="text"
+            name="tekanan_darah"
+            value={formData.tekanan_darah || ''}
+            onChange={handleInputChange}
+            placeholder="Contoh: 120/80"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Tinggi Fundus (cm)</label>
+          <input
+            type="number"
+            name="tinggi_fundus"
+            value={formData.tinggi_fundus || ''}
+            onChange={handleInputChange}
+            placeholder="Contoh: 25"
+          />
+        </div>
+        <div className="form-group">
+          <label>Denyut Jantung Janin</label>
+          <input
+            type="number"
+            name="denyut_jantung_janin"
+            value={formData.denyut_jantung_janin || ''}
+            onChange={handleInputChange}
+            placeholder="Contoh: 140"
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Keluhan</label>
+        <textarea
+          name="keluhan"
+          value={formData.keluhan || ''}
+          onChange={handleInputChange}
+          rows="3"
+          placeholder="Keluhan ibu hamil (jika ada)"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Tindakan</label>
+        <textarea
+          name="tindakan"
+          value={formData.tindakan || ''}
+          onChange={handleInputChange}
+          rows="3"
+          placeholder="Tindakan yang dilakukan"
+        />
+      </div>
+    </>
+  );
+
+  const renderKBFields = () => (
+    <>
+      <div className="form-row">
+        <div className="form-group">
+          <label>Tanggal Kunjungan *</label>
+          <input
+            type="date"
+            name="tanggal_kunjungan"
+            value={formData.tanggal_kunjungan || ''}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Metode KB *</label>
+          <select
+            name="metode_kb"
+            value={formData.metode_kb || ''}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Pilih Metode KB</option>
+            <option value="Pil">Pil</option>
+            <option value="Suntik 1 Bulan">Suntik 1 Bulan</option>
+            <option value="Suntik 3 Bulan">Suntik 3 Bulan</option>
+            <option value="IUD">IUD</option>
+            <option value="Implan">Implan</option>
+            <option value="Kondom">Kondom</option>
+            <option value="MOW">MOW (Tubektomi)</option>
+            <option value="MOP">MOP (Vasektomi)</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Tanggal Kunjungan Berikutnya</label>
+          <input
+            type="date"
+            name="tanggal_kunjungan_berikutnya"
+            value={formData.tanggal_kunjungan_berikutnya || ''}
+            onChange={handleInputChange}
+          />
+        </div>
+        <div className="form-group">
+          <label>Berat Badan (kg)</label>
+          <input
+            type="number"
+            step="0.1"
+            name="berat_badan"
+            value={formData.berat_badan || ''}
+            onChange={handleInputChange}
+            placeholder="Contoh: 55.5"
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Tekanan Darah</label>
+        <input
+          type="text"
+          name="tekanan_darah"
+          value={formData.tekanan_darah || ''}
+          onChange={handleInputChange}
+          placeholder="Contoh: 120/80"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Keluhan/Efek Samping</label>
+        <textarea
+          name="keluhan"
+          value={formData.keluhan || ''}
+          onChange={handleInputChange}
+          rows="3"
+          placeholder="Keluhan atau efek samping (jika ada)"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Catatan</label>
+        <textarea
+          name="catatan"
+          value={formData.catatan || ''}
+          onChange={handleInputChange}
+          rows="3"
+          placeholder="Catatan tambahan"
+        />
+      </div>
+    </>
+  );
+
+  const renderImunisasiFields = () => (
+    <>
+      <div className="form-row">
+        <div className="form-group">
+          <label>Tanggal Imunisasi *</label>
+          <input
+            type="date"
+            name="tanggal_imunisasi"
+            value={formData.tanggal_imunisasi || ''}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Jenis Imunisasi *</label>
+          <select
+            name="jenis_imunisasi"
+            value={formData.jenis_imunisasi || ''}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Pilih Jenis Imunisasi</option>
+            <option value="BCG">BCG</option>
+            <option value="Hepatitis B">Hepatitis B</option>
+            <option value="Polio">Polio</option>
+            <option value="DPT">DPT</option>
+            <option value="Campak">Campak</option>
+            <option value="HIB">HIB</option>
+            <option value="PCV">PCV</option>
+            <option value="Rotavirus">Rotavirus</option>
+            <option value="MMR">MMR</option>
+            <option value="Varicella">Varicella</option>
+            <option value="Influenza">Influenza</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Nama Bayi/Anak *</label>
+          <input
+            type="text"
+            name="nama_anak"
+            value={formData.nama_anak || ''}
+            onChange={handleInputChange}
+            placeholder="Nama bayi/anak"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Umur Anak (bulan) *</label>
+          <input
+            type="number"
+            name="umur_anak"
+            value={formData.umur_anak || ''}
+            onChange={handleInputChange}
+            placeholder="Contoh: 6"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Berat Badan Anak (kg)</label>
+          <input
+            type="number"
+            step="0.1"
+            name="berat_badan_anak"
+            value={formData.berat_badan_anak || ''}
+            onChange={handleInputChange}
+            placeholder="Contoh: 8.5"
+          />
+        </div>
+        <div className="form-group">
+          <label>Tinggi Badan Anak (cm)</label>
+          <input
+            type="number"
+            name="tinggi_badan_anak"
+            value={formData.tinggi_badan_anak || ''}
+            onChange={handleInputChange}
+            placeholder="Contoh: 70"
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Kondisi Anak Saat Imunisasi</label>
+        <select
+          name="kondisi_anak"
+          value={formData.kondisi_anak || ''}
+          onChange={handleInputChange}
+        >
+          <option value="">Pilih Kondisi</option>
+          <option value="Sehat">Sehat</option>
+          <option value="Demam Ringan">Demam Ringan</option>
+          <option value="Batuk/Pilek">Batuk/Pilek</option>
+        </select>
+      </div>
+
+      <div className="form-group">
+        <label>Catatan</label>
+        <textarea
+          name="catatan"
+          value={formData.catatan || ''}
+          onChange={handleInputChange}
+          rows="3"
+          placeholder="Catatan tambahan (reaksi, keluhan, dll)"
+        />
+      </div>
+    </>
+  );
+
+  return (
+    <div className="formulir-layanan-page">
+      {/* Header */}
+      <div className="fl-header">
+        <div className="fl-header-left">
+          <div className="fl-header-logo">
+            <img src={pinkLogo} alt="Pink Logo" className="fl-header-logo-img" />
+          </div>
+          <h1 className="fl-header-title">Formulir Registrasi Layanan</h1>
+        </div>
+        <button className="btn-kembali-fl" onClick={onBack}>Kembali</button>
+      </div>
+
+      {/* Main Content */}
+      <div className="fl-content">
+        {/* Sidebar */}
+        <Sidebar
+          activePage={`layanan-${jenisLayanan.toLowerCase()}`}
+          onRiwayatDataMasuk={onToRiwayatDataMasuk}
+          onRiwayatMasukAkun={onToRiwayatMasukAkun}
+          onProfilSaya={onToProfil}
+          onTambahPasien={onToTambahPasien}
+          onTambahPengunjung={onToTambahPengunjung}
+          onBuatLaporan={onToBuatLaporan}
+          onToPersalinan={onToPersalinan}
+          onToANC={onToANC}
+          onToKB={onToKB}
+          onToImunisasi={onToImunisasi}
+        />
+
+        {/* Form */}
+        <main className="fl-main">
+          {/* Tabs untuk switch jenis layanan */}
+          <div className="fl-tabs">
+            <button
+              className={`fl-tab ${jenisLayanan === 'Persalinan' ? 'active' : ''}`}
+              onClick={() => setJenisLayanan('Persalinan')}
+            >
+              Persalinan
+            </button>
+            <button
+              className={`fl-tab ${jenisLayanan === 'ANC' ? 'active' : ''}`}
+              onClick={() => setJenisLayanan('ANC')}
+            >
+              ANC
+            </button>
+            <button
+              className={`fl-tab ${jenisLayanan === 'KB' ? 'active' : ''}`}
+              onClick={() => setJenisLayanan('KB')}
+            >
+              Keluarga Berencana
+            </button>
+            <button
+              className={`fl-tab ${jenisLayanan === 'Imunisasi' ? 'active' : ''}`}
+              onClick={() => setJenisLayanan('Imunisasi')}
+            >
+              Imunisasi
+            </button>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="fl-form">
+            <h2 className="fl-form-title">Data Pasien / Ibu</h2>
+
+            {/* Search Pasien */}
+            <div className="form-group pasien-search-group">
+              <label>Cari & Pilih Pasien *</label>
+              <div className="pasien-search-wrapper">
+                <input
+                  type="text"
+                  value={searchPasien}
+                  onChange={(e) => setSearchPasien(e.target.value)}
+                  onFocus={() => searchPasien.length >= 2 && setShowPasienDropdown(true)}
+                  placeholder="Ketik nama atau NIK pasien (min 2 karakter)"
+                  className="pasien-search-input"
+                />
+                {loadingPasien && <span className="search-loading">Mencari...</span>}
+                
+                {/* Dropdown pasien - hanya tampil jika belum ada pasien terpilih */}
+                {!selectedPasien && showPasienDropdown && daftarPasien.length > 0 && (
+                  <div className="pasien-dropdown">
+                    {daftarPasien.map((pasien) => (
+                      <div
+                        key={pasien.id_pasien}
+                        className="pasien-dropdown-item"
+                        onClick={() => handleSelectPasien(pasien)}
+                      >
+                        <div className="pasien-name">{pasien.nama}</div>
+                        <div className="pasien-details">
+                          NIK: {pasien.NIK || pasien.nik || '-'} | Umur: {pasien.umur} tahun
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!selectedPasien && showPasienDropdown && searchPasien.length >= 2 && daftarPasien.length === 0 && !loadingPasien && (
+                  <div className="pasien-dropdown">
+                    <div className="pasien-dropdown-empty">
+                      Tidak ada pasien ditemukan. 
+                      <button type="button" onClick={onToTambahPasien} className="link-btn">
+                        Tambah Pasien Baru
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Data pasien terpilih (read-only) */}
+            {selectedPasien && (
+              <div className="selected-pasien-info">
+                <h3>Informasi Pasien Terpilih</h3>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-label">Nama:</span>
+                    <span className="info-value">{selectedPasien.nama}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Umur:</span>
+                    <span className="info-value">{selectedPasien.umur} tahun</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">NIK:</span>
+                    <span className="info-value">{selectedPasien.NIK || selectedPasien.nik || '-'}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">No HP:</span>
+                    <span className="info-value">{selectedPasien.no_hp}</span>
+                  </div>
+                  <div className="info-item full-width">
+                    <span className="info-label">Alamat:</span>
+                    <span className="info-value">{selectedPasien.alamat}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <hr className="form-divider" />
+
+            <h2 className="fl-form-title">Data Pemeriksaan {jenisLayanan}</h2>
+
+            {/* Dynamic form fields based on jenis layanan */}
+            {renderFormFields()}
+
+            {/* Error & Success Messages */}
+            {error && <div className="alert alert-error">{error}</div>}
+            {success && <div className="alert alert-success">{success}</div>}
+
+            {/* Submit Button */}
+            <div className="form-actions">
+              <button type="button" onClick={resetForm} className="btn-reset" disabled={loading}>
+                Reset Form
+              </button>
+              <button type="submit" className="btn-submit" disabled={loading || !selectedPasien}>
+                {loading ? 'Menyimpan...' : `Simpan Data ${jenisLayanan}`}
+              </button>
+            </div>
+          </form>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default FormulirLayanan;

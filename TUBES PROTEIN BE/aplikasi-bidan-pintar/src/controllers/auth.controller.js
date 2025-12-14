@@ -82,7 +82,11 @@ const login = async (req, res) => {
         // Logika di service harus: 1. Record Log, 2. Kirim OTP.
         const response = await authService.loginUser(user, ipAddress);
 
-        res.status(200).json(response);
+        // Tambahkan email ke response untuk frontend
+        res.status(200).json({
+            ...response,
+            email: user.email
+        });
         
     } catch (error) {
         if (user) {
