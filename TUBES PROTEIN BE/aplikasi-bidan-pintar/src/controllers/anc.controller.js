@@ -1,19 +1,25 @@
-// src/controllers/anc.controller.js
-const ancService = require('../services/anc.service');
+/**
+ * ANC (Antenatal Care) Controller
+ * Handles HTTP requests for ANC service management
+ */
 
+const ancService = require('../services/anc.service');
+const { created, serverError } = require('../utils/response');
+
+/**
+ * Create ANC registration
+ * POST /api/anc/registrasi
+ */
 const createRegistrasiANC = async (req, res) => {
-    try {
-        const id_user_aksi = req.user.id;
-        const newRecord = await ancService.createRegistrasiANC(req.body, id_user_aksi);
-        
-        res.status(201).json({
-            message: 'Registrasi Layanan ANC berhasil disimpan secara lengkap.',
-            data: newRecord
-        });
-        
-    } catch (error) {
-        res.status(500).json({ message: 'Gagal menyimpan registrasi ANC.', error: error.message });
-    }
+  try {
+    const userId = req.user.id;
+    const newRecord = await ancService.createRegistrasiANC(req.body, userId);
+    return created(res, 'Registrasi Layanan ANC berhasil disimpan', newRecord);
+  } catch (error) {
+    return serverError(res, 'Gagal menyimpan registrasi ANC', error);
+  }
 };
 
-module.exports = { createRegistrasiANC };
+module.exports = {
+  createRegistrasiANC
+};

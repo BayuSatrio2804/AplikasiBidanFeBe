@@ -1,321 +1,307 @@
-// src/controllers/auth.controller.js
+/**
+ * Authentication Controller
+ * Handles user authentication, registration, and profile management
+ */
+
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const authService = require('../services/auth.service'); 
+const authService = require('../services/auth.service');
 const auditService = require('../services/audit.service');
 const otpService = require('../services/otp.service');
-const { JWT_SECRET, SALT_ROUNDS, TOKEN_EXPIRY } = require('../utils/constant'); // Pastikan ini di-import
+const { JWT_SECRET, SALT_ROUNDS, TOKEN_EXPIRY } = require('../utils/constant');
+const { success, created, badRequest, notFound, unauthorized, forbidden, serverError } = require('../utils/response');
 
-// 1. Fungsi REGISTER (Tanpa OTP, langsung aktif)
+/**
+ * Register new user
+ * POST /api/auth/register
+ */
 const register = async (req, res) => {
-    const { nama_lengkap, username, email, password } = req.body;
-    try {
-        console.log('[REGISTER] Attempting to register:', { nama_lengkap, username, email });
-        
-        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-        const id_user = uuidv4();
+  const { nama_lengkap, username, email, password } = req.body;
 
-        console.log('[REGISTER] Password hashed, calling authService.registerUser');
-        const newUser = await authService.registerUser(id_user, nama_lengkap, username, email, hashedPassword);
-        console.log('[REGISTER] User registered successfully:', newUser);
+  try {
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    const id_user = uuidv4();
 
-        // Registrasi berhasil tanpa OTP, akun langsung aktif
-        console.log('[REGISTER] User account is now active (no OTP required)');
+    const newUser = await authService.registerUser(
+      id_user,
+      nama_lengkap,
+      username,
+      email,
+      hashedPassword
+    );
 
-        return res.status(201).json({ 
-            success: true,
-            message: 'Registrasi berhasil! Silakan login menggunakan akun Anda.',
-            data: { id_user: newUser.id_user, nama_lengkap: newUser.nama_lengkap, username: newUser.username, email: newUser.email }
-        });
-    } catch (error) {
-        console.error('[REGISTER ERROR]', error);
-        console.error('[REGISTER ERROR STACK]', error.stack);
-        process.stderr.write(`\n[REGISTER ERROR DETAILS]\nMessage: ${error.message}\nCode: ${error.code}\nStack: ${error.stack}\n`);
-        
-        if (error.code === 'ER_DUP_ENTRY') {
-            const message = error.sqlMessage.includes('username') ? 'Username sudah digunakan.' : 'Email sudah terdaftar.';
-            return res.status(400).json({ success: false, message: message });
-        }
-        return res.status(500).json({ 
-            success: false,
-            message: 'Server Error', 
-            error: error.message,
-            details: error.toString()
-        });
+    return created(res, 'Registrasi berhasil! Silakan login menggunakan akun Anda.', {
+      id_user: newUser.id_user,
+      nama_lengkap: newUser.nama_lengkap,
+      username: newUser.username,
+      email: newUser.email
+    });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      const message = error.sqlMessage?.includes('username')
+        ? 'Username sudah digunakan'
+        : 'Email sudah terdaftar';
+      return badRequest(res, message);
     }
+    return serverError(res, 'Gagal mendaftarkan pengguna', error);
+  }
 };
 
-// 2. Fungsi LOGIN (Kirim OTP setiap kali login)
+/**
+ * Login user (sends OTP)
+ * POST /api/auth/login
+ */
 const login = async (req, res) => {
-    const { usernameOrEmail, password } = req.body;
-    let user = null;
-    const ipAddress = req.ip; 
-    
-    try {
-        console.log('[LOGIN] Attempting login for:', usernameOrEmail);
-        
-        // 1. Cari user
-        user = await authService.getUserByUsernameOrEmail(usernameOrEmail);
+  const { usernameOrEmail, password } = req.body;
+  const ipAddress = req.ip;
 
-        if (!user) {
-            console.log('[LOGIN] User not found');
-            await auditService.recordLoginAttempt(null, usernameOrEmail, 'GAGAL', ipAddress);
-            return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
-        }
+  try {
+    // Find user
+    const user = await authService.getUserByUsernameOrEmail(usernameOrEmail);
 
-        // 2. Bandingkan Password
-        const passwordMatch = await bcrypt.compare(password, user.password);
-
-        if (!passwordMatch) {
-            console.log('[LOGIN] Password mismatch');
-            await auditService.recordLoginAttempt(user.id_user, user.username, 'GAGAL', ipAddress);
-            return res.status(401).json({ message: 'Password salah.' });
-        }
-
-        // 3. Password cocok, kirim OTP untuk verifikasi
-        console.log('[LOGIN] Password correct, sending OTP to:', user.email);
-        try {
-            await otpService.saveAndSendOTP(user.id_user, user.email);
-            console.log('[LOGIN] OTP sent successfully');
-        } catch (otpError) {
-            console.error('[LOGIN] Failed to send OTP:', otpError.message);
-            return res.status(500).json({ message: 'Gagal mengirim kode OTP. Silakan coba lagi.' });
-        }
-
-        // 4. Return success, user harus verifikasi OTP
-        res.status(200).json({
-            success: true,
-            message: 'Password benar. Kode OTP telah dikirim ke email Anda.',
-            email: user.email
-        });
-        
-    } catch (error) {
-        console.error('[LOGIN ERROR]', error);
-        if (user) {
-            await auditService.recordLoginAttempt(user.id_user, user.username, 'GAGAL', ipAddress);
-        } else {
-            await auditService.recordLoginAttempt(null, usernameOrEmail, 'GAGAL', ipAddress);
-        }
-        res.status(500).json({ message: 'Server Error. Login gagal.', error: error.message });
+    if (!user) {
+      await auditService.recordLoginAttempt(null, usernameOrEmail, 'GAGAL', ipAddress);
+      return notFound(res, 'Pengguna tidak ditemukan');
     }
+
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      await auditService.recordLoginAttempt(user.id_user, user.username, 'GAGAL', ipAddress);
+      return unauthorized(res, 'Password salah');
+    }
+
+    // Send OTP
+    await otpService.saveAndSendOTP(user.id_user, user.email);
+
+    return success(res, 'Password benar. Kode OTP telah dikirim ke email Anda.', {
+      email: user.email
+    });
+  } catch (error) {
+    return serverError(res, 'Login gagal', error);
+  }
 };
 
-// 3. Fungsi verifyOTP (Langkah Akhir Login/Verifikasi Akun)
+/**
+ * Verify OTP and complete login
+ * POST /api/auth/verify-otp
+ */
 const verifyOTP = async (req, res) => {
-    const { usernameOrEmail, otp_code } = req.body;
-    let user = null;
+  const { usernameOrEmail, otp_code } = req.body;
 
-    try {
-        console.log('[VERIFY-OTP] Starting verification for:', { usernameOrEmail, otp_code });
-        
-        // 1. Cari user
-        user = await authService.getUserByUsernameOrEmail(usernameOrEmail);
-        console.log('[VERIFY-OTP] Found user:', { user: user ? { id: user.id_user, email: user.email } : null });
+  try {
+    // Find user
+    const user = await authService.getUserByUsernameOrEmail(usernameOrEmail);
 
-        if (!user) {
-            console.log('[VERIFY-OTP] User not found');
-            return res.status(400).json({ message: 'Pengguna tidak ditemukan.' });
-        }
-
-        // 2. Verifikasi OTP (Asumsi: service akan menghapus OTP setelah berhasil)
-        console.log('[VERIFY-OTP] Calling authService.verifyOTP');
-        const verifiedUser = await authService.verifyOTP(user, otp_code);
-        console.log('[VERIFY-OTP] OTP verified successfully, creating token');
-
-        // 3. Jika VERIFIED, buat JWT
-        const token = jwt.sign(
-            { id: verifiedUser.id_user, username: verifiedUser.username },
-            JWT_SECRET,
-            { expiresIn: TOKEN_EXPIRY }
-        );
-
-        console.log('[VERIFY-OTP] Token created, sending response');
-        res.status(200).json({
-            message: 'Verifikasi berhasil. Anda berhasil login.',
-            token: token,
-            user: { 
-                id_user: verifiedUser.id_user, 
-                nama_lengkap: verifiedUser.nama_lengkap, 
-                username: verifiedUser.username, 
-                email: verifiedUser.email 
-            }
-        });
-
-    } catch (error) {
-        console.log('[VERIFY-OTP ERROR]', { message: error.message, stack: error.stack });
-        // Error penanganan dari service (Kode Salah/Expired)
-        if (error.message.includes('Kode OTP') || error.message.includes('Pengguna')) {
-            return res.status(400).json({ message: error.message });
-        }
-        res.status(500).json({ message: 'Server Error', error: error.message });
+    if (!user) {
+      return badRequest(res, 'Pengguna tidak ditemukan');
     }
+
+    // Verify OTP
+    const verifiedUser = await authService.verifyOTP(user, otp_code);
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: verifiedUser.id_user, username: verifiedUser.username, email: verifiedUser.email },
+      JWT_SECRET,
+      { expiresIn: TOKEN_EXPIRY }
+    );
+
+    return success(res, 'Verifikasi berhasil. Anda berhasil login.', {
+      token,
+      user: {
+        id_user: verifiedUser.id_user,
+        nama_lengkap: verifiedUser.nama_lengkap,
+        username: verifiedUser.username,
+        email: verifiedUser.email
+      }
+    });
+  } catch (error) {
+    if (error.message.includes('OTP') || error.message.includes('Pengguna')) {
+      return badRequest(res, error.message);
+    }
+    return serverError(res, 'Verifikasi gagal', error);
+  }
 };
 
+/**
+ * Resend OTP code
+ * POST /api/auth/resend-otp
+ */
+const resendOTP = async (req, res) => {
+  const { usernameOrEmail } = req.body;
 
-// 4. Fungsi getProfile
+  try {
+    const user = await authService.getUserByUsernameOrEmail(usernameOrEmail);
+
+    if (!user) {
+      return notFound(res, 'Pengguna tidak ditemukan');
+    }
+
+    await otpService.saveAndSendOTP(user.id_user, user.email);
+
+    return success(res, 'Kode OTP baru telah dikirim ke email Anda.', {
+      email: user.email
+    });
+  } catch (error) {
+    return serverError(res, 'Gagal mengirim ulang OTP', error);
+  }
+};
+
+/**
+ * Get user profile
+ * GET /api/auth/profile
+ */
 const getProfile = async (req, res) => {
-    const userId = req.user.id; 
-    try {
-        const user = await authService.getUserById(userId); 
-        if (!user) {
-            return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
-        }
-        res.status(200).json({ message: 'Profil berhasil diambil', data: user });
-    } catch (error) {
-        res.status(500).json({ message: 'Server Error', error: error.message });
+  try {
+    const user = await authService.getUserById(req.user.id);
+
+    if (!user) {
+      return notFound(res, 'Pengguna tidak ditemukan');
     }
+
+    return success(res, 'Profil berhasil diambil', user);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil profil', error);
+  }
 };
 
-// 5. Fungsi updateProfile
+/**
+ * Update user profile
+ * PUT /api/auth/profile
+ */
 const updateProfile = async (req, res) => {
-    const userId = req.user.id;
-    const { password } = req.body; 
+  const { password } = req.body;
+
+  try {
     let hashedPassword = null;
-    try {
-        if (password) {
-            hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-        }
-        // req.body sudah divalidasi oleh Joi, jadi aman dikirim
-        const updatedData = await authService.updateProfile(userId, req.body, hashedPassword);
-        res.status(200).json({ message: 'Profil berhasil diperbarui', data: updatedData });
-    } catch (error) {
-        if (error.code === 'ER_DUP_ENTRY') {
-            const message = error.sqlMessage.includes('username') ? 'Username sudah digunakan.' : 'Email sudah terdaftar.';
-            return res.status(400).json({ message: message });
-        }
-        res.status(500).json({ message: 'Server Error', error: error.message });
+
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     }
+
+    const updatedData = await authService.updateProfile(req.user.id, req.body, hashedPassword);
+
+    return success(res, 'Profil berhasil diperbarui', updatedData);
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      const message = error.sqlMessage?.includes('username')
+        ? 'Username sudah digunakan'
+        : 'Email sudah terdaftar';
+      return badRequest(res, message);
+    }
+    return serverError(res, 'Gagal memperbarui profil', error);
+  }
 };
 
-// 6. Fungsi requestPasswordReset (Langkah 1: Kirim Kode OTP)
+/**
+ * Request password reset (sends OTP)
+ * POST /api/auth/forgot-password
+ */
 const requestPasswordReset = async (req, res) => {
-    const { email } = req.body;
-    try {
-        const user = await authService.getUserByEmail(email); 
-        
-        // Praktik terbaik: Beri respon samar untuk alasan keamanan
-        if (!user) {
-            // Berikan penundaan singkat untuk mempersulit serangan enumerasi
-            await new Promise(resolve => setTimeout(resolve, 1000)); 
-            return res.status(200).json({ 
-                message: 'Jika email terdaftar, kode reset password telah dikirimkan ke email Anda.' 
-            });
-        }
+  const { email } = req.body;
 
-        // Hasilkan, simpan OTP ke tabel otp_codes, dan kirimkan email.
-        await otpService.saveAndSendOTP(user.id_user, email); 
+  try {
+    const user = await authService.getUserByEmail(email);
 
-        res.status(200).json({ 
-            message: 'Kode verifikasi (OTP) untuk reset password telah dikirimkan ke email Anda.' 
-        });
-
-    } catch (error) {
-        // Logika untuk error seperti gagal kirim email.
-        res.status(500).json({ 
-            message: 'Gagal memproses permintaan reset password.', 
-            error: error.message 
-        });
+    // Security: Don't reveal if email exists
+    if (!user) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      return success(res, 'Jika email terdaftar, kode reset password telah dikirimkan');
     }
+
+    await otpService.saveAndSendOTP(user.id_user, email);
+
+    return success(res, 'Kode verifikasi untuk reset password telah dikirimkan ke email Anda');
+  } catch (error) {
+    return serverError(res, 'Gagal memproses permintaan reset password', error);
+  }
 };
 
-// 7. Fungsi verifyResetCode (Langkah 2: Verifikasi Kode)
+/**
+ * Verify reset password code
+ * POST /api/auth/verify-reset-code
+ */
 const verifyResetCode = async (req, res) => {
-    const { email, otp_code } = req.body;
-    try {
-        const user = await authService.getUserByEmail(email); 
-        if (!user) {
-            return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
-        }
+  const { email, otp_code } = req.body;
 
-        // 1. Validasi kode OTP
-        await otpService.validateOTP({ id_user: user.id_user }, otp_code);
-        
-        // 2. Hapus OTP setelah sukses
-        await otpService.deleteOTP(user.id_user);
-        
-        // 3. Buat token sementara (reset_token) dengan masa berlaku singkat (misal 5 menit)
-        const resetToken = jwt.sign(
-            { id: user.id_user, is_reset: true }, // payload khusus
-            JWT_SECRET, 
-            { expiresIn: '5m' } 
-        );
+  try {
+    const user = await authService.getUserByEmail(email);
 
-        res.status(200).json({ 
-            message: 'Kode verifikasi berhasil. Silakan gunakan token ini di header X-Reset-Token untuk mengatur ulang password Anda.',
-            reset_token: resetToken, 
-            id_user: user.id_user // Diperlukan untuk endpoint reset
-        });
-        
-    } catch (error) {
-        // Penanganan error dari otp.service (Kode Salah/Expired)
-        const status = error.message.includes('kedaluwarsa') || error.message.includes('tidak valid') ? 400 : 500;
-        res.status(status).json({ message: error.message });
+    if (!user) {
+      return notFound(res, 'Pengguna tidak ditemukan');
     }
+
+    // Validate OTP (validateOTP already deletes the OTP on success)
+    await otpService.validateOTP({ id_user: user.id_user }, otp_code);
+
+    // Generate short-lived reset token
+    const resetToken = jwt.sign(
+      { id: user.id_user, is_reset: true },
+      JWT_SECRET,
+      { expiresIn: '5m' }
+    );
+
+    return success(res, 'Kode verifikasi berhasil', {
+      reset_token: resetToken,
+      id_user: user.id_user
+    });
+  } catch (error) {
+    const isValidationError = error.message.includes('kedaluwarsa') || error.message.includes('tidak valid');
+    if (isValidationError) {
+      return badRequest(res, error.message);
+    }
+    return serverError(res, 'Verifikasi gagal', error);
+  }
 };
 
-
-// 8. Fungsi resetPassword (Langkah 3: Mengatur Ulang Password)
+/**
+ * Reset password with token
+ * POST /api/auth/reset-password
+ */
 const resetPassword = async (req, res) => {
-    // Ambil token reset dari header X-Reset-Token (standar yang lebih baik)
-    const resetToken = req.headers['x-reset-token'] || req.body.reset_token; 
-    const { id_user, new_password } = req.body; 
+  const resetToken = req.headers['x-reset-token'] || req.body.reset_token;
+  const { id_user, new_password } = req.body;
 
-    if (!resetToken) {
-        return res.status(401).json({ message: 'Token reset tidak ditemukan.' });
+  if (!resetToken) {
+    return unauthorized(res, 'Token reset tidak ditemukan');
+  }
+
+  try {
+    // Verify reset token
+    const decoded = jwt.verify(resetToken, JWT_SECRET);
+
+    // Validate token payload
+    if (!decoded.is_reset || decoded.id !== id_user) {
+      return forbidden(res, 'Token reset tidak valid atau tidak cocok dengan ID pengguna');
     }
 
-    try {
-        // 1. Verifikasi reset token
-        const decoded = jwt.verify(resetToken, JWT_SECRET);
+    // Hash and update password
+    const hashedPassword = await bcrypt.hash(new_password, SALT_ROUNDS);
+    await authService.updatePassword(id_user, hashedPassword);
 
-        // 2. Validasi payload khusus (is_reset=true) dan pastikan ID user cocok
-        if (!decoded.is_reset || decoded.id !== id_user) {
-            return res.status(403).json({ message: 'Token reset tidak valid atau tidak cocok dengan ID pengguna.' });
-        }
-        
-        // 3. Hash password baru
-        const hashedPassword = await bcrypt.hash(new_password, SALT_ROUNDS);
-
-        // 4. Update password di database
-        await authService.updatePassword(id_user, hashedPassword);
-        
-        // 5. Opsi: Hapus semua OTP (tidak perlu karena sudah dihapus di verifyResetCode)
-        // await otpService.deleteOTP(id_user); 
-
-        res.status(200).json({ 
-            message: 'Password berhasil diatur ulang. Silakan login dengan password baru Anda.' 
-        });
-
-    } catch (error) {
-        // Penanganan error JWT (Token Expired, JsonWebTokenError)
-        let status = 403;
-        let message = 'Token reset sudah kedaluwarsa atau tidak valid.';
-        if (error.name === 'TokenExpiredError') {
-            status = 401;
-            message = 'Token reset sudah kedaluwarsa. Silakan ulangi langkah lupa password.';
-        } else if (error.name === 'JsonWebTokenError') {
-            status = 403;
-            message = 'Token reset tidak valid.';
-        } else {
-            status = 500;
-            message = 'Server Error. Gagal reset password.';
-        }
-
-        res.status(status).json({ 
-            message: message, 
-            error: error.message 
-        });
+    return success(res, 'Password berhasil diatur ulang. Silakan login dengan password baru Anda.');
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return unauthorized(res, 'Token reset sudah kedaluwarsa');
     }
+    if (error.name === 'JsonWebTokenError') {
+      return forbidden(res, 'Token reset tidak valid');
+    }
+    return serverError(res, 'Gagal reset password', error);
+  }
 };
 
 module.exports = {
-    register,
-    login,
-    verifyOTP,
-    getProfile,
-    updateProfile,
-    requestPasswordReset,
-    verifyResetCode, // Tambahkan ini
-    resetPassword,
+  register,
+  login,
+  verifyOTP,
+  resendOTP,
+  getProfile,
+  updateProfile,
+  requestPasswordReset,
+  verifyResetCode,
+  resetPassword
 };

@@ -1,18 +1,26 @@
-// src/routes/pasien.routes.js
+/**
+ * Patient Routes
+ * Protected routes for patient management
+ */
+
 const express = require('express');
 const router = express.Router();
 const pasienController = require('../controllers/pasien.controller');
 const { verifyToken } = require('../middleware/auth');
-const validator = require('../middleware/validator.middleware');
+const validate = require('../middleware/validator.middleware');
 const { PasienSchema } = require('../validators/pasien.validator');
 
-router.use(verifyToken); // Lindungi semua route pasien
+// All routes require authentication
+router.use(verifyToken);
 
-router.get('/', pasienController.getAllPasien); // List & Cari Pasien (FR-04)
-router.post('/', validator(PasienSchema), pasienController.createPasien); // Tambah Pasien (FR-02)
+// Patient CRUD operations
+router.get('/', pasienController.getAllPasien);
 router.get('/:id', pasienController.getPasienById);
-router.put('/:id', validator(PasienSchema), pasienController.updatePasien); // Update Pasien (FR-02)
-router.delete('/:id', pasienController.deletePasien); // Hapus Pasien (FR-02)
-router.get('/:id/riwayat', pasienController.getRiwayatPasien); // Riwayat Pemeriksaan (FR-08)
+router.post('/', validate(PasienSchema), pasienController.createPasien);
+router.put('/:id', validate(PasienSchema), pasienController.updatePasien);
+router.delete('/:id', pasienController.deletePasien);
+
+// Patient history
+router.get('/:id/riwayat', pasienController.getRiwayatPasien);
 
 module.exports = router;

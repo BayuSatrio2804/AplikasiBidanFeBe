@@ -1,76 +1,91 @@
-const ExcelJS = require('exceljs'); 
+/**
+ * Laporan (Report) Controller
+ * Handles HTTP requests for report generation
+ */
+
+const ExcelJS = require('exceljs');
 const laporanService = require('../services/laporan.service');
+const { success, badRequest, serverError } = require('../utils/response');
 
-// --- Controller: Generate Laporan Bulanan (Excel) ---
+/**
+ * Generate monthly report (Excel format)
+ * GET /api/laporan/bulanan
+ */
 const generateLaporanBulanan = async (req, res) => {
-    const { format, bulan, tahun } = req.query;
-    // req.user.id didapatkan dari middleware verifyToken
-    const id_user_bidan = req.user ? req.user.id : 'SIMULASI_USER_ID'; 
+  const { format, bulan, tahun } = req.query;
+  const userId = req.user?.id || 'SYSTEM';
 
-    const bulanInt = parseInt(bulan);
-    const tahunInt = parseInt(tahun);
+  const bulanInt = parseInt(bulan, 10);
+  const tahunInt = parseInt(tahun, 10);
 
-    // Validasi dasar
-    if (!format || format.toLowerCase() !== 'excel' || isNaN(bulanInt) || bulanInt < 1 || bulanInt > 12 || isNaN(tahunInt) || tahunInt < 2020) {
-        return res.status(400).json({ 
-            message: 'Input tidak valid. Pastikan format="excel", bulan (1-12), dan tahun terisi dengan benar.' 
-        });
+  // Validate parameters
+  if (!format || format.toLowerCase() !== 'excel') {
+    return badRequest(res, 'Format harus "excel"');
+  }
+
+  if (isNaN(bulanInt) || bulanInt < 1 || bulanInt > 12) {
+    return badRequest(res, 'Bulan harus angka 1-12');
+  }
+
+  if (isNaN(tahunInt) || tahunInt < 2020) {
+    return badRequest(res, 'Tahun harus valid (minimal 2020)');
+  }
+
+  try {
+    const reportData = await laporanService.getLaporanData(bulanInt, tahunInt);
+
+    if (reportData.length === 0) {
+      return success(res, `Tidak ada data untuk periode ${bulanInt}/${tahunInt}`, []);
     }
 
-    try {
-        const reportData = await laporanService.getLaporanData(bulanInt, tahunInt);
+    // Log report generation
+    await laporanService.recordLaporanLog(userId, bulanInt, tahunInt, format.toLowerCase());
 
-        if (reportData.length === 0) {
-            return res.status(200).json({
-                message: `Tidak ada data pemeriksaan detil untuk periode ${bulanInt}/${tahunInt}.`,
-                data: []
-            });
-        }
+    // Generate Excel file
+    const filename = `Laporan_Detil_${bulanInt}_${tahunInt}.xlsx`;
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(`Laporan ${bulanInt}-${tahunInt}`);
 
-        // Catat ke log laporan (FR-05)
-        await laporanService.recordLaporanLog(id_user_bidan, bulanInt, tahunInt, format.toLowerCase());
-        
-        // --- Implementasi ExcelJS ---
-        const filename = `Laporan_Detil_Bulan_${bulanInt}_${tahunInt}.xlsx`;
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet(`Laporan Detil ${bulanInt}-${tahunInt}`);
+    // Define columns
+    worksheet.columns = [
+      { header: 'No.', key: 'no', width: 5 },
+      { header: 'Nama Pasien', key: 'nama_pasien', width: 25 },
+      { header: 'Tanggal Periksa', key: 'tanggal', width: 15 },
+      { header: 'Jenis Layanan', key: 'jenis_layanan', width: 15 },
+      { header: 'Subjektif', key: 'subjektif', width: 40 },
+      { header: 'Objektif', key: 'objektif', width: 40 },
+      { header: 'Analisa', key: 'analisa', width: 40 },
+      { header: 'Tatalaksana', key: 'tatalaksana', width: 40 }
+    ];
 
-        worksheet.columns = [
-            { header: 'No.', key: 'no', width: 5 },
-            { header: 'Nama Pasien', key: 'nama_pasien', width: 25 },
-            { header: 'Tanggal Periksa', key: 'tanggal', width: 15 },
-            { header: 'Jenis Layanan', key: 'jenis_layanan', width: 15 },
-            { header: 'SOAP (S: Subjektif)', key: 'subjektif', width: 40 },
-            { header: 'SOAP (O: Objektif)', key: 'objektif', width: 40 },
-            { header: 'SOAP (A: Analisa)', key: 'analisa', width: 40 },
-            { header: 'SOAP (P: Tatalaksana)', key: 'tatalaksana', width: 40 },
-        ];
+    // Style header row
+    worksheet.getRow(1).font = { bold: true };
 
-        reportData.forEach((data, index) => {
-            worksheet.addRow({
-                no: index + 1,
-                nama_pasien: data.nama_pasien,
-                tanggal: new Date(data.tanggal).toLocaleDateString('id-ID'),
-                jenis_layanan: data.jenis_layanan,
-                subjektif: data.subjektif,
-                objektif: data.objektif,
-                analisa: data.analisa,
-                tatalaksana: data.tatalaksana,
-            });
-        });
+    // Add data rows
+    reportData.forEach((data, index) => {
+      worksheet.addRow({
+        no: index + 1,
+        nama_pasien: data.nama_pasien,
+        tanggal: new Date(data.tanggal).toLocaleDateString('id-ID'),
+        jenis_layanan: data.jenis_layanan,
+        subjektif: data.subjektif,
+        objektif: data.objektif,
+        analisa: data.analisa,
+        tatalaksana: data.tatalaksana
+      });
+    });
 
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    // Set response headers for file download
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
-        await workbook.xlsx.write(res);
-        res.end();
-        
-    } catch (error) {
-        console.error('Error generating report:', error);
-        res.status(500).json({ message: 'Gagal membuat laporan.', error: error.message });
-    }
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    return serverError(res, 'Gagal membuat laporan', error);
+  }
 };
 
 module.exports = {
-    generateLaporanBulanan
+  generateLaporanBulanan
 };

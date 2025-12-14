@@ -1,87 +1,100 @@
+/**
+ * Schedule Controller
+ * Handles HTTP requests for schedule management
+ */
+
 const jadwalService = require('../services/jadwal.service');
-const db = require('../config/database');
+const { success, created, notFound, serverError } = require('../utils/response');
 
-// 1. GET List & Filter Jadwal
+/**
+ * Get all schedules with optional filters
+ * GET /api/jadwal
+ */
 const listJadwal = async (req, res) => {
-    const { bulan, tahun, layanan } = req.query; 
-
-    try {
-        const data = await jadwalService.listJadwal(bulan, tahun, layanan);
-
-        res.status(200).json({ message: 'Berhasil mengambil data jadwal', data });
-    } catch (error) {
-        res.status(500).json({ message: 'Server Error', error: error.message });
-    }
+  try {
+    const { bulan, tahun, layanan } = req.query;
+    const data = await jadwalService.listJadwal(bulan, tahun, layanan);
+    return success(res, 'Berhasil mengambil data jadwal', data);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil data jadwal', error);
+  }
 };
 
-// 2. POST Buat Jadwal Baru
+/**
+ * Create new schedule
+ * POST /api/jadwal
+ */
 const createJadwal = async (req, res) => {
-    try {
-        const newJadwal = await jadwalService.createJadwal(req.body);
-
-        res.status(201).json({ message: 'Jadwal berhasil dibuat', data: newJadwal });
-    } catch (error) {
-        res.status(500).json({ message: 'Gagal membuat jadwal', error: error.message });
-    }
+  try {
+    const newJadwal = await jadwalService.createJadwal(req.body);
+    return created(res, 'Jadwal berhasil dibuat', newJadwal);
+  } catch (error) {
+    return serverError(res, 'Gagal membuat jadwal', error);
+  }
 };
 
-// 3. GET Detail Jadwal
+/**
+ * Get schedule by ID
+ * GET /api/jadwal/:id
+ */
 const getDetailJadwal = async (req, res) => {
+  try {
     const { id } = req.params;
-    try {
-        const data = await jadwalService.getDetailJadwal(id);
-        
-        if (!data) {
-            return res.status(404).json({ message: 'Data jadwal tidak ditemukan' });
-        }
+    const data = await jadwalService.getDetailJadwal(id);
 
-        res.status(200).json({ message: 'Detail jadwal ditemukan', data });
-    } catch (error) {
-        res.status(500).json({ message: 'Server Error', error: error.message });
+    if (!data) {
+      return notFound(res, 'Jadwal tidak ditemukan');
     }
+
+    return success(res, 'Detail jadwal ditemukan', data);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil detail jadwal', error);
+  }
 };
 
-// 4. PUT Update Jadwal
+/**
+ * Update schedule
+ * PUT /api/jadwal/:id
+ */
 const updateJadwal = async (req, res) => {
+  try {
     const { id } = req.params;
-    try {
-        const existingJadwal = await jadwalService.getDetailJadwal(id);
-        if (!existingJadwal) {
-            return res.status(404).json({ message: 'Jadwal tidak ditemukan' });
-        }
 
-        const updatedJadwal = await jadwalService.updateJadwal(id, req.body);
-        res.status(200).json({ message: 'Jadwal berhasil diperbarui', data: updatedJadwal });
-
-    } catch (error) {
-        res.status(500).json({ message: 'Gagal update jadwal', error: error.message });
+    const existingJadwal = await jadwalService.getDetailJadwal(id);
+    if (!existingJadwal) {
+      return notFound(res, 'Jadwal tidak ditemukan');
     }
+
+    const updatedJadwal = await jadwalService.updateJadwal(id, req.body);
+    return success(res, 'Jadwal berhasil diperbarui', updatedJadwal);
+  } catch (error) {
+    return serverError(res, 'Gagal memperbarui jadwal', error);
+  }
 };
 
-// 5. DELETE Hapus Jadwal
+/**
+ * Delete schedule
+ * DELETE /api/jadwal/:id
+ */
 const deleteJadwal = async (req, res) => {
+  try {
     const { id } = req.params;
+    const result = await jadwalService.deleteJadwal(id);
 
-    try {
-        const result = await jadwalService.deleteJadwal(id); // Dipindahkan ke Service
-        
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Jadwal tidak ditemukan' });
-        }
-        res.status(200).json({ 
-            message: 'Jadwal berhasil dihapus',
-            id_jadwal: id
-        });
-        
-    } catch (error) {
-        res.status(500).json({ message: 'Gagal menghapus jadwal', error: error.message });
+    if (result.affectedRows === 0) {
+      return notFound(res, 'Jadwal tidak ditemukan');
     }
+
+    return success(res, 'Jadwal berhasil dihapus', { id_jadwal: id });
+  } catch (error) {
+    return serverError(res, 'Gagal menghapus jadwal', error);
+  }
 };
 
 module.exports = {
-    listJadwal,
-    createJadwal,
-    getDetailJadwal,
-    updateJadwal,
-    deleteJadwal
+  listJadwal,
+  createJadwal,
+  getDetailJadwal,
+  updateJadwal,
+  deleteJadwal
 };

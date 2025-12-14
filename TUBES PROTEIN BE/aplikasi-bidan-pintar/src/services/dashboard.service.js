@@ -1,45 +1,54 @@
-// src/services/dashboard.service.js
+/**
+ * Dashboard Service
+ * Handles dashboard statistics and analytics
+ */
+
 const db = require('../config/database');
 const { VALID_LAYANAN } = require('../utils/constant');
 
+/**
+ * Get service summary by category
+ * @param {number} tahun - Year filter (optional)
+ * @returns {Object} Summary with total and breakdown by service type
+ */
 const getRekapLayanan = async (tahun) => {
-    let params = [];
-    
-    let query = `
-        SELECT 
-            jenis_layanan,
-            COUNT(id_pasien) as jumlah_kunjungan
-        FROM pemeriksaan
-        WHERE jenis_layanan IN (?)
-    `;
-    params.push(VALID_LAYANAN);
+  const params = [VALID_LAYANAN];
 
-    if (tahun) {
-        query += ' AND YEAR(tanggal_pemeriksaan) = ?';
-        params.push(tahun);
-    }
+  let query = `
+    SELECT 
+      jenis_layanan,
+      COUNT(id_pasien) AS jumlah_kunjungan
+    FROM pemeriksaan
+    WHERE jenis_layanan IN (?)
+  `;
 
-    query += ' GROUP BY jenis_layanan';
-    
-    const [rows] = await db.query(query, params);
-    
-    let totalKunjungan = 0;
-    rows.forEach(row => {
-        totalKunjungan += row.jumlah_kunjungan;
-    });
+  if (tahun) {
+    query += ' AND YEAR(tanggal_pemeriksaan) = ?';
+    params.push(tahun);
+  }
 
-    const rekapData = rows.map(row => {
-        const persentase = (row.jumlah_kunjungan / totalKunjungan) * 100;
-        return {
-            layanan: row.jenis_layanan,
-            jumlah_pasien: row.jumlah_kunjungan,
-            persentase: parseFloat(persentase.toFixed(2))
-        };
-    });
+  query += ' GROUP BY jenis_layanan';
 
-    return { total: totalKunjungan, data: rekapData };
+  const [rows] = await db.query(query, params);
+
+  // Calculate totals
+  const totalKunjungan = rows.reduce((sum, row) => sum + row.jumlah_kunjungan, 0);
+
+  // Map to response format with percentages
+  const rekapData = rows.map((row) => ({
+    layanan: row.jenis_layanan,
+    jumlah_pasien: row.jumlah_kunjungan,
+    persentase: totalKunjungan > 0
+      ? parseFloat(((row.jumlah_kunjungan / totalKunjungan) * 100).toFixed(2))
+      : 0
+  }));
+
+  return {
+    total: totalKunjungan,
+    data: rekapData
+  };
 };
 
 module.exports = {
-    getRekapLayanan
+  getRekapLayanan
 };

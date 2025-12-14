@@ -1,0 +1,109 @@
+import { useState } from 'react';
+import './Auth.css';
+import pinkLogo from '../../assets/images/pink-logo.png';
+import authService from '../../services/auth.service';
+
+function Masuk({ onNavigate, onLogin }) {
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+    
+    try {
+      const response = await authService.login({
+        usernameOrEmail,
+        password,
+      });
+      
+      if (response.success) {
+        // Login berhasil, OTP dikirim ke email
+        onNavigate('verifikasi-otp', { 
+          email: response.data?.email || response.email, 
+          usernameOrEmail 
+        });
+      } else {
+        setError(response.message || 'Login gagal');
+      }
+    } catch (error) {
+      console.error('Error login:', error);
+      setError(error.message || 'Terjadi kesalahan saat login');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="auth-page">
+      <div className="auth-container">
+        <h2 className="form-title">Masuk</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="form-card">
+            <div className="logo-container">
+              <div className="logo">
+                <img src={pinkLogo} alt="Pink Logo" className="auth-logo-img" />
+              </div>
+            </div>
+            
+            {error && (
+              <div className="error-message" style={{ 
+                color: '#ff6b6b', 
+                textAlign: 'center', 
+                marginBottom: '15px',
+                padding: '10px',
+                backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                borderRadius: '5px'
+              }}>
+                {error}
+              </div>
+            )}
+            
+            <div className="form-group">
+              <input
+                type="text"
+                placeholder="Username atau email"
+                value={usernameOrEmail}
+                onChange={(e) => setUsernameOrEmail(e.target.value)}
+                disabled={isLoading}
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <input
+                type="password"
+                placeholder="Kata Sandi"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                required
+              />
+            </div>
+            
+            <div className="form-footer">
+              <label className="checkbox-container">
+                <input type="checkbox" />
+                <span>Ingat saya</span>
+              </label>
+              <a href="#" className="forgot-password" onClick={(e) => { e.preventDefault(); onNavigate('lupa-password'); }}>Lupa password</a>
+            </div>
+            
+            <button type="submit" className="btn-submit" disabled={isLoading}>
+              {isLoading ? 'Memproses...' : 'Masuk'}
+            </button>
+            
+            <div className="link-text">
+              Belum punya akun? <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('buat-akun'); }}>Buat Akun</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default Masuk;

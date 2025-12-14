@@ -1,137 +1,149 @@
-// src/services/auth.service.js
+/**
+ * Authentication Service
+ * Handles user authentication, registration, and profile management
+ */
+
 const db = require('../config/database');
-const otpService = require('./otp.service'); 
+const otpService = require('./otp.service');
 const auditService = require('./audit.service');
 
-// =========================================================
-// FUNGSI UTAMA (Dengan Password untuk Login)
-// =========================================================
-
-// Fungsi Utilitas untuk Mendapatkan User (gabungan username/email)
+/**
+ * Find user by username or email (includes password for authentication)
+ * @param {string} identifier - Username or email
+ * @returns {Object|null} User data with password
+ */
 const getUserByUsernameOrEmail = async (identifier) => {
-    // Kita harus mengambil password untuk dibandingkan di Controller
-    const query = `
-        SELECT id_user, nama_lengkap, username, email, password 
-        FROM users 
-        WHERE username = ? OR email = ?
-    `;
-    
-    const [rows] = await db.query(query, [identifier, identifier]);
-    
-    return rows.length > 0 ? rows[0] : null;
-};
-
-// =========================================================
-// FUNGSI UTAMA (Tanpa Password untuk Reset/Profile)
-// =========================================================
-
-// Fungsi getUserById (sudah ada)
-const getUserById = async (id_user) => {
-    const [rows] = await db.query('SELECT id_user, nama_lengkap, username, email FROM users WHERE id_user = ?', [id_user]);
-    return rows[0];
+  const query = `
+    SELECT id_user, nama_lengkap, username, email, password, is_verified
+    FROM users 
+    WHERE username = ? OR email = ?
+  `;
+  const [rows] = await db.query(query, [identifier, identifier]);
+  return rows[0] || null;
 };
 
 /**
- * [TAMBAHAN BARU] Mencari user berdasarkan Email (untuk Forgot Password)
- * Mengambil id_user dan data penting, tetapi TIDAK mengambil password.
+ * Find user by ID (without password)
+ * @param {string} id_user - User ID
+ * @returns {Object|null} User data
+ */
+const getUserById = async (id_user) => {
+  const query = `
+    SELECT id_user, nama_lengkap, username, email, is_verified, created_at
+    FROM users 
+    WHERE id_user = ?
+  `;
+  const [rows] = await db.query(query, [id_user]);
+  return rows[0] || null;
+};
+
+/**
+ * Find user by email (for password reset)
+ * @param {string} email - User email
+ * @returns {Object|null} User data
  */
 const getUserByEmail = async (email) => {
-    const query = `
-        SELECT id_user, nama_lengkap, username, email 
-        FROM users 
-        WHERE email = ?
-    `;
-    const [rows] = await db.query(query, [email]);
-    return rows.length > 0 ? rows[0] : null;
+  const query = `
+    SELECT id_user, nama_lengkap, username, email, is_verified
+    FROM users 
+    WHERE email = ?
+  `;
+  const [rows] = await db.query(query, [email]);
+  return rows[0] || null;
 };
 
-
-// =========================================================
-// FUNGSI OTENTIKASI DAN MODIFIKASI
-// =========================================================
-
-// Fungsi Register (Akun langsung aktif tanpa OTP)
+/**
+ * Register new user
+ * @param {string} id_user - Generated user ID
+ * @param {string} nama_lengkap - Full name
+ * @param {string} username - Username
+ * @param {string} email - Email address
+ * @param {string} hashedPassword - Bcrypt hashed password
+ * @returns {Object} Created user data
+ */
 const registerUser = async (id_user, nama_lengkap, username, email, hashedPassword) => {
-    try {
-        const query = `
-            INSERT INTO users (id_user, nama_lengkap, username, email, password, is_verified) 
-            VALUES (?, ?, ?, ?, ?, 1)
-        `;
-        const result = await db.query(query, [id_user, nama_lengkap, username, email, hashedPassword]);
-        console.log('[AUTH.SERVICE] registerUser success - account is active:', { id_user, email });
-
-        // Mengembalikan data user yang baru dibuat (tanpa password)
-        return { id_user, nama_lengkap, username, email };
-    } catch (error) {
-        console.error('[AUTH.SERVICE] registerUser error:', error.message);
-        throw error;
-    }
+  const query = `
+    INSERT INTO users (id_user, nama_lengkap, username, email, password, is_verified) 
+    VALUES (?, ?, ?, ?, ?, 1)
+  `;
+  
+  await db.query(query, [id_user, nama_lengkap, username, email, hashedPassword]);
+  
+  return { id_user, nama_lengkap, username, email };
 };
 
-// Fungsi Login Utama (Memicu pengiriman OTP)
+/**
+ * Process login and send OTP
+ * @param {Object} user - User object
+ * @param {string} ipAddress - Client IP address
+ * @returns {Object} Login result with message
+ */
 const loginUser = async (user, ipAddress) => {
-    // 1. Catat Log Berhasil
-    await auditService.recordLoginAttempt(user.id_user, user.username, 'BERHASIL', ipAddress);
-    
-    // 2. Generate dan simpan OTP ke DB (Tabel otp_codes)
-    await otpService.saveAndSendOTP(user.id_user, user.email);
+  // Record successful login attempt
+  await auditService.recordLoginAttempt(user.id_user, user.username, 'BERHASIL', ipAddress);
+  
+  // Generate and send OTP
+  await otpService.saveAndSendOTP(user.id_user, user.email);
 
-    return { 
-        message: `Login berhasil. Kode verifikasi (OTP) telah dikirimkan ke email ${user.email}.`
-    };
+  return { 
+    message: `Kode verifikasi (OTP) telah dikirimkan ke email ${user.email}`
+  };
 };
 
+/**
+ * Verify OTP code
+ * @param {Object} user - User object
+ * @param {string} otp_code - OTP code to verify
+ * @returns {Object} Verified user data
+ */
 const verifyOTP = async (user, otp_code) => {
-    // Panggil logika validasi dari OTP Service
-    try {
-        await otpService.validateOTP(user, otp_code);
-        
-        // Jika validasi sukses, ambil data user yang bersih (tanpa password)
-        const verifiedUser = await getUserById(user.id_user);
-        return verifiedUser; // Dikembalikan ke controller untuk dibuatkan JWT
-
-    } catch (error) {
-        // Re-throw error dari OTP Service agar ditangkap di Controller
-        throw error;
-    }
+  await otpService.validateOTP(user, otp_code);
+  return getUserById(user.id_user);
 };
 
+/**
+ * Update user profile
+ * @param {string} id_user - User ID
+ * @param {Object} data - Profile data to update
+ * @param {string|null} hashedPassword - New password (optional)
+ * @returns {Object} Updated user data
+ */
 const updateProfile = async (id_user, data, hashedPassword = null) => {
-    // Menggunakan destructuring yang aman
-    const { nama_lengkap, username, email } = data; 
-    let updateQuery = 'UPDATE users SET nama_lengkap = ?, username = ?, email = ?';
-    const params = [nama_lengkap, username, email];
+  const { nama_lengkap, username, email } = data;
+  
+  const fields = ['nama_lengkap = ?', 'username = ?', 'email = ?'];
+  const params = [nama_lengkap, username, email];
 
-    if (hashedPassword) {
-         updateQuery += ', password = ?';
-         params.push(hashedPassword);
-    }
+  if (hashedPassword) {
+    fields.push('password = ?');
+    params.push(hashedPassword);
+  }
 
-    updateQuery += ' WHERE id_user = ?';
-    params.push(id_user);
+  params.push(id_user);
 
-    await db.query(updateQuery, params);
+  const query = `UPDATE users SET ${fields.join(', ')} WHERE id_user = ?`;
+  await db.query(query, params);
 
-    return { id_user, nama_lengkap, username, email };
+  return { id_user, nama_lengkap, username, email };
 };
 
+/**
+ * Update user password
+ * @param {string} id_user - User ID
+ * @param {string} hashedPassword - New hashed password
+ */
 const updatePassword = async (id_user, hashedPassword) => {
-    const query = 'UPDATE users SET password = ? WHERE id_user = ?';
-    await db.query(query, [hashedPassword, id_user]);
+  const query = 'UPDATE users SET password = ? WHERE id_user = ?';
+  await db.query(query, [hashedPassword, id_user]);
 };
 
-
-// =========================================================
-// EKSPOR SEMUA FUNGSI
-// =========================================================
 module.exports = {
-    getUserByUsernameOrEmail,
-    getUserById,
-    // [PENTING]: FUNGSI INI DITAMBAHKAN
-    getUserByEmail, 
-    registerUser,
-    loginUser,
-    updateProfile,
-    verifyOTP,
-    updatePassword
+  getUserByUsernameOrEmail,
+  getUserById,
+  getUserByEmail,
+  registerUser,
+  loginUser,
+  verifyOTP,
+  updateProfile,
+  updatePassword
 };

@@ -1,57 +1,81 @@
-// src/controllers/pemeriksaan.controller.js
+/**
+ * Examination Controller
+ * Handles HTTP requests for medical examination records (SOAP)
+ */
+
 const pemeriksaanService = require('../services/pemeriksaan.service');
+const { success, created, notFound, serverError } = require('../utils/response');
 
+/**
+ * Get all examination records
+ * GET /api/pemeriksaan
+ */
 const getAllPemeriksaan = async (req, res) => {
-    try {
-        const data = await pemeriksaanService.getAllPemeriksaan();
-        res.status(200).json({ message: 'Berhasil mengambil data pemeriksaan', data });
-    } catch (error) {
-        res.status(500).json({ message: 'Server Error', error: error.message });
-    }
+  try {
+    const data = await pemeriksaanService.getAllPemeriksaan();
+    return success(res, 'Berhasil mengambil data pemeriksaan', data);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil data pemeriksaan', error);
+  }
 };
 
-const createPemeriksaan = async (req, res) => {
-    try {
-        const id_user_aksi = req.user.id;
-        const newPemeriksaan = await pemeriksaanService.createPemeriksaan(req.body, id_user_aksi);
-
-        res.status(201).json({
-            message: 'Catatan pemeriksaan berhasil disimpan.',
-            data: newPemeriksaan
-        });
-    } catch (error) {
-        res.status(500).json({ message: 'Gagal menyimpan data pemeriksaan.', error: error.message });
-    }
-};
-
+/**
+ * Get examination by ID
+ * GET /api/pemeriksaan/:id
+ */
 const getDetailPemeriksaan = async (req, res) => {
+  try {
     const { id } = req.params;
-    try {
-        const data = await pemeriksaanService.getDetailPemeriksaan(id);
-        if (!data) {
-            return res.status(404).json({ message: 'Data pemeriksaan tidak ditemukan' });
-        }
-        res.status(200).json({ message: 'Detail pemeriksaan berhasil diambil', data });
-    } catch (error) {
-        res.status(500).json({ message: 'Server Error', error: error.message });
+    const data = await pemeriksaanService.getDetailPemeriksaan(id);
+
+    if (!data) {
+      return notFound(res, 'Data pemeriksaan tidak ditemukan');
     }
+
+    return success(res, 'Detail pemeriksaan berhasil diambil', data);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil detail pemeriksaan', error);
+  }
 };
 
+/**
+ * Create new examination record
+ * POST /api/pemeriksaan
+ */
+const createPemeriksaan = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const newPemeriksaan = await pemeriksaanService.createPemeriksaan(req.body, userId);
+    return created(res, 'Catatan pemeriksaan berhasil disimpan', newPemeriksaan);
+  } catch (error) {
+    return serverError(res, 'Gagal menyimpan data pemeriksaan', error);
+  }
+};
+
+/**
+ * Update examination record
+ * PUT /api/pemeriksaan/:id
+ */
 const updatePemeriksaan = async (req, res) => {
+  try {
     const { id } = req.params;
-    try {
-        const existingPemeriksaan = await pemeriksaanService.getDetailPemeriksaan(id);
-        if (!existingPemeriksaan) {
-            return res.status(404).json({ message: 'Data pemeriksaan tidak ditemukan' });
-        }
+    const userId = req.user.id;
 
-        const id_user_aksi = req.user.id;
-        const updatedPemeriksaan = await pemeriksaanService.updatePemeriksaan(id, id_user_aksi, req.body);
-
-        res.status(200).json({ message: 'Catatan SOAP berhasil diperbarui.', data: updatedPemeriksaan });
-    } catch (error) {
-        res.status(500).json({ message: 'Gagal mengupdate catatan SOAP.', error: error.message });
+    const existingPemeriksaan = await pemeriksaanService.getDetailPemeriksaan(id);
+    if (!existingPemeriksaan) {
+      return notFound(res, 'Data pemeriksaan tidak ditemukan');
     }
+
+    const updatedPemeriksaan = await pemeriksaanService.updatePemeriksaan(id, userId, req.body);
+    return success(res, 'Catatan SOAP berhasil diperbarui', updatedPemeriksaan);
+  } catch (error) {
+    return serverError(res, 'Gagal memperbarui catatan SOAP', error);
+  }
 };
 
-module.exports = { getAllPemeriksaan, createPemeriksaan, getDetailPemeriksaan, updatePemeriksaan };
+module.exports = {
+  getAllPemeriksaan,
+  getDetailPemeriksaan,
+  createPemeriksaan,
+  updatePemeriksaan
+};

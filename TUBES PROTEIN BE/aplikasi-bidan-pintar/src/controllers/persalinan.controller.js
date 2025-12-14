@@ -1,19 +1,25 @@
-// src/controllers/persalinan.controller.js
-const persalinanService = require('../services/persalinan.service');
+/**
+ * Persalinan (Delivery/Birth) Controller
+ * Handles HTTP requests for delivery service management
+ */
 
+const persalinanService = require('../services/persalinan.service');
+const { created, serverError } = require('../utils/response');
+
+/**
+ * Create delivery registration
+ * POST /api/persalinan/registrasi
+ */
 const createRegistrasiPersalinan = async (req, res) => {
-    try {
-        const id_user_aksi = req.user.id;
-        const newRecord = await persalinanService.createRegistrasiPersalinan(req.body, id_user_aksi);
-        
-        res.status(201).json({
-            message: 'Registrasi Layanan Persalinan berhasil disimpan secara lengkap.',
-            data: newRecord
-        });
-        
-    } catch (error) {
-        res.status(500).json({ message: 'Gagal menyimpan registrasi Persalinan.', error: error.message });
-    }
+  try {
+    const userId = req.user.id;
+    const newRecord = await persalinanService.createRegistrasiPersalinan(req.body, userId);
+    return created(res, 'Registrasi Layanan Persalinan berhasil disimpan', newRecord);
+  } catch (error) {
+    return serverError(res, 'Gagal menyimpan registrasi Persalinan', error);
+  }
 };
 
-module.exports = { createRegistrasiPersalinan };
+module.exports = {
+  createRegistrasiPersalinan
+};

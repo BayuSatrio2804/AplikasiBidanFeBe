@@ -1,52 +1,63 @@
-// src/utils/mailer.js
+/**
+ * Email Utility
+ * Handles sending emails using nodemailer
+ */
+
 const nodemailer = require('nodemailer');
 const { EMAIL_USER, EMAIL_PASS, OTP_EXPIRY_MINUTES } = require('./constant');
 
-// Konfigurasi Transporter (Menggunakan Gmail sebagai contoh)
-const transporter = nodemailer.createTransport({
+// Create transporter (using Gmail by default)
+const createTransporter = () => {
+  if (!EMAIL_USER || !EMAIL_PASS) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: EMAIL_USER, 
-        pass: EMAIL_PASS, // Gunakan App Password Gmail Anda
-    },
-});
-
-/**
- * Mengirimkan kode OTP ke email tujuan.
- */
-const sendOTP = async (toEmail, otpCode) => {
-    if (!EMAIL_USER || !EMAIL_PASS) {
-        // Log error jika konfigurasi belum lengkap
-        console.error("ERROR: Konfigurasi EMAIL_USER atau EMAIL_PASS (App Password) belum diatur di .env.");
-        throw new Error("Konfigurasi email server belum lengkap.");
+      user: EMAIL_USER,
+      pass: EMAIL_PASS
     }
-    
-    const mailOptions = {
-        from: `Sistem Bidan Pintar <${EMAIL_USER}>`,
-        to: toEmail,
-        subject: 'Kode Verifikasi One-Time Password (OTP)',
-        html: `
-            <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
-                <h2 style="color: #007bff;">Verifikasi Akun Anda</h2>
-                <p>Halo,</p>
-                <p>Anda telah meminta kode verifikasi. Gunakan kode di bawah ini untuk melanjutkan:</p>
-                <div style="background-color: #f8f9fa; padding: 15px; text-align: center; border-radius: 5px; margin: 20px 0;">
-                    <span style="font-size: 24px; font-weight: bold; color: #343a40;">${otpCode}</span>
-                </div>
-                <p>Kode ini akan kedaluwarsa dalam **${OTP_EXPIRY_MINUTES} menit**.</p>
-                <p>Jika Anda tidak meminta kode ini, abaikan email ini.</p>
-                <p>Terima kasih,<br>Tim Bidan Pintar</p>
-            </div>
-        `,
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error('Gagal mengirim email OTP:', error);
-        throw new Error('Gagal mengirimkan kode OTP melalui email.');
-    }
+  });
 };
 
-module.exports = { sendOTP };
+/**
+ * Send OTP code via email
+ * @param {string} toEmail - Recipient email
+ * @param {string} otpCode - OTP code to send
+ * @returns {boolean} Success status
+ */
+const sendOTP = async (toEmail, otpCode) => {
+  const transporter = createTransporter();
+
+  if (!transporter) {
+    throw new Error('Email configuration incomplete');
+  }
+
+  const mailOptions = {
+    from: `Sistem Bidan Pintar <${EMAIL_USER}>`,
+    to: toEmail,
+    subject: 'Kode Verifikasi OTP',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+        <h2 style="color: #2563eb; margin-bottom: 20px;">Verifikasi Akun Anda</h2>
+        <p>Halo,</p>
+        <p>Gunakan kode berikut untuk verifikasi:</p>
+        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #1f2937;">${otpCode}</span>
+        </div>
+        <p style="color: #6b7280; font-size: 14px;">Kode berlaku selama ${OTP_EXPIRY_MINUTES} menit.</p>
+        <p style="color: #6b7280; font-size: 14px;">Jika Anda tidak meminta kode ini, abaikan email ini.</p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+        <p style="color: #9ca3af; font-size: 12px;">Tim Bidan Pintar</p>
+      </div>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+  return true;
+};
+
+module.exports = {
+  sendOTP
+};

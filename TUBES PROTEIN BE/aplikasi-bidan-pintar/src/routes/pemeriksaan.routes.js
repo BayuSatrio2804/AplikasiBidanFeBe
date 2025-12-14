@@ -1,16 +1,22 @@
-// src/routes/pemeriksaan.routes.js
+/**
+ * Examination Routes
+ * Protected routes for medical examination (SOAP) management
+ */
+
 const express = require('express');
 const router = express.Router();
 const pemeriksaanController = require('../controllers/pemeriksaan.controller');
-const { verifyToken } = require('../middleware/auth'); 
-const validator = require('../middleware/validator.middleware');
-const { PemeriksaanSchema } = require('../validators/pemeriksaan.validator'); 
+const { verifyToken } = require('../middleware/auth');
+const validate = require('../middleware/validator.middleware');
+const { PemeriksaanSchema } = require('../validators/pemeriksaan.validator');
 
-router.use(verifyToken); // Lindungi semua route pemeriksaan
+// All routes require authentication
+router.use(verifyToken);
 
+// Examination CRUD operations
 router.get('/', pemeriksaanController.getAllPemeriksaan);
-router.post('/', validator(PemeriksaanSchema), pemeriksaanController.createPemeriksaan); // Catat SOAP Standar (FR-03)
 router.get('/:id', pemeriksaanController.getDetailPemeriksaan);
-router.put('/:id', validator(PemeriksaanSchema), pemeriksaanController.updatePemeriksaan); // Update SOAP (FR-03)
+router.post('/', validate(PemeriksaanSchema), pemeriksaanController.createPemeriksaan);
+router.put('/:id', validate(PemeriksaanSchema), pemeriksaanController.updatePemeriksaan);
 
 module.exports = router;

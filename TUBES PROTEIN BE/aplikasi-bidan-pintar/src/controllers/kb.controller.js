@@ -1,19 +1,25 @@
-// src/controllers/kb.controller.js
-const kbService = require('../services/kb.service');
+/**
+ * KB (Family Planning) Controller
+ * Handles HTTP requests for KB service management
+ */
 
+const kbService = require('../services/kb.service');
+const { created, serverError } = require('../utils/response');
+
+/**
+ * Create KB registration
+ * POST /api/kb/registrasi
+ */
 const createRegistrasiKB = async (req, res) => {
-    try {
-        const id_user_aksi = req.user.id;
-        const newRecord = await kbService.createRegistrasiKB(req.body, id_user_aksi);
-        
-        res.status(201).json({
-            message: 'Registrasi Layanan KB berhasil disimpan secara lengkap.',
-            data: newRecord
-        });
-        
-    } catch (error) {
-        res.status(500).json({ message: 'Gagal menyimpan registrasi KB.', error: error.message });
-    }
+  try {
+    const userId = req.user.id;
+    const newRecord = await kbService.createRegistrasiKB(req.body, userId);
+    return created(res, 'Registrasi Layanan KB berhasil disimpan', newRecord);
+  } catch (error) {
+    return serverError(res, 'Gagal menyimpan registrasi KB', error);
+  }
 };
 
-module.exports = { createRegistrasiKB };
+module.exports = {
+  createRegistrasiKB
+};

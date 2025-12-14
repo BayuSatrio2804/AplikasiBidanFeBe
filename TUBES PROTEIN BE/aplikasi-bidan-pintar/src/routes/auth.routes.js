@@ -1,52 +1,47 @@
-// src/routes/auth.routes.js
+/**
+ * Authentication Routes
+ * Public and protected authentication endpoints
+ */
+
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const { verifyToken } = require('../middleware/auth');
-const validator = require('../middleware/validator.middleware');
-// === Import Skema OTP dan Lupa Password ===
-const { 
-    RegisterSchema, 
-    LoginSchema, 
-    UpdateProfileSchema, 
-    OTPVerificationSchema,  
-    ForgotPasswordRequestSchema,
-    ForgotPasswordVerifySchema,
-    ForgotPasswordResetSchema 
-} = require('../validators/auth.validator'); 
+const validate = require('../middleware/validator.middleware');
+const {
+  RegisterSchema,
+  LoginSchema,
+  UpdateProfileSchema,
+  OTPVerificationSchema,
+  ForgotPasswordRequestSchema,
+  ForgotPasswordVerifySchema,
+  ForgotPasswordResetSchema
+} = require('../validators/auth.validator');
 
-// =========================================================
-// ENDPOINT PUBLIK (Registrasi, Login, OTP, Lupa Password)
-// =========================================================
-router.post('/register', validator(RegisterSchema), authController.register);
-// Login hanya untuk memicu pengiriman OTP/Email Verifikasi
-router.post('/login', validator(LoginSchema), authController.login); 
-// Verifikasi OTP yang dikirim saat Register/Login/Reset Password
-router.post('/verify-otp', validator(OTPVerificationSchema), authController.verifyOTP); 
+// ============================================
+// Public Routes (No authentication required)
+// ============================================
 
-// Lupa Password - Langkah 1: Kirim Kode OTP
-router.post('/forgot-password/request', 
-    validator(ForgotPasswordRequestSchema), 
-    authController.requestPasswordReset
-); 
+// Registration
+router.post('/register', validate(RegisterSchema), authController.register);
 
-// Lupa Password - Langkah 2: Verifikasi Kode OTP (Mendapatkan Reset Token)
-router.post('/forgot-password/verify-code', 
-    validator(ForgotPasswordVerifySchema), 
-    authController.verifyResetCode
-); 
+// Login (triggers OTP)
+router.post('/login', validate(LoginSchema), authController.login);
 
-// Lupa Password - Langkah 3: Reset Password (Menggunakan Reset Token di Header/Body)
-router.post('/forgot-password/reset', 
-    validator(ForgotPasswordResetSchema), 
-    authController.resetPassword
-);
+// OTP verification
+router.post('/verify-otp', validate(OTPVerificationSchema), authController.verifyOTP);
+router.post('/resend-otp', authController.resendOTP);
 
-// =========================================================
-// ENDPOINT TERLINDUNGI (Membutuhkan JWT)
-// =========================================================
-router.get('/me', verifyToken, authController.getProfile); 
-router.put('/me', verifyToken, validator(UpdateProfileSchema), authController.updateProfile);
+// Password reset flow
+router.post('/forgot-password/request', validate(ForgotPasswordRequestSchema), authController.requestPasswordReset);
+router.post('/forgot-password/verify-code', validate(ForgotPasswordVerifySchema), authController.verifyResetCode);
+router.post('/forgot-password/reset', validate(ForgotPasswordResetSchema), authController.resetPassword);
 
+// ============================================
+// Protected Routes (Authentication required)
+// ============================================
+
+router.get('/me', verifyToken, authController.getProfile);
+router.put('/me', verifyToken, validate(UpdateProfileSchema), authController.updateProfile);
 
 module.exports = router;

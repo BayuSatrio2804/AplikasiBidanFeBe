@@ -1,13 +1,19 @@
-// src/routes/persalinan.routes.js
+/**
+ * Persalinan (Delivery/Birth) Routes
+ * Protected routes for delivery service management
+ */
+
 const express = require('express');
 const router = express.Router();
 const persalinanController = require('../controllers/persalinan.controller');
-const { verifyToken } = require('../middleware/auth'); 
-const validator = require('../middleware/validator.middleware');
+const { verifyToken } = require('../middleware/auth');
+const validate = require('../middleware/validator.middleware');
 const { RegistrasiPersalinanSchema } = require('../validators/persalinan.validator');
 
-router.use(verifyToken); 
+// All routes require authentication
+router.use(verifyToken);
 
-router.post('/', validator(RegistrasiPersalinanSchema), persalinanController.createRegistrasiPersalinan); // Transaksi Persalinan
+// Delivery endpoints
+router.post('/', validate(RegistrasiPersalinanSchema), persalinanController.createRegistrasiPersalinan);
 
 module.exports = router;

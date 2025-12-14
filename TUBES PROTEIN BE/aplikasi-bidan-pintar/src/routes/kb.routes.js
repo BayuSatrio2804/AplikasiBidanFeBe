@@ -1,13 +1,19 @@
-// src/routes/kb.routes.js
+/**
+ * KB (Family Planning) Routes
+ * Protected routes for KB service management
+ */
+
 const express = require('express');
 const router = express.Router();
 const kbController = require('../controllers/kb.controller');
-const { verifyToken } = require('../middleware/auth'); 
-const validator = require('../middleware/validator.middleware');
+const { verifyToken } = require('../middleware/auth');
+const validate = require('../middleware/validator.middleware');
 const { RegistrasiKBSchema } = require('../validators/kb.validator');
 
-router.use(verifyToken); 
+// All routes require authentication
+router.use(verifyToken);
 
-router.post('/', validator(RegistrasiKBSchema), kbController.createRegistrasiKB); // Transaksi KB
+// KB endpoints
+router.post('/', validate(RegistrasiKBSchema), kbController.createRegistrasiKB);
 
 module.exports = router;

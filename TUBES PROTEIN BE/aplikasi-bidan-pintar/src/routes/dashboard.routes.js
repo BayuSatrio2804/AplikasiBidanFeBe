@@ -1,10 +1,17 @@
-const express = require('express');
+/**
+ * Dashboard Routes
+ * Protected routes for dashboard statistics
+ */
 
+const express = require('express');
 const router = express.Router();
 const dashboardController = require('../controllers/dashboard.controller');
-const { verifyToken } = require('../middleware/auth'); 
+const { verifyToken } = require('../middleware/auth');
 
-router.use(verifyToken); 
+// All routes require authentication
+router.use(verifyToken);
+
+// Dashboard endpoints
 router.get('/rekap-layanan', dashboardController.getRekapLayanan);
 
 module.exports = router;
