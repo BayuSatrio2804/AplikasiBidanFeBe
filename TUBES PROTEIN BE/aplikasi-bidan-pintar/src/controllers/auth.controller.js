@@ -7,7 +7,7 @@ const auditService = require('../services/audit.service');
 const otpService = require('../services/otp.service');
 const { JWT_SECRET, SALT_ROUNDS, TOKEN_EXPIRY } = require('../utils/constant'); // Pastikan ini di-import
 
-// 1. Fungsi REGISTER
+// 1. Fungsi REGISTER (Tanpa OTP, langsung aktif)
 const register = async (req, res) => {
     const { nama_lengkap, username, email, password } = req.body;
     try {
@@ -20,20 +20,12 @@ const register = async (req, res) => {
         const newUser = await authService.registerUser(id_user, nama_lengkap, username, email, hashedPassword);
         console.log('[REGISTER] User registered successfully:', newUser);
 
-        // Setelah registrasi, panggil OTP Service untuk kirim kode pertama (Verifikasi Akun)
-        console.log('[REGISTER] Sending OTP to:', email);
-        try {
-            await otpService.saveAndSendOTP(id_user, email);
-            console.log('[REGISTER] OTP sent successfully');
-        } catch (otpError) {
-            console.error('[REGISTER] Failed to send OTP but user was created:', otpError.message);
-            // Continue anyway - user was created successfully
-        }
+        // Registrasi berhasil tanpa OTP, akun langsung aktif
+        console.log('[REGISTER] User account is now active (no OTP required)');
 
         return res.status(201).json({ 
             success: true,
-            message: 'Registrasi berhasil. Silakan cek email Anda untuk kode verifikasi (OTP).',
-            // Hapus password dari data yang dikembalikan
+            message: 'Registrasi berhasil! Silakan login menggunakan akun Anda.',
             data: { id_user: newUser.id_user, nama_lengkap: newUser.nama_lengkap, username: newUser.username, email: newUser.email }
         });
     } catch (error) {
@@ -54,17 +46,20 @@ const register = async (req, res) => {
     }
 };
 
-// 2. Fungsi LOGIN (Hanya untuk memicu OTP)
+// 2. Fungsi LOGIN (Kirim OTP setiap kali login)
 const login = async (req, res) => {
     const { usernameOrEmail, password } = req.body;
     let user = null;
     const ipAddress = req.ip; 
     
     try {
+        console.log('[LOGIN] Attempting login for:', usernameOrEmail);
+        
         // 1. Cari user
         user = await authService.getUserByUsernameOrEmail(usernameOrEmail);
 
         if (!user) {
+            console.log('[LOGIN] User not found');
             await auditService.recordLoginAttempt(null, usernameOrEmail, 'GAGAL', ipAddress);
             return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
         }
@@ -73,22 +68,30 @@ const login = async (req, res) => {
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordMatch) {
+            console.log('[LOGIN] Password mismatch');
             await auditService.recordLoginAttempt(user.id_user, user.username, 'GAGAL', ipAddress);
             return res.status(401).json({ message: 'Password salah.' });
         }
 
-        // 3. Password cocok, Kirim OTP
-        // Gunakan authService.loginUser untuk log BERHASIL & kirim OTP (asumsi logic kirim OTP ada di authService/otpService)
-        // Logika di service harus: 1. Record Log, 2. Kirim OTP.
-        const response = await authService.loginUser(user, ipAddress);
+        // 3. Password cocok, kirim OTP untuk verifikasi
+        console.log('[LOGIN] Password correct, sending OTP to:', user.email);
+        try {
+            await otpService.saveAndSendOTP(user.id_user, user.email);
+            console.log('[LOGIN] OTP sent successfully');
+        } catch (otpError) {
+            console.error('[LOGIN] Failed to send OTP:', otpError.message);
+            return res.status(500).json({ message: 'Gagal mengirim kode OTP. Silakan coba lagi.' });
+        }
 
-        // Tambahkan email ke response untuk frontend
+        // 4. Return success, user harus verifikasi OTP
         res.status(200).json({
-            ...response,
+            success: true,
+            message: 'Password benar. Kode OTP telah dikirim ke email Anda.',
             email: user.email
         });
         
     } catch (error) {
+        console.error('[LOGIN ERROR]', error);
         if (user) {
             await auditService.recordLoginAttempt(user.id_user, user.username, 'GAGAL', ipAddress);
         } else {

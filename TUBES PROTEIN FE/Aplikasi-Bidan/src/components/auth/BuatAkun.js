@@ -20,30 +20,19 @@ function BuatAkun({ onNavigate, onRegistrationSuccess }) {
       const result = await authService.register(namaLengkap, username, email, password);
       
       if (result.success) {
-        // Registrasi berhasil
-        console.log('[BUATAKUN] Registration success with email:', email);
+        // Registrasi berhasil tanpa OTP - langsung bisa login
+        console.log('[BUATAKUN] Registration success, redirect to login');
         
-        // Clear old data dari localStorage
-        localStorage.removeItem('loginEmail');
-        localStorage.removeItem('resetEmail');
-        
-        // Simpan email untuk registrasi
-        localStorage.setItem('registerEmail', email);
-        localStorage.setItem('registrationType', 'register');
-        
-        console.log('[BUATAKUN] Calling onRegistrationSuccess');
-        if (onRegistrationSuccess) {
-          onRegistrationSuccess(email);
-        } else {
-          console.warn('[BUATAKUN] onRegistrationSuccess is not defined, using navigation fallback');
-          onNavigate('verifikasi-otp');
-        }
-        
+        // Clear form
         setNamaLengkap('');
         setUsername('');
         setEmail('');
         setPassword('');
         setIngatSaya(false);
+        
+        // Tampilkan pesan sukses dan redirect ke halaman login
+        alert('Registrasi berhasil! Silakan login dengan akun Anda.');
+        onNavigate('masuk');
       } else {
         setError(result.message || 'Gagal membuat akun');
       }

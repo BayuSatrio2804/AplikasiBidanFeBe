@@ -50,15 +50,15 @@ const getUserByEmail = async (email) => {
 // FUNGSI OTENTIKASI DAN MODIFIKASI
 // =========================================================
 
-// Fungsi Register (Memindahkan logika database dari Controller)
+// Fungsi Register (Akun langsung aktif tanpa OTP)
 const registerUser = async (id_user, nama_lengkap, username, email, hashedPassword) => {
     try {
         const query = `
-            INSERT INTO users (id_user, nama_lengkap, username, email, password) 
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (id_user, nama_lengkap, username, email, password, is_verified) 
+            VALUES (?, ?, ?, ?, ?, 1)
         `;
         const result = await db.query(query, [id_user, nama_lengkap, username, email, hashedPassword]);
-        console.log('[AUTH.SERVICE] registerUser success:', { id_user, email });
+        console.log('[AUTH.SERVICE] registerUser success - account is active:', { id_user, email });
 
         // Mengembalikan data user yang baru dibuat (tanpa password)
         return { id_user, nama_lengkap, username, email };

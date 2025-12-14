@@ -17,11 +17,10 @@ function Masuk({ onNavigate, onLogin }) {
       const result = await authService.login(usernameOrEmail, password);
       
       if (result.success) {
-        // Login berhasil, simpan email yang digunakan untuk verifikasi OTP
-        // Gunakan email dari response jika ada, fallback ke usernameOrEmail
+        // Login berhasil, OTP telah dikirim - simpan email dan redirect ke verifikasi
         const emailToStore = result.email || usernameOrEmail;
         localStorage.setItem('loginEmail', emailToStore);
-        console.log('[MASUK] Stored loginEmail:', emailToStore);
+        console.log('[MASUK] OTP sent, redirect to verification');
         onNavigate('verifikasi-otp');
       } else {
         setError(result.message || 'Login gagal');

@@ -36,7 +36,7 @@ const authService = {
     }
   },
 
-  // 2. LOGIN - Login dengan username/email dan password (akan mengirim OTP)
+  // 2. LOGIN - Login akan mengirim OTP setiap kali
   login: async (usernameOrEmail, password) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -50,13 +50,16 @@ const authService = {
         }),
       });
       const data = await response.json();
+      
       if (!response.ok) {
         throw new Error(data.message || 'Login gagal');
       }
+      
+      // Login berhasil, OTP akan dikirim - return email untuk verifikasi
       return {
         success: true,
-        message: data.message,
-        email: data.email, // Email untuk verifikasi OTP
+        email: data.email,
+        message: data.message
       };
     } catch (error) {
       return {
