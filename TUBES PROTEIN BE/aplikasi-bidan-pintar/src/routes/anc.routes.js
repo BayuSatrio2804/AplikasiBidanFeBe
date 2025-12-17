@@ -15,5 +15,8 @@ router.use(verifyToken);
 
 // ANC endpoints
 router.post('/', validate(RegistrasiANCSchema), ancController.createRegistrasiANC);
+router.get('/:id', ancController.getANCById);
+router.put('/:id', validate(RegistrasiANCSchema), ancController.updateANCRegistrasi);
+router.delete('/:id', ancController.deleteANCRegistrasi);
 
 module.exports = router;

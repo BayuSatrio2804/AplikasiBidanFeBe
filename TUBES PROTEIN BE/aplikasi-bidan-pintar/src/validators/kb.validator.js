@@ -1,41 +1,58 @@
-// src/validators/kb.validator.js
+/**
+ * KB (Family Planning) Validator
+ * Validates data exactly as sent from frontend LayananKB component
+ */
 const Joi = require('joi');
 
-const KB_METODE = ["KDM", "PIL", "SUNTIK", "IMP", "IUD", "LAINNYA"]; 
-
 const RegistrasiKBSchema = Joi.object({
-    jenis_layanan: Joi.string().valid('KB').required(),
-    tanggal: Joi.string().isoDate().required(),
-    metode: Joi.string().valid(...KB_METODE).required(), 
-    no_reg_lama: Joi.string().allow('').optional(),
-    no_reg_baru: Joi.string().allow('').optional(),
-    kunjungan_ulang: Joi.string().isoDate().allow(null, '').optional(),
-
-    // Data Ibu
-    nama_istri: Joi.string().required(),
-    nik_istri: Joi.string().length(16).pattern(/^[0-9]+$/).required(),
-    umur_istri: Joi.number().integer().min(1).required(),
-    td_ibu: Joi.string().required(),
-    bb_ibu: Joi.number().min(1).required(),
-    alamat: Joi.string().required(),
-    no_hp: Joi.string().min(8).max(15).required(),
-
-    // Data Ayah
-    nama_suami: Joi.string().required(),
-    nik_suami: Joi.string().length(16).pattern(/^[0-9]+$/).allow(null, '').optional(),
-    umur_suami: Joi.number().integer().allow(null).optional(),
-    td_ayah: Joi.string().allow('').optional(),
-    bb_ayah: Joi.number().allow(null).optional(),
-    
-    catatan: Joi.string().allow('').optional(),
-    
-    // Field SOAP 
-    subjektif: Joi.string().allow('').optional(),
-    objektif: Joi.string().allow('').optional(),
-    analisa: Joi.string().allow('').optional(),
-    tatalaksana: Joi.string().allow('').optional(),
-});
+  // Service identification
+  jenis_layanan: Joi.string().valid('KB').required(),
+  tanggal: Joi.string().required(),
+  
+  // Registration info
+  nomor_registrasi_lama: Joi.string().allow('').optional(),
+  nomor_registrasi_baru: Joi.string().allow('').optional(),
+  
+  // Method (required)
+  metode: Joi.string().required(),
+  
+  // Mother data (Data Ibu) - required name, rest are flexible
+  nama_ibu: Joi.string().min(1).required(),
+  nik_ibu: Joi.alternatives().try(
+    Joi.string().allow(''),
+    Joi.number()
+  ).optional(),
+  umur_ibu: Joi.alternatives().try(
+    Joi.number(),
+    Joi.string().allow(''),
+    Joi.number().allow(null)
+  ).optional(),
+  td_ibu: Joi.string().allow('').optional(),
+  bb_ibu: Joi.string().allow('').optional(),
+  
+  // Father/Spouse data (Data Ayah) - required name, rest are flexible
+  nama_ayah: Joi.string().min(1).required(),
+  nik_ayah: Joi.alternatives().try(
+    Joi.string().allow(''),
+    Joi.number()
+  ).optional(),
+  umur_ayah: Joi.alternatives().try(
+    Joi.number(),
+    Joi.string().allow(''),
+    Joi.number().allow(null)
+  ).optional(),
+  td_ayah: Joi.string().allow('').optional(),
+  bb_ayah: Joi.string().allow('').optional(),
+  
+  // Address and contact
+  alamat: Joi.string().min(1).required(),
+  nomor_hp: Joi.string().allow('').optional(),
+  
+  // Follow-up
+  kunjungan_ulang: Joi.string().allow('').optional(),
+  catatan: Joi.string().allow('').optional()
+}).unknown(true);
 
 module.exports = {
-    RegistrasiKBSchema
+  RegistrasiKBSchema
 };

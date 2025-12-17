@@ -20,6 +20,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   
   const [formData, setFormData] = useState({
+    jenis_layanan: 'ANC',
     tanggal: '',
     no_reg_lama: '',
     no_reg_baru: '',
@@ -72,7 +73,14 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let finalValue = value;
+    
+    // Convert number fields to integer
+    if (['umur_istri', 'umur_suami'].includes(name)) {
+      finalValue = value ? parseInt(value, 10) : '';
+    }
+    
+    setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
   const handleSubmit = async (e) => {
@@ -124,6 +132,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
   const resetForm = () => {
     setEditingId(null);
     setFormData({
+      jenis_layanan: 'ANC',
       tanggal: '',
       no_reg_lama: '',
       no_reg_baru: '',
@@ -150,13 +159,13 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
       if (response.success) {
         const data = response.data;
         setFormData({
-          tanggal: data.tanggal || '',
+          tanggal: data.tanggal_pemeriksaan || data.tanggal || '',
           no_reg_lama: data.no_reg_lama || '',
           no_reg_baru: data.no_reg_baru || '',
           tindakan: data.tindakan || '',
-          nama_istri: data.nama_istri || '',
-          nik_istri: data.nik_istri || '',
-          umur_istri: data.umur_istri || '',
+          nama_istri: data.nama || '',
+          nik_istri: data.nik || '',
+          umur_istri: data.umur || '',
           nama_suami: data.nama_suami || '',
           nik_suami: data.nik_suami || '',
           umur_suami: data.umur_suami || '',
@@ -165,15 +174,27 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
           hpht: data.hpht || '',
           hpl: data.hpl || '',
           hasil_pemeriksaan: data.hasil_pemeriksaan || '',
-          keterangan: data.keterangan || ''
+          keterangan: data.keterangan || '',
+          jam_mulai: data.jam_mulai || '',
+          jam_selesai: data.jam_selesai || ''
         });
         setEditingId(id);
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        showNotifikasi({
+          type: 'error',
+          message: response.message || 'Gagal mengambil data',
+          onConfirm: hideNotifikasi
+        });
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      alert('Gagal mengambil data untuk diedit');
+      showNotifikasi({
+        type: 'error',
+        message: 'Gagal mengambil data untuk diedit',
+        onConfirm: hideNotifikasi
+      });
     }
   };
 
@@ -183,15 +204,26 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
       message: 'Yakin ingin menghapus data ini?',
       onConfirm: async () => {
         hideNotifikasi();
+        setIsLoading(true);
         try {
-          showNotifikasi({
-            type: 'success',
-            message: 'Data berhasil dihapus!',
-            autoClose: true,
-            autoCloseDuration: 2000,
-            onConfirm: hideNotifikasi
-          });
-          fetchRiwayatPelayanan();
+          const response = await layananService.deleteANC(id);
+          if (response.success) {
+            showNotifikasi({
+              type: 'success',
+              message: 'Data berhasil dihapus!',
+              autoClose: true,
+              autoCloseDuration: 2000,
+              onConfirm: hideNotifikasi
+            });
+            fetchRiwayatPelayanan();
+          } else {
+            showNotifikasi({
+              type: 'error',
+              message: response.message || 'Gagal menghapus data',
+              onConfirm: hideNotifikasi,
+              onCancel: hideNotifikasi
+            });
+          }
         } catch (error) {
           console.error('Error deleting:', error);
           showNotifikasi({
@@ -200,6 +232,8 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
             onConfirm: hideNotifikasi,
             onCancel: hideNotifikasi
           });
+        } finally {
+          setIsLoading(false);
         }
       },
       onCancel: hideNotifikasi
@@ -338,9 +372,9 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         type="text"
                         name="jenis_layanan"
                         value={formData.jenis_layanan}
-                        onChange={handleInputChange}
-                        placeholder="Pilih Jenis Layanan"
-                        required
+                        readOnly
+                        disabled
+                        placeholder="ANC"
                       />
                     </div>
                     
@@ -362,8 +396,8 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                       <label>Nomor Registrasi Lama</label>
                       <input
                         type="text"
-                        name="nomor_registrasi_lama"
-                        value={formData.nomor_registrasi_lama}
+                        name="no_reg_lama"
+                        value={formData.no_reg_lama}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                       />
@@ -373,8 +407,8 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                       <label>Nomor Registrasi Baru</label>
                       <input
                         type="text"
-                        name="nomor_registrasi_baru"
-                        value={formData.nomor_registrasi_baru}
+                        name="no_reg_baru"
+                        value={formData.no_reg_baru}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                       />
@@ -402,8 +436,8 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                       <label>Nama Istri</label>
                       <input
                         type="text"
-                        name="nama_ibu"
-                        value={formData.nama_ibu}
+                        name="nama_istri"
+                        value={formData.nama_istri}
                         onChange={handleInputChange}
                         placeholder="Masukkan nama lengkap"
                         required
@@ -414,8 +448,8 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                       <label>NIK</label>
                       <input
                         type="text"
-                        name="nik_ibu"
-                        value={formData.nik_ibu}
+                        name="nik_istri"
+                        value={formData.nik_istri}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                         maxLength="16"
@@ -427,8 +461,8 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                       <label>Umur (Th)</label>
                       <input
                         type="number"
-                        name="umur_ibu"
-                        value={formData.umur_ibu}
+                        name="umur_istri"
+                        value={formData.umur_istri}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                         required
@@ -446,8 +480,8 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                       <label>Nama Suami</label>
                       <input
                         type="text"
-                        name="nama_ayah"
-                        value={formData.nama_ayah}
+                        name="nama_suami"
+                        value={formData.nama_suami}
                         onChange={handleInputChange}
                         placeholder="Masukkan nama lengkap"
                         required
@@ -458,12 +492,11 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                       <label>NIK</label>
                       <input
                         type="text"
-                        name="nik_ayah"
-                        value={formData.nik_ayah}
+                        name="nik_suami"
+                        value={formData.nik_suami}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                         maxLength="16"
-                        required
                       />
                     </div>
                     
@@ -471,8 +504,8 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                       <label>Umur (Th)</label>
                       <input
                         type="number"
-                        name="umur_ayah"
-                        value={formData.umur_ayah}
+                        name="umur_suami"
+                        value={formData.umur_suami}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                       />

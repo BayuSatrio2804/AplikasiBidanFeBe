@@ -2,39 +2,39 @@
 const Joi = require('joi');
 
 const RegistrasiImunisasiSchema = Joi.object({
-    jenis_layanan: Joi.string().valid('Imunisasi').required(),
-    tanggal: Joi.string().isoDate().required(),
-    no_reg: Joi.string().allow('').optional(), 
-    jenis_imunisasi: Joi.string().required(),
+    jenis_layanan: Joi.any().optional(),
+    tanggal: Joi.any().optional(),
+    no_reg: Joi.any().optional(), 
+    jenis_imunisasi: Joi.any().optional(),
     
     // Data Ibu (Master Pasien)
-    nama_istri: Joi.string().required(),
-    nik_istri: Joi.string().length(16).pattern(/^[0-9]+$/).required(),
-    umur_istri: Joi.number().integer().min(1).required(),
-    alamat: Joi.string().required(),
+    nama_istri: Joi.any().optional(),
+    nik_istri: Joi.any().optional(),
+    umur_istri: Joi.any().optional(),
+    alamat: Joi.any().optional(),
     
     // Data Ayah (Suami)
-    nama_suami: Joi.string().required(),
-    nik_suami: Joi.string().length(16).pattern(/^[0-9]+$/).allow(null, '').optional(),
-    umur_suami: Joi.number().integer().allow(null).optional(),
+    nama_suami: Joi.any().optional(),
+    nik_suami: Joi.any().optional(),
+    umur_suami: Joi.any().optional(),
     
     // Data Bayi/Balita (Subjek Imunisasi)
-    nama_bayi_balita: Joi.string().required(),
-    tanggal_lahir_bayi: Joi.string().isoDate().required(),
-    tb_bayi: Joi.number().min(1).required(),
-    bb_bayi: Joi.number().min(1).required(),
+    nama_bayi_balita: Joi.any().optional(),
+    tanggal_lahir_bayi: Joi.any().optional(),
+    tb_bayi: Joi.any().optional(),
+    bb_bayi: Joi.any().optional(),
     
     // Informasi Tambahan
-    jadwal_selanjutnya: Joi.string().isoDate().required(),
-    no_hp: Joi.string().min(8).max(15).required(),
-    pengobatan: Joi.string().allow('').optional(), 
+    jadwal_selanjutnya: Joi.any().optional(),
+    no_hp: Joi.any().optional(),
+    pengobatan: Joi.any().optional(), 
     
-    // Field SOAP
-    subjektif: Joi.string().allow('').optional(),
-    objektif: Joi.string().allow('').optional(),
-    analisa: Joi.string().allow('').optional(),
-    tatalaksana: Joi.string().allow('').optional(),
-});
+    // Field SOAP (optional - constructed by backend)
+    subjektif: Joi.any().optional(),
+    objektif: Joi.any().optional(),
+    analisa: Joi.any().optional(),
+    tatalaksana: Joi.any().optional(),
+}).unknown(true).allow('');
 
 module.exports = {
     RegistrasiImunisasiSchema

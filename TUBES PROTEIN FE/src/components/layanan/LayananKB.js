@@ -20,22 +20,23 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   
   const [formData, setFormData] = useState({
+    jenis_layanan: 'KB',
     tanggal: '',
-    no_reg_lama: '',
-    no_reg_baru: '',
+    nomor_registrasi_lama: '',
+    nomor_registrasi_baru: '',
     metode: '',
-    nama_istri: '',
-    nik_istri: '',
-    umur_istri: '',
+    nama_ibu: '',
+    nik_ibu: '',
+    umur_ibu: '',
     td_ibu: '',
     bb_ibu: '',
-    nama_suami: '',
-    nik_suami: '',
-    umur_suami: '',
+    nama_ayah: '',
+    nik_ayah: '',
+    umur_ayah: '',
     td_ayah: '',
     bb_ayah: '',
     alamat: '',
-    no_hp: '',
+    nomor_hp: '',
     kunjungan_ulang: '',
     catatan: ''
   });
@@ -107,6 +108,14 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
       }
     } catch (error) {
       console.error('Error saving KB registration:', error);
+      
+      // Log detailed error information for debugging
+      if (error.data && error.data.errors) {
+        console.error('Validation errors:', error.data.errors);
+        const errorDetails = error.data.errors.map(e => `${e.field}: ${e.message}`).join('\n');
+        console.error('Error details:\n' + errorDetails);
+      }
+      
       setError(error.message || 'Gagal menyimpan data registrasi KB');
       showNotifikasi({
         type: 'error',
@@ -127,22 +136,23 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
   const resetForm = () => {
     setEditingId(null);
     setFormData({
+      jenis_layanan: 'KB',
       tanggal: '',
-      no_reg_lama: '',
-      no_reg_baru: '',
+      nomor_registrasi_lama: '',
+      nomor_registrasi_baru: '',
       metode: '',
-      nama_istri: '',
-      nik_istri: '',
-      umur_istri: '',
+      nama_ibu: '',
+      nik_ibu: '',
+      umur_ibu: '',
       td_ibu: '',
       bb_ibu: '',
-      nama_suami: '',
-      nik_suami: '',
-      umur_suami: '',
+      nama_ayah: '',
+      nik_ayah: '',
+      umur_ayah: '',
       td_ayah: '',
       bb_ayah: '',
       alamat: '',
-      no_hp: '',
+      nomor_hp: '',
       kunjungan_ulang: '',
       catatan: ''
     });
@@ -151,36 +161,49 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
 
   const handleEdit = async (id) => {
     try {
+      console.log(`🔍 Fetching KB data for ID: ${id}`);
       const response = await layananService.getKBById(id);
-      if (response.success) {
+      console.log('📦 Response received:', response);
+      
+      if (response && response.success) {
         const data = response.data;
+        console.log('📋 KB data:', data);
+        
         setFormData({
-          tanggal: data.tanggal || '',
-          no_reg_lama: data.no_reg_lama || '',
-          no_reg_baru: data.no_reg_baru || '',
-          metode: data.metode || '',
-          nama_istri: data.nama_istri || '',
-          nik_istri: data.nik_istri || '',
-          umur_istri: data.umur_istri || '',
+          jenis_layanan: 'KB',
+          tanggal: data.tanggal_pemeriksaan || '',
+          nomor_registrasi_lama: data.no_reg_lama || '',
+          nomor_registrasi_baru: data.no_reg_baru || '',
+          metode: data.metode_kb || data.metode || '',
+          nama_ibu: data.nama || '',
+          nik_ibu: data.nik || '',
+          umur_ibu: data.umur || '',
           td_ibu: data.td_ibu || '',
           bb_ibu: data.bb_ibu || '',
-          nama_suami: data.nama_suami || '',
-          nik_suami: data.nik_suami || '',
-          umur_suami: data.umur_suami || '',
+          nama_ayah: data.nama_suami || '',
+          nik_ayah: data.nik_suami || '',
+          umur_ayah: data.umur_suami || '',
           td_ayah: data.td_ayah || '',
           bb_ayah: data.bb_ayah || '',
           alamat: data.alamat || '',
-          no_hp: data.no_hp || '',
+          nomor_hp: data.no_hp || '',
           kunjungan_ulang: data.kunjungan_ulang || '',
           catatan: data.catatan || ''
         });
         setEditingId(id);
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        console.log('✅ Form data updated successfully');
+      } else {
+        console.error('❌ Response not successful:', response);
+        alert('Gagal mengambil data untuk diedit: ' + (response?.message || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
-      alert('Gagal mengambil data untuk diedit');
+      console.error('❌ Error fetching data:', error);
+      console.error('   Error type:', error.type);
+      console.error('   Error status:', error.status);
+      console.error('   Error data:', error.data);
+      alert('Gagal mengambil data untuk diedit: ' + error.message);
     }
   };
 
@@ -191,21 +214,37 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
       onConfirm: async () => {
         hideNotifikasi();
         try {
-          // Note: Delete endpoint for pemeriksaan not available yet
-          // await layananService.deletePemeriksaan(id);
-          showNotifikasi({
-            type: 'success',
-            message: 'Data berhasil dihapus!',
-            autoClose: true,
-            autoCloseDuration: 2000,
-            onConfirm: hideNotifikasi
-          });
-          fetchRiwayatPelayanan();
+          console.log(`🗑️ Deleting KB data for ID: ${id}`);
+          const response = await layananService.deleteKB(id);
+          console.log('📦 Delete response:', response);
+          
+          if (response && response.success) {
+            console.log('✅ Delete successful');
+            showNotifikasi({
+              type: 'success',
+              message: 'Data berhasil dihapus!',
+              autoClose: true,
+              autoCloseDuration: 2000,
+              onConfirm: hideNotifikasi
+            });
+            fetchRiwayatPelayanan();
+          } else {
+            console.error('❌ Delete failed:', response);
+            showNotifikasi({
+              type: 'error',
+              message: response?.message || 'Gagal menghapus data',
+              onConfirm: hideNotifikasi,
+              onCancel: hideNotifikasi
+            });
+          }
         } catch (error) {
-          console.error('Error deleting:', error);
+          console.error('❌ Error deleting:', error);
+          console.error('   Error type:', error.type);
+          console.error('   Error status:', error.status);
+          console.error('   Error data:', error.data);
           showNotifikasi({
             type: 'error',
-            message: 'Gagal menghapus data',
+            message: error.message || 'Gagal menghapus data',
             onConfirm: hideNotifikasi,
             onCancel: hideNotifikasi
           });
@@ -347,9 +386,8 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         type="text"
                         name="jenis_layanan"
                         value={formData.jenis_layanan}
-                        onChange={handleInputChange}
+                        readOnly
                         placeholder="Pilih Jenis Layanan"
-                        required
                       />
                     </div>
                     
