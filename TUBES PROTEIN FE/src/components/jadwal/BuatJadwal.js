@@ -23,24 +23,30 @@ function BuatJadwal({
   const userData = JSON.parse(localStorage.getItem('userData'));
   const [pasienList, setPasienList] = useState([]);
   const [formData, setFormData] = useState({
+    id_pasien: '',
     jenis_layanan: '',
     tanggal: '',
-    jam: '',
-    pasien_id: '',
-    petugas: userData?.username || ''
+    jam_mulai: '',
+    jam_selesai: ''
   });
+
+  const layananOptions = [
+    { value: 'ANC', label: 'ANC (Antenatal Care)' },
+    { value: 'KB', label: 'KB (Keluarga Berencana)' },
+    { value: 'Imunisasi', label: 'Imunisasi' },
+    { value: 'Persalinan', label: 'Persalinan' },
+    { value: 'Kunjungan Pasien', label: 'Kunjungan Pasien' }
+  ];
 
   useEffect(() => {
     fetchPasienList();
     if (editData) {
-      // Parse existing data for edit mode
-      const [datePart, timePart] = editData.tanggal_waktu ? editData.tanggal_waktu.split(' ') : ['', ''];
       setFormData({
+        id_pasien: editData.id_pasien || '',
         jenis_layanan: editData.jenis_layanan || '',
-        tanggal: datePart || '',
-        jam: timePart ? timePart.substring(0, 5) : '', // HH:MM format
-        pasien_id: editData.pasien_id || '',
-        petugas: editData.petugas || userData?.username || ''
+        tanggal: editData.tanggal || '',
+        jam_mulai: editData.jam_mulai || '',
+        jam_selesai: editData.jam_selesai || ''
       });
     }
   }, [editData]);
@@ -67,25 +73,24 @@ function BuatJadwal({
   const handleSubmit = async () => {
     try {
       // Validate
-      if (!formData.jenis_layanan || !formData.tanggal || !formData.jam || !formData.pasien_id) {
-        alert('Mohon lengkapi semua field yang diperlukan');
+      if (!formData.id_pasien || !formData.jenis_layanan || !formData.tanggal || !formData.jam_mulai) {
+        alert('Mohon lengkapi: Pasien, Layanan, Tanggal, Jam Mulai');
         return;
       }
 
-      // Combine date and time
-      const tanggal_waktu = `${formData.tanggal} ${formData.jam}:00`;
-
       const payload = {
+        id_pasien: formData.id_pasien,
         jenis_layanan: formData.jenis_layanan,
-        tanggal_waktu,
-        pasien_id: formData.pasien_id,
-        petugas: formData.petugas,
-        status: 'scheduled'
+        tanggal: formData.tanggal,
+        jam_mulai: formData.jam_mulai,
+        jam_selesai: formData.jam_selesai || null
       };
+
+      console.log('📤 Submit payload:', payload);
 
       let response;
       if (editData) {
-        response = await jadwalService.updateJadwal(editData.id, payload);
+        response = await jadwalService.updateJadwal(editData.id_jadwal, payload);
       } else {
         response = await jadwalService.createJadwal(payload);
       }
@@ -98,7 +103,7 @@ function BuatJadwal({
       }
     } catch (error) {
       console.error('Error saving jadwal:', error);
-      alert('Terjadi kesalahan saat menyimpan jadwal');
+      alert(error.message || 'Terjadi kesalahan saat menyimpan jadwal');
     }
   };
 
@@ -147,72 +152,71 @@ function BuatJadwal({
               <div className="jadwal-form-content">
                 {/* Jenis Layanan */}
                 <div className="jadwal-form-group full-width">
-                  <label>Jenis Layanan</label>
+                  <label>Jenis Layanan *</label>
                   <select
                     name="jenis_layanan"
                     value={formData.jenis_layanan}
                     onChange={handleInputChange}
                   >
                     <option value="">Pilih Jenis Layanan</option>
-                    <option value="KB">Layanan KB</option>
-                    <option value="ANC">Layanan ANC</option>
-                    <option value="Persalinan">Layanan Persalinan</option>
-                    <option value="Imunisasi">Layanan Imunisasi</option>
-                    <option value="Kunjungan Pasien">Kunjungan Pasien</option>
+                    {layananOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
                   </select>
-                </div>
-
-                {/* Tanggal dan Jam */}
-                <div className="jadwal-form-row">
-                  <div className="jadwal-form-group">
-                    <label>Tanggal</label>
-                    <input
-                      type="date"
-                      name="tanggal"
-                      value={formData.tanggal}
-                      onChange={handleInputChange}
-                      placeholder="Masukkan"
-                    />
-                  </div>
-                  <div className="jadwal-form-group small">
-                    <label>Jam</label>
-                    <input
-                      type="time"
-                      name="jam"
-                      value={formData.jam}
-                      onChange={handleInputChange}
-                      placeholder="XX:XX"
-                    />
-                  </div>
                 </div>
 
                 {/* Nama Pasien */}
                 <div className="jadwal-form-group full-width">
-                  <label>Nama Pasien</label>
+                  <label>Nama Pasien *</label>
                   <select
-                    name="pasien_id"
-                    value={formData.pasien_id}
+                    name="id_pasien"
+                    value={formData.id_pasien}
                     onChange={handleInputChange}
                   >
-                    <option value="">Masukkan</option>
+                    <option value="">Pilih Pasien</option>
                     {pasienList.map(pasien => (
-                      <option key={pasien.id} value={pasien.id}>
+                      <option key={pasien.id_pasien} value={pasien.id_pasien}>
                         {pasien.nama}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                {/* Petugas/Penanggung Jawab */}
-                <div className="jadwal-form-group full-width">
-                  <label>Petugas/Penanggung Jawab</label>
-                  <input
-                    type="text"
-                    name="petugas"
-                    value={formData.petugas}
-                    onChange={handleInputChange}
-                    placeholder="Masukkan"
-                  />
+                {/* Tanggal */}
+                <div className="jadwal-form-row">
+                  <div className="jadwal-form-group">
+                    <label>Tanggal *</label>
+                    <input
+                      type="date"
+                      name="tanggal"
+                      value={formData.tanggal}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                {/* Waktu */}
+                <div className="jadwal-form-row">
+                  <div className="jadwal-form-group">
+                    <label>Jam Mulai *</label>
+                    <input
+                      type="time"
+                      name="jam_mulai"
+                      value={formData.jam_mulai}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="jadwal-form-group">
+                    <label>Jam Selesai</label>
+                    <input
+                      type="time"
+                      name="jam_selesai"
+                      value={formData.jam_selesai}
+                      onChange={handleInputChange}
+                    />
+                  </div>
                 </div>
               </div>
 

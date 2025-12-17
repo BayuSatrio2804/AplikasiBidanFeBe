@@ -7,9 +7,12 @@ import trashIcon from '../../assets/images/icons/icons8-trash-100.png';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
 import jadwalService from '../../services/jadwal.service';
+import pasienService from '../../services/pasien.service';
 
 function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi }) {
+  const userData = JSON.parse(localStorage.getItem('user'));
   const [jadwalList, setJadwalList] = useState([]);
+  const [pasienList, setPasienList] = useState([]);
   const [filterBulan, setFilterBulan] = useState('');
   const [filterTahun, setFilterTahun] = useState('');
   const [filterLayanan, setFilterLayanan] = useState('');
@@ -20,17 +23,28 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
   // Form state
   const [formData, setFormData] = useState({
     id_pasien: '',
-    id_petugas: '',
     jenis_layanan: '',
     tanggal: '',
     jam_mulai: '',
     jam_selesai: ''
   });
 
-  // Load data jadwal
+  // Load data jadwal and patients
   useEffect(() => {
     fetchJadwal();
+    fetchPasien();
   }, []);
+
+  const fetchPasien = async () => {
+    try {
+      const response = await pasienService.getAllPasien();
+      if (response.success) {
+        setPasienList(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+    }
+  };
 
   const fetchJadwal = async (bulan = '', tahun = '', layanan = '') => {
     try {
@@ -65,9 +79,35 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
     e.preventDefault();
     
     try {
+      console.log('🔍 Form data before validation:', formData);
+      
+      // Validation
+      if (!formData.id_pasien || !formData.jenis_layanan || !formData.tanggal || !formData.jam_mulai) {
+        console.error('❌ Validation failed - missing fields:', {
+          id_pasien: !!formData.id_pasien,
+          jenis_layanan: !!formData.jenis_layanan,
+          tanggal: !!formData.tanggal,
+          jam_mulai: !!formData.jam_mulai
+        });
+        alert('Mohon lengkapi: Pasien, Layanan, Tanggal, Jam Mulai');
+        return;
+      }
+
+      const payload = {
+        id_pasien: formData.id_pasien,
+        jenis_layanan: formData.jenis_layanan,
+        tanggal: formData.tanggal,
+        jam_mulai: formData.jam_mulai,
+        jam_selesai: formData.jam_selesai || null
+      };
+
+      console.log('📤 Jadwal.js Submit Payload:', payload);
+      console.log('📤 Payload stringified:', JSON.stringify(payload));
+
       if (editingJadwal) {
         // Update jadwal
-        await jadwalService.updateJadwal(editingJadwal.id_jadwal, formData);
+        console.log('🔄 Updating existing jadwal...');
+        await jadwalService.updateJadwal(editingJadwal.id_jadwal, payload);
         showNotifikasi({
           type: 'success',
           message: 'Jadwal berhasil diperbarui!',
@@ -77,7 +117,8 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
         });
       } else {
         // Create jadwal
-        await jadwalService.createJadwal(formData);
+        console.log('✨ Creating new jadwal...');
+        await jadwalService.createJadwal(payload);
         showNotifikasi({
           type: 'success',
           message: 'Jadwal berhasil ditambahkan!',
@@ -90,7 +131,6 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
       // Reset form
       setFormData({
         id_pasien: '',
-        id_petugas: '',
         jenis_layanan: '',
         tanggal: '',
         jam_mulai: '',
@@ -101,9 +141,23 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
       fetchJadwal();
     } catch (error) {
       console.error('Error saving jadwal:', error);
+      console.error('Error data:', error.data);
+      console.error('Error status:', error.status);
+      
+      // Format validation errors for display
+      let errorMessage = 'Gagal menyimpan jadwal';
+      let errorDetail = '';
+      
+      if (error.data && error.data.errors && Array.isArray(error.data.errors)) {
+        errorMessage = 'Validasi gagal:';
+        errorDetail = error.data.errors.map(e => `${e.field}: ${e.message}`).join('\n');
+        console.error('Validation errors:', errorDetail);
+      }
+      
       showNotifikasi({
         type: 'error',
-        message: 'Gagal menyimpan jadwal',
+        message: errorMessage,
+        detail: errorDetail,
         onConfirm: hideNotifikasi,
         onCancel: hideNotifikasi
       });
@@ -114,7 +168,6 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
     setEditingJadwal(jadwal);
     setFormData({
       id_pasien: jadwal.id_pasien || '',
-      id_petugas: jadwal.id_petugas || '',
       jenis_layanan: jadwal.jenis_layanan,
       tanggal: jadwal.tanggal,
       jam_mulai: jadwal.jam_mulai,
@@ -284,32 +337,52 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
             <div className="jadwal-list-inner">
               {jadwalList.length > 0 ? (
                 <>
-                  <div className="jadwal-date-header">DD/MM/YY</div>
-                  {jadwalList.map((jadwal) => (
-                    <div key={jadwal.id_jadwal} className="jadwal-item">
-                      <span className="jadwal-item-text">Data Jadwal</span>
-                      <div className="jadwal-item-actions">
-                        <button 
-                          className="jadwal-btn-edit"
-                          onClick={() => handleEdit(jadwal)}
-                          title="Edit"
-                        >
-                          <img src={editIcon} alt="Edit" style={{width: '16px', height: '16px'}} />
-                        </button>
-                        <button 
-                          className="jadwal-btn-delete"
-                          onClick={() => handleDelete(jadwal.id_jadwal)}
-                          title="Hapus"
-                        >
-                          <img src={trashIcon} alt="Delete" style={{width: '16px', height: '16px'}} />
-                        </button>
-                      </div>
+                  {/* Group by date */}
+                  {Object.entries(
+                    jadwalList.reduce((groups, jadwal) => {
+                      const date = jadwal.tanggal;
+                      if (!groups[date]) groups[date] = [];
+                      groups[date].push(jadwal);
+                      return groups;
+                    }, {})
+                  ).map(([date, items]) => (
+                    <div key={date}>
+                      <div className="jadwal-date-header">{formatDate(date)}</div>
+                      {items.map((jadwal) => (
+                        <div key={jadwal.id_jadwal} className="jadwal-item">
+                          <div className="jadwal-item-details">
+                            <span className="jadwal-item-text">
+                              {jadwal.jenis_layanan} - {jadwal.jam_mulai}
+                              {jadwal.jam_selesai && ` s/d ${jadwal.jam_selesai}`}
+                            </span>
+                            <span className="jadwal-item-pasien">
+                              {jadwal.nama_pasien || 'Pasien tidak diketahui'}
+                            </span>
+                          </div>
+                          <div className="jadwal-item-actions">
+                            <button 
+                              className="jadwal-btn-edit"
+                              onClick={() => handleEdit(jadwal)}
+                              title="Edit"
+                            >
+                              <img src={editIcon} alt="Edit" style={{width: '16px', height: '16px'}} />
+                            </button>
+                            <button 
+                              className="jadwal-btn-delete"
+                              onClick={() => handleDelete(jadwal.id_jadwal)}
+                              title="Hapus"
+                            >
+                              <img src={trashIcon} alt="Delete" style={{width: '16px', height: '16px'}} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </>
               ) : (
                 <div className="jadwal-empty-state">
-                  Data tidak ditemukan. Harap lakukan filtering terlebih dahulu.
+                  <p>Belum ada jadwal. Buat jadwal baru untuk memulai.</p>
                 </div>
               )}
             </div>
@@ -339,7 +412,7 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
                     <option value="KB">KB</option>
                     <option value="Imunisasi">Imunisasi</option>
                     <option value="Persalinan">Persalinan</option>
-                    <option value="Nifas">Nifas</option>
+                    <option value="Kunjungan Pasien">Kunjungan Pasien</option>
                   </select>
                 </div>
                 
@@ -383,25 +456,28 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
 
                 <div className="jadwal-modal-form-group full-width">
                   <label>Nama Pasien *</label>
-                  <input
-                    type="text"
+                  <select
                     name="id_pasien"
                     value={formData.id_pasien}
                     onChange={handleInputChange}
-                    placeholder="Masukkan"
                     required
-                  />
+                  >
+                    <option value="">Pilih Pasien</option>
+                    {pasienList.map(pasien => (
+                      <option key={pasien.id_pasien} value={pasien.id_pasien}>
+                        {pasien.nama}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="jadwal-modal-form-group full-width">
-                  <label>Petugas/Penanggung Jawab *</label>
+                  <label>Penanggung Jawab</label>
                   <input
                     type="text"
-                    name="id_petugas"
-                    value={formData.id_petugas}
-                    onChange={handleInputChange}
-                    placeholder="Masukkan"
-                    required
+                    value={userData?.nama_lengkap || 'Tidak diketahui'}
+                    disabled
+                    placeholder="Akan diisi otomatis"
                   />
                 </div>
               </div>

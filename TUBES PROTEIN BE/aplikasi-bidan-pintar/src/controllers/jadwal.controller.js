@@ -26,7 +26,12 @@ const listJadwal = async (req, res) => {
  */
 const createJadwal = async (req, res) => {
   try {
-    const newJadwal = await jadwalService.createJadwal(req.body);
+    const id_petugas = req.user.id; // Get from JWT token
+    const payload = {
+      ...req.body,
+      id_petugas // Override with authenticated user
+    };
+    const newJadwal = await jadwalService.createJadwal(payload);
     return created(res, 'Jadwal berhasil dibuat', newJadwal);
   } catch (error) {
     return serverError(res, 'Gagal membuat jadwal', error);
@@ -59,13 +64,20 @@ const getDetailJadwal = async (req, res) => {
 const updateJadwal = async (req, res) => {
   try {
     const { id } = req.params;
+    const id_petugas = req.user.id; // Get from JWT token
 
     const existingJadwal = await jadwalService.getDetailJadwal(id);
     if (!existingJadwal) {
       return notFound(res, 'Jadwal tidak ditemukan');
     }
 
-    const updatedJadwal = await jadwalService.updateJadwal(id, req.body);
+    // Merge id_petugas from JWT into payload
+    const payload = {
+      ...req.body,
+      id_petugas
+    };
+
+    const updatedJadwal = await jadwalService.updateJadwal(id, payload);
     return success(res, 'Jadwal berhasil diperbarui', updatedJadwal);
   } catch (error) {
     return serverError(res, 'Gagal memperbarui jadwal', error);

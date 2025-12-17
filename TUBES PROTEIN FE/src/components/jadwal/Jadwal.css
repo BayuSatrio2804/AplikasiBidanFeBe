@@ -304,11 +304,24 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.jadwal-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
 .jadwal-item-text {
   color: #fff;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   flex: 1;
+}
+
+.jadwal-item-pasien {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 400;
 }
 
 .jadwal-item-actions {
