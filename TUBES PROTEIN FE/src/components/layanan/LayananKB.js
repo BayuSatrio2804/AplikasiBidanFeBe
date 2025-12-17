@@ -2,16 +2,21 @@ import { useState, useEffect } from 'react';
 import './LayananKB.css';
 import Sidebar from '../shared/Sidebar';
 import pinkLogo from '../../assets/images/pink-logo.png';
+import filterIcon from '../../assets/images/icons/icons8-filter-100.png';
+import editIcon from '../../assets/images/icons/icons8-edit-pencil-100.png';
+import trashIcon from '../../assets/images/icons/icons8-trash-100.png';
 import layananService from '../../services/layanan.service';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
 
-function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi }) {
+function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi, onToJadwal }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [riwayatPelayanan, setRiwayatPelayanan] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   
   const [formData, setFormData] = useState({
@@ -79,12 +84,17 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
     setIsLoading(true);
     
     try {
-      const response = await layananService.createKB(formData);
+      let response;
+      if (editingId) {
+        response = await layananService.updateKB(editingId, formData);
+      } else {
+        response = await layananService.createKB(formData);
+      }
       
       if (response.success) {
         showNotifikasi({
           type: 'success',
-          message: 'Data registrasi KB berhasil disimpan!',
+          message: editingId ? 'Data berhasil diupdate!' : 'Data registrasi KB berhasil disimpan!',
           autoClose: true,
           autoCloseDuration: 2000,
           onConfirm: hideNotifikasi
@@ -115,6 +125,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
   };
 
   const resetForm = () => {
+    setEditingId(null);
     setFormData({
       tanggal: '',
       no_reg_lama: '',
@@ -138,8 +149,39 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
     setError('');
   };
 
-  const handleEdit = (id) => {
-    console.log('Edit:', id);
+  const handleEdit = async (id) => {
+    try {
+      const response = await layananService.getKBById(id);
+      if (response.success) {
+        const data = response.data;
+        setFormData({
+          tanggal: data.tanggal || '',
+          no_reg_lama: data.no_reg_lama || '',
+          no_reg_baru: data.no_reg_baru || '',
+          metode: data.metode || '',
+          nama_istri: data.nama_istri || '',
+          nik_istri: data.nik_istri || '',
+          umur_istri: data.umur_istri || '',
+          td_ibu: data.td_ibu || '',
+          bb_ibu: data.bb_ibu || '',
+          nama_suami: data.nama_suami || '',
+          nik_suami: data.nik_suami || '',
+          umur_suami: data.umur_suami || '',
+          td_ayah: data.td_ayah || '',
+          bb_ayah: data.bb_ayah || '',
+          alamat: data.alamat || '',
+          no_hp: data.no_hp || '',
+          kunjungan_ulang: data.kunjungan_ulang || '',
+          catatan: data.catatan || ''
+        });
+        setEditingId(id);
+        setShowForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      alert('Gagal mengambil data untuk diedit');
+    }
   };
 
   const handleDelete = async (id) => {
@@ -182,7 +224,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
             <img src={pinkLogo} alt="Pink Logo" className="kb-header-logo-img" />
           </div>
           <h1 className="kb-header-title">
-            {showForm ? 'Formulir Registrasi Layanan Keluarga Berencana' : 'Layanan Program Keluarga Berencana (KB)'}
+            {showForm ? (editingId ? 'Edit Registrasi Layanan Keluarga Berencana' : 'Formulir Registrasi Layanan Keluarga Berencana') : 'Layanan Program Keluarga Berencana (KB)'}
           </h1>
         </div>
         <button className="btn-kembali-kb" onClick={onBack}>Kembali</button>
@@ -196,7 +238,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
           onProfilSaya={onToProfil}
-          onTambahPasien={onToTambahPasien}
+          onTambahPasien={() => setShowForm(true)}
           onTambahPengunjung={onToTambahPengunjung}
           onBuatLaporan={onToBuatLaporan}
           onToPersalinan={onToPersalinan}
@@ -214,7 +256,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                 <p className="kb-welcome-text">Selamat datang, {userData?.username || 'username'}!</p>
                 
                 <div className="kb-action-buttons">
-                  <button className="kb-action-btn">
+                  <button className="kb-action-btn" onClick={() => setShowForm(true)}>
                     <svg width="30" height="30" viewBox="0 0 30 30" fill="white">
                       <path d="M15 8C15 11.866 11.866 15 8 15C4.134 15 1 11.866 1 8C1 4.134 4.134 1 8 1C11.866 1 15 4.134 15 8Z"/>
                       <path d="M8 16C3.582 16 0 19.582 0 24V28H16V24C16 19.582 12.418 16 8 16Z"/>
@@ -222,7 +264,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                     <span>Tambah Pasien</span>
                   </button>
                   
-                  <button className="kb-action-btn" onClick={onToTambahPasien}>
+                  <button className="kb-action-btn" onClick={onToJadwal}>
                     <svg width="30" height="30" viewBox="0 0 30 30" fill="white">
                       <rect x="5" y="5" width="20" height="20" rx="2" stroke="white" strokeWidth="2" fill="none"/>
                       <line x1="5" y1="11" x2="25" y2="11" stroke="white" strokeWidth="2"/>
@@ -247,11 +289,22 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                     onChange={(e) => handleSearch(e.target.value)}
                     className="kb-search-input"
                   />
-                  <button className="kb-search-btn">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
-                      <path d="M9 3.5C5.686 3.5 3 6.186 3 9.5C3 12.814 5.686 15.5 9 15.5C10.386 15.5 11.678 15.013 12.707 14.207L16.293 17.793L17.707 16.379L14.121 12.793C14.957 11.754 15.5 10.437 15.5 9C15.5 5.686 12.814 3 9 3C9 3 9 3.5 9 3.5ZM9 5C11.761 5 14 7.239 14 10C14 12.761 11.761 15 9 15C6.239 15 4 12.761 4 10C4 7.239 6.239 5 9 5Z"/>
-                    </svg>
-                  </button>
+                  <div className="kb-filter-wrapper">
+                    <button 
+                      className="kb-filter-btn"
+                      onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                    >
+                      <img src={filterIcon} alt="Filter" style={{width: '20px', height: '20px'}} />
+                    </button>
+                    {showFilterDropdown && (
+                      <div className="kb-filter-dropdown">
+                        <div className="kb-filter-option">Semua Data</div>
+                        <div className="kb-filter-option">Hari Ini</div>
+                        <div className="kb-filter-option">Minggu Ini</div>
+                        <div className="kb-filter-option">Bulan Ini</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="kb-riwayat-list">
@@ -264,8 +317,12 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                           {item.nama_pasien} - {new Date(item.tanggal).toLocaleDateString('id-ID')}
                         </span>
                         <div className="kb-riwayat-actions">
-                          <button className="kb-btn-edit" onClick={() => handleEdit(item.id)}>✏️</button>
-                          <button className="kb-btn-delete" onClick={() => handleDelete(item.id)}>🗑️</button>
+                          <button className="kb-btn-edit" onClick={() => handleEdit(item.id)}>
+                            <img src={editIcon} alt="Edit" style={{width: '18px', height: '18px'}} />
+                          </button>
+                          <button className="kb-btn-delete" onClick={() => handleDelete(item.id)}>
+                            <img src={trashIcon} alt="Delete" style={{width: '18px', height: '18px'}} />
+                          </button>
                         </div>
                       </div>
                     ))

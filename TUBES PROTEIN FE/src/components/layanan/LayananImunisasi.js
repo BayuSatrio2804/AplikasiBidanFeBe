@@ -2,16 +2,21 @@ import { useState, useEffect } from 'react';
 import './LayananImunisasi.css';
 import Sidebar from '../shared/Sidebar';
 import pinkLogo from '../../assets/images/pink-logo.png';
+import filterIcon from '../../assets/images/icons/icons8-filter-100.png';
+import editIcon from '../../assets/images/icons/icons8-edit-pencil-100.png';
+import trashIcon from '../../assets/images/icons/icons8-trash-100.png';
 import layananService from '../../services/layanan.service';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
 
-function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi }) {
+function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi, onToJadwal }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [riwayatPelayanan, setRiwayatPelayanan] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   
   const [formData, setFormData] = useState({
@@ -77,12 +82,17 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
     setIsLoading(true);
     
     try {
-      const response = await layananService.createImunisasi(formData);
+      let response;
+      if (editingId) {
+        response = await layananService.updateImunisasi(editingId, formData);
+      } else {
+        response = await layananService.createImunisasi(formData);
+      }
       
       if (response.success) {
         showNotifikasi({
           type: 'success',
-          message: 'Data registrasi imunisasi berhasil disimpan!',
+          message: editingId ? 'Data berhasil diupdate!' : 'Data registrasi imunisasi berhasil disimpan!',
           autoClose: true,
           autoCloseDuration: 2000,
           onConfirm: hideNotifikasi
@@ -113,6 +123,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
   };
 
   const resetForm = () => {
+    setEditingId(null);
     setFormData({
       tanggal: '',
       no_reg: '',
@@ -135,8 +146,38 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
     setError('');
   };
 
-  const handleEdit = (id) => {
-    console.log('Edit:', id);
+  const handleEdit = async (id) => {
+    try {
+      const response = await layananService.getImunisasiById(id);
+      if (response.success) {
+        const data = response.data;
+        setFormData({
+          tanggal: data.tanggal || '',
+          no_reg: data.no_reg || '',
+          jenis_imunisasi: data.jenis_imunisasi || '',
+          nama_istri: data.nama_istri || '',
+          nik_istri: data.nik_istri || '',
+          umur_istri: data.umur_istri || '',
+          alamat: data.alamat || '',
+          nama_suami: data.nama_suami || '',
+          nik_suami: data.nik_suami || '',
+          umur_suami: data.umur_suami || '',
+          nama_bayi_balita: data.nama_bayi_balita || '',
+          tanggal_lahir_bayi: data.tanggal_lahir_bayi || '',
+          tb_bayi: data.tb_bayi || '',
+          bb_bayi: data.bb_bayi || '',
+          jadwal_selanjutnya: data.jadwal_selanjutnya || '',
+          no_hp: data.no_hp || '',
+          pengobatan: data.pengobatan || ''
+        });
+        setEditingId(id);
+        setShowForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      alert('Gagal mengambil data untuk diedit');
+    }
   };
 
   const handleDelete = async (id) => {
@@ -177,7 +218,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
             <img src={pinkLogo} alt="Pink Logo" className="imunisasi-header-logo-img" />
           </div>
           <h1 className="imunisasi-header-title">
-            {showForm ? 'Formulir Registrasi Layanan Imunisasi' : 'Layanan Imunisasi'}
+            {showForm ? (editingId ? 'Edit Registrasi Layanan Imunisasi' : 'Formulir Registrasi Layanan Imunisasi') : 'Layanan Imunisasi'}
           </h1>
         </div>
         <button className="btn-kembali-imunisasi" onClick={onBack}>Kembali</button>
@@ -191,7 +232,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
           onProfilSaya={onToProfil}
-          onTambahPasien={onToTambahPasien}
+          onTambahPasien={() => setShowForm(true)}
           onTambahPengunjung={onToTambahPengunjung}
           onBuatLaporan={onToBuatLaporan}
           onToPersalinan={onToPersalinan}
@@ -209,7 +250,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                 <p className="imunisasi-welcome-text">Selamat datang, {userData?.username || 'username'}!</p>
                 
                 <div className="imunisasi-action-buttons">
-                  <button className="imunisasi-action-btn">
+                  <button className="imunisasi-action-btn" onClick={() => setShowForm(true)}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
                       <path d="M20 10C20 14.866 15.866 18 11 18C6.134 18 2 14.866 2 10C2 5.134 6.134 2 11 2C15.866 2 20 5.134 20 10Z"/>
                       <path d="M11 19C4.582 19 0 23.582 0 29V35H22V29C22 23.582 17.418 19 11 19Z"/>
@@ -217,7 +258,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                     <span>Tambah Pasien</span>
                   </button>
                   
-                  <button className="imunisasi-action-btn" onClick={onToTambahPasien}>
+                  <button className="imunisasi-action-btn" onClick={onToJadwal}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
                       <rect x="8" y="8" width="24" height="24" rx="2" stroke="white" strokeWidth="2" fill="none"/>
                       <line x1="8" y1="15" x2="32" y2="15" stroke="white" strokeWidth="2"/>
@@ -242,11 +283,22 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                     onChange={(e) => handleSearch(e.target.value)}
                     className="imunisasi-search-input"
                   />
-                  <button className="imunisasi-search-btn">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
-                      <path d="M9 3.5C5.686 3.5 3 6.186 3 9.5C3 12.814 5.686 15.5 9 15.5C10.386 15.5 11.678 15.013 12.707 14.207L16.293 17.793L17.707 16.379L14.121 12.793C14.957 11.754 15.5 10.437 15.5 9C15.5 5.686 12.814 3 9 3C9 3 9 3.5 9 3.5ZM9 5C11.761 5 14 7.239 14 10C14 12.761 11.761 15 9 15C6.239 15 4 12.761 4 10C4 7.239 6.239 5 9 5Z"/>
-                    </svg>
-                  </button>
+                  <div className="imunisasi-filter-wrapper">
+                    <button 
+                      className="imunisasi-filter-btn"
+                      onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                    >
+                      <img src={filterIcon} alt="Filter" style={{width: '20px', height: '20px'}} />
+                    </button>
+                    {showFilterDropdown && (
+                      <div className="imunisasi-filter-dropdown">
+                        <div className="imunisasi-filter-option">Semua Data</div>
+                        <div className="imunisasi-filter-option">Hari Ini</div>
+                        <div className="imunisasi-filter-option">Minggu Ini</div>
+                        <div className="imunisasi-filter-option">Bulan Ini</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="imunisasi-riwayat-list">
@@ -259,8 +311,12 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                           {item.nama_pasien} - {new Date(item.tanggal).toLocaleDateString('id-ID')}
                         </span>
                         <div className="imunisasi-riwayat-actions">
-                          <button className="imunisasi-btn-edit" onClick={() => handleEdit(item.id)}>✏️</button>
-                          <button className="imunisasi-btn-delete" onClick={() => handleDelete(item.id)}>🗑️</button>
+                          <button className="imunisasi-btn-edit" onClick={() => handleEdit(item.id)}>
+                            <img src={editIcon} alt="Edit" style={{width: '18px', height: '18px'}} />
+                          </button>
+                          <button className="imunisasi-btn-delete" onClick={() => handleDelete(item.id)}>
+                            <img src={trashIcon} alt="Delete" style={{width: '18px', height: '18px'}} />
+                          </button>
                         </div>
                       </div>
                     ))

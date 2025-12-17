@@ -7,13 +7,15 @@
 }
 
 .rud-header {
-  background: linear-gradient(135deg, #E89AC7 0%, #F4A3D2 50%, #FFB8D9 100%);
+  background: white;
+  border: 1px solid #E89AC7;
+  margin: 20px;
+  border-radius: 15px;
   padding: 20px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: none;
-  box-shadow: 0 4px 12px rgba(232, 154, 199, 0.3);
+  box-shadow: 0 4px 12px rgba(232, 154, 199, 0.15);
 }
 
 .rud-header-left {
@@ -28,11 +30,11 @@
 }
 
 .rud-header-title {
-  color: white;
+  color: #333;
   font-size: 22px;
   font-weight: 600;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: none;
 }
 
 .btn-kembali-rud {

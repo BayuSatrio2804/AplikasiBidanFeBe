@@ -40,7 +40,6 @@ function Masuk({ onNavigate, onLogin }) {
   return (
     <div className="auth-page">
       <div className="auth-container">
-        <h2 className="form-title">Masuk</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-card">
             <div className="logo-container">

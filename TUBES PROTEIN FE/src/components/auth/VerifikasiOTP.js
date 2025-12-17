@@ -101,7 +101,6 @@ function VerifikasiOTP({ onBack, onVerified, email, usernameOrEmail }) {
   return (
     <div className="auth-page">
       <div className="auth-container">
-        <h2 className="form-title">Verifikasi OTP</h2>
         
         <div className="form-card">
           <div className="logo-container">

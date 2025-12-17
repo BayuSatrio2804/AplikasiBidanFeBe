@@ -1,20 +1,25 @@
 /* Data Pasien Page */
 .data-pasien-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #F5F5F5;
   padding: 0;
   margin: 0;
 }
 
 /* Header */
 .data-pasien-header {
-  background: linear-gradient(135deg, #E89AC7 0%, #F4A3D2 50%, #FFB8D9 100%);
-  border: none;
+  background: white;
+  border: 1px solid #E89AC7;
+  margin: 20px;
+  border-radius: 15px;
   padding: 15px 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(232, 154, 199, 0.3);
+  box-shadow: 0 4px 12px rgba(232, 154, 199, 0.15);
+  position: sticky; 
+  top: 0;
+  z-index: 100;
 }
 
 .dp-header-left {
@@ -31,6 +36,7 @@
   justify-content: center;
   border-radius: 50%;
   overflow: hidden;
+  background: white;
 }
 
 .dp-header-logo-img {
@@ -41,10 +47,10 @@
 
 .dp-header-title {
   margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 22px;
+  font-weight: 500;
+  color: #333;
+  text-shadow: none;
 }
 
 .btn-kembali-dp {
@@ -72,104 +78,6 @@
   gap: 0;
 }
 
-/* Sidebar */
-.dp-sidebar {
-  width: 220px;
-  background: white;
-  padding: 30px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-}
-
-.dp-sidebar-profile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  padding: 0 20px;
-}
-
-.dp-profile-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.btn-profil-dp {
-  background: #C94C8B;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-  transition: all 0.3s ease;
-}
-
-.btn-profil-dp:hover {
-  background: #B8417A;
-  transform: scale(1.05);
-}
-
-.dp-sidebar-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.dp-menu-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 0 20px;
-}
-
-.dp-menu-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: white;
-  margin: 0 0 10px 0;
-  padding: 10px;
-  background: linear-gradient(135deg, #E89AC7 0%, #D987BE 100%);
-  border-radius: 8px;
-}
-
-.dp-menu-item {
-  background: white;
-  border: none;
-  color: #333;
-  padding: 12px 15px;
-  border-radius: 8px;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
-  margin-bottom: 8px;
-}
-
-.dp-menu-item:hover {
-  background: #f8f8f8;
-  transform: translateX(5px);
-}
-
-.dp-menu-icon {
-  font-size: 16px;
-  width: 20px;
-  display: inline-block;
-}
-
 /* Main Area */
 .dp-main-area {
   flex: 1;
@@ -177,235 +85,203 @@
   overflow-y: auto;
 }
 
-/* Informasi Pasien Section */
-.dp-info-section {
-  background: linear-gradient(135deg, #E89AC7 0%, #D987BE 100%);
+/* Card Container */
+.dp-card {
+  background: white;
   border-radius: 20px;
-  padding: 30px;
-  margin-bottom: 30px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
-.dp-section-title {
-  margin: 0 0 20px 0;
-  font-size: 18px;
+.dp-card-header {
+  background: linear-gradient(135deg, #E89AC7 0%, #D987BE 100%);
+  padding: 20px 30px;
+}
+
+.dp-card-title {
+  margin: 0;
+  font-size: 20px;
   font-weight: 600;
   color: white;
 }
 
-.dp-info-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.dp-card-body {
+  padding: 30px;
+  background: linear-gradient(135deg, #E89AC7 0%, #F4A3D2 50%, #FFB8D9 100%);
+  min-height: 500px;
 }
 
-.dp-form-row {
+/* Search Container */
+.dp-search-container {
   display: flex;
-  gap: 15px;
+  gap: 10px;
+  margin-bottom: 25px;
 }
 
-.dp-form-group {
+.dp-search-input {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.dp-form-group-alamat {
-  flex: 2;
-}
-
-.dp-form-group label {
-  color: white;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.dp-form-group input {
-  padding: 10px 14px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 10px;
+  font-size: 15px;
   background: white;
   outline: none;
-  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.dp-form-group input:focus {
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
-}
-
-.dp-form-group input::placeholder {
+.dp-search-input::placeholder {
   color: #999;
 }
 
-/* Histori Layanan Section */
-.dp-history-section {
-  background: linear-gradient(135deg, #E89AC7 0%, #D987BE 100%);
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+.dp-filter-wrapper {
+  position: relative;
 }
 
-.dp-subsection-title {
-  margin: 0 0 20px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: white;
-}
-
-.dp-layanan-list {
+.dp-filter-btn {
+  width: 45px;
+  height: 45px;
+  background: #E89AC7;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
-  gap: 15px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.dp-layanan-item {
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  padding: 15px 20px;
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
+.dp-filter-btn:hover {
+  background: #D987BE;
+  transform: scale(1.05);
 }
 
-.dp-layanan-label {
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
-  min-width: 180px;
-  padding-top: 10px;
-}
-
-.dp-layanan-values {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.dp-layanan-value {
+.dp-filter-dropdown {
+  position: absolute;
+  top: 55px;
+  right: 0;
   background: white;
-  border-radius: 8px;
-  padding: 10px 15px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 220px;
+  overflow: hidden;
+  z-index: 1000;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dp-filter-option {
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #333;
+  font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dp-filter-option:last-child {
+  border-bottom: none;
+}
+
+.dp-filter-option:hover {
+  background: #F8F8F8;
+  padding-left: 25px;
+}
+
+.dp-filter-option.active {
+  background: linear-gradient(135deg, #E89AC7 0%, #F4A3D2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.dp-filter-option.active:hover {
+  background: linear-gradient(135deg, #D987BE 0%, #E89AC7 100%);
+}
+
+/* Patient List */
+.dp-patient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dp-patient-item {
+  background: #E89AC7;
+  border-radius: 12px;
+  padding: 18px 25px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #333;
-  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.dp-layanan-empty {
-  background: white;
-  border-radius: 8px;
-  padding: 10px 15px;
-  color: #999;
-  font-size: 14px;
-  text-align: center;
+.dp-patient-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.dp-layanan-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.dp-btn-detail,
-.dp-btn-delete-small {
-  background: transparent;
-  border: none;
-  padding: 5px 8px;
-  cursor: pointer;
+.dp-patient-name {
+  color: white;
   font-size: 16px;
-  transition: all 0.2s;
+  font-weight: 500;
 }
 
-.dp-btn-detail:hover,
-.dp-btn-delete-small:hover {
-  transform: scale(1.2);
+.dp-patient-actions {
+  display: flex;
+  gap: 12px;
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .data-pasien-content {
-    flex-direction: column;
-  }
-  
-  .dp-sidebar {
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 20px;
-  }
-  
-  .dp-sidebar-profile {
-    flex-direction: row;
-  }
-  
-  .dp-profile-avatar {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .dp-sidebar-menu {
-    flex-direction: row;
-    gap: 15px;
-  }
-  
-  .btn-profil-dp {
-    width: auto;
-    padding: 8px 16px;
-  }
+.dp-btn-edit,
+.dp-btn-delete {
+  width: 40px !important;
+  height: 40px !important;
+  border: none !important;
+  border-radius: 50% !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-@media (max-width: 768px) {
-  .data-pasien-header {
-    padding: 15px 20px;
-  }
-  
-  .dp-header-title {
-    font-size: 16px;
-  }
-  
-  .dp-main-area {
-    padding: 20px;
-  }
-  
-  .dp-form-row {
-    flex-direction: column;
-  }
-  
-  .dp-sidebar {
-    flex-direction: column;
-  }
-  
-  .dp-sidebar-menu {
-    flex-direction: column;
-  }
-  
-  .dp-layanan-item {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .dp-layanan-label {
-    min-width: auto;
-    padding-top: 0;
-  }
+.dp-btn-edit {
+  background: linear-gradient(135deg, #F4A3D2 0%, #E89AC7 100%) !important;
 }
 
-@media (max-width: 480px) {
-  .dp-header-title {
-    font-size: 14px;
-  }
-  
-  .btn-kembali-dp {
-    padding: 8px 16px;
-    font-size: 12px;
-  }
-  
-  .dp-info-section,
-  .dp-history-section {
-    padding: 20px;
-  }
+.dp-btn-edit:hover {
+  background: linear-gradient(135deg, #E89AC7 0%, #D987BE 100%) !important;
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.dp-btn-delete {
+  background: linear-gradient(135deg, #F4A3D2 0%, #E89AC7 100%) !important;
+}
+
+.dp-btn-delete:hover {
+  background: linear-gradient(135deg, #E89AC7 0%, #D987BE 100%) !important;
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.dp-loading,
+.dp-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: white;
+  font-size: 16px;
 }

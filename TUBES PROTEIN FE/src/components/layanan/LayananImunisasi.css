@@ -8,13 +8,19 @@
 
 /* Header */
 .imunisasi-header {
-  background: linear-gradient(135deg, #E89AC7 0%, #F4A3D2 50%, #FFB8D9 100%);
-  border: none;
+  background: white;
+  border: 1px solid #E89AC7;
+  margin: 20px;
+  border-radius: 15px;
   padding: 15px 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(232, 154, 199, 0.3);
+  box-shadow: 0 4px 12px rgba(232, 154, 199, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: all 0.3s ease;
 }
 
 .imunisasi-header-left {
@@ -38,8 +44,8 @@
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #333;
+  text-shadow: none;
 }
 
 .btn-kembali-imunisasi {
@@ -65,6 +71,8 @@
   display: flex;
   min-height: calc(100vh - 80px);
   gap: 0;
+  position: relative;
+  background: #f5f5f5;
 }
 
 /* Sidebar */
@@ -258,6 +266,71 @@
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
 }
 
+.imunisasi-filter-wrapper {
+  position: relative;
+}
+
+.imunisasi-filter-btn {
+  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imunisasi-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.imunisasi-filter-dropdown {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  overflow: hidden;
+  z-index: 1000;
+  animation: slideDownImunisasi 0.2s ease;
+}
+
+@keyframes slideDownImunisasi {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.imunisasi-filter-option {
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #333;
+  font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.imunisasi-filter-option:last-child {
+  border-bottom: none;
+}
+
+.imunisasi-filter-option:hover {
+  background: #F8F8F8;
+  padding-left: 22px;
+  color: #E91E8C;
+}
+
 .imunisasi-search-btn {
   background: rgba(255, 255, 255, 0.3);
   border: 2px solid rgba(255, 255, 255, 0.5);
@@ -308,19 +381,29 @@
 
 .imunisasi-btn-edit,
 .imunisasi-btn-delete {
-  background: white;
+  background: linear-gradient(135deg, #E89AC7 0%, #F4A3D2 100%);
   border: none;
-  padding: 8px 12px;
+  padding: 10px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
   transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
 }
 
-.imunisasi-btn-edit:hover,
+.imunisasi-btn-edit:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  background: linear-gradient(135deg, #F4A3D2 0%, #FFB8D9 100%);
+}
+
 .imunisasi-btn-delete:hover {
   transform: scale(1.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+  background: linear-gradient(135deg, #F4A3D2 0%, #FFB8D9 100%);
 }
 
 /* Form Container */
@@ -383,6 +466,9 @@
   background: white;
   outline: none;
   transition: all 0.3s;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .imunisasi-form-group input:focus,
@@ -511,6 +597,15 @@
 }
 
 @media (max-width: 480px) {
+  .imunisasi-header {
+    padding: 10px 15px;
+  }
+
+  .imunisasi-header-logo-img {
+    width: 35px;
+    height: 35px;
+  }
+
   .imunisasi-header-title {
     font-size: 14px;
   }
@@ -519,12 +614,60 @@
     padding: 8px 16px;
     font-size: 12px;
   }
+
+  .imunisasi-content {
+    flex-direction: column;
+  }
   
   .imunisasi-form-container {
-    padding: 20px;
+    padding: 15px;
   }
   
   .imunisasi-form-section {
+    padding: 12px;
+  }
+
+  .imunisasi-form-section-title {
+    font-size: 14px;
+  }
+
+  .imunisasi-form-group label {
+    font-size: 12px;
+  }
+
+  .imunisasi-form-group input,
+  .imunisasi-form-group select,
+  .imunisasi-form-group textarea {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .imunisasi-welcome-text {
+    font-size: 14px;
+  }
+
+  .imunisasi-action-btn {
+    padding: 10px 15px;
+    font-size: 13px;
+    width: 100%;
+  }
+
+  .imunisasi-btn-batal,
+  .imunisasi-btn-simpan {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .imunisasi-sidebar {
+    display: none;
+  }
+
+  .imunisasi-main-area {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .imunisasi-welcome-section {
     padding: 15px;
   }
 }

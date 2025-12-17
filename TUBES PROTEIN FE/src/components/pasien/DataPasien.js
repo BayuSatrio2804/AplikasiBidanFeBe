@@ -4,36 +4,29 @@ import './DataPasien.css';
 import pinkLogo from '../../assets/images/pink-logo.png';
 import pasienService from '../../services/pasien.service';
 
-function DataPasien({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi, selectedPasienId }) {
+function DataPasien({ 
+  onBack, 
+  onToRiwayatDataMasuk, 
+  onToRiwayatMasukAkun, 
+  onToProfil, 
+  onToEditPasien,
+  onToTambahPasien,
+  onToTambahPengunjung,
+  onToBuatLaporan,
+  onToPersalinan,
+  onToANC,
+  onToKB,
+  onToImunisasi
+}) {
   const [pasienList, setPasienList] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPasien, setSelectedPasien] = useState(null);
-  const [formData, setFormData] = useState({
-    nama: '',
-    umur: '',
-    NIK: '',
-    no_hp: '',
-    alamat: ''
-  });
   const [isLoading, setIsLoading] = useState(false);
-
-  const [riwayatLayanan, setRiwayatLayanan] = useState({
-    'KB': [],
-    'Persalinan': [],
-    'ANC': [],
-    'Imunisasi': [],
-    'Kunjungan Pasien': []
-  });
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('semua');
 
   useEffect(() => {
     fetchPasienList();
   }, []);
-
-  useEffect(() => {
-    if (selectedPasienId) {
-      fetchPasienById(selectedPasienId);
-    }
-  }, [selectedPasienId]);
 
   const fetchPasienList = async (search = '') => {
     setIsLoading(true);
@@ -49,59 +42,37 @@ function DataPasien({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToPr
     }
   };
 
-  const fetchPasienById = async (id) => {
-    try {
-      const response = await pasienService.getPasienById(id);
-      if (response.success) {
-        setSelectedPasien(response.data);
-        setFormData({
-          nama: response.data.nama || '',
-          umur: response.data.umur || '',
-          NIK: response.data.nik || '',
-          no_hp: response.data.no_hp || '',
-          alamat: response.data.alamat || ''
-        });
-        // Fetch riwayat
-        fetchRiwayatPasien(id);
-      }
-    } catch (error) {
-      console.error('Error fetching pasien:', error);
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    fetchPasienList(value);
+  };
+
+  const handleEdit = (pasienId) => {
+    if (onToEditPasien) {
+      onToEditPasien(pasienId);
     }
   };
 
-  const fetchRiwayatPasien = async (id_pasien) => {
-    try {
-      const response = await pasienService.getRiwayatPasien(id_pasien);
-      if (response.success) {
-        // Group by jenis_layanan
-        const grouped = {
-          'KB': [],
-          'Persalinan': [],
-          'ANC': [],
-          'Imunisasi': [],
-          'Kunjungan Pasien': []
-        };
-        
-        response.data.forEach(item => {
-          if (grouped[item.jenis_layanan]) {
-            grouped[item.jenis_layanan].push(item);
-          }
-        });
-        
-        setRiwayatLayanan(grouped);
+  const handleDelete = async (pasienId) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus data pasien ini?')) {
+      try {
+        const response = await pasienService.deletePasien(pasienId);
+        if (response.success) {
+          alert('Data pasien berhasil dihapus');
+          fetchPasienList(searchQuery);
+        }
+      } catch (error) {
+        console.error('Error deleting pasien:', error);
+        alert('Gagal menghapus data pasien');
       }
-    } catch (error) {
-      console.error('Error fetching riwayat:', error);
     }
   };
 
-  const handleSearch = () => {
-    fetchPasienList(searchQuery);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleFilterSelect = (filterValue) => {
+    setSelectedFilter(filterValue);
+    setShowFilterDropdown(false);
+    // Implement filter logic here based on layanan
   };
 
   return (
@@ -112,7 +83,7 @@ function DataPasien({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToPr
           <div className="dp-header-logo">
             <img src={pinkLogo} alt="Pink Logo" className="dp-header-logo-img" />
           </div>
-          <h1 className="dp-header-title">Data Pasien</h1>
+          <h1 className="dp-header-title">Data Pasien (Keseluruhan)</h1>
         </div>
         <button className="btn-kembali-dp" onClick={onBack}>Kembali</button>
       </div>
@@ -136,171 +107,106 @@ function DataPasien({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToPr
 
         {/* Main Area */}
         <main className="dp-main-area">
-          {/* Informasi Pasien */}
-          <div className="dp-info-section">
-            <h2 className="dp-section-title">Informasi Pasien</h2>
-            <div className="dp-info-form">
-              <div className="dp-form-row">
-                <div className="dp-form-group">
-                  <label>Nama Pasien</label>
-                  <input
-                    type="text"
-                    name="nama"
-                    value={formData.nama}
-                    onChange={handleInputChange}
-                    placeholder="Nama Pasien"
-                  />
-                </div>
-                <div className="dp-form-group">
-                  <label>Umur (Th)</label>
-                  <input
-                    type="text"
-                    name="umur"
-                    value={formData.umur}
-                    onChange={handleInputChange}
-                    placeholder="Umur Pasien"
-                  />
-                </div>
-                <div className="dp-form-group">
-                  <label>NIK</label>
-                  <input
-                    type="text"
-                    name="NIK"
-                    value={formData.NIK}
-                    onChange={handleInputChange}
-                    placeholder="NIK Pasien"
-                  />
-                </div>
-              </div>
-              <div className="dp-form-row">
-                <div className="dp-form-group">
-                  <label>Nomor HP</label>
-                  <input
-                    type="text"
-                    name="no_hp"
-                    value={formData.no_hp}
-                    onChange={handleInputChange}
-                    placeholder="Nomor HP"
-                  />
-                </div>
-                <div className="dp-form-group dp-form-group-alamat">
-                  <label>Alamat</label>
-                  <input
-                    type="text"
-                    name="alamat"
-                    value={formData.alamat}
-                    onChange={handleInputChange}
-                    placeholder="Alamat lengkap"
-                  />
-                </div>
-              </div>
+          <div className="dp-card">
+            <div className="dp-card-header">
+              <h2 className="dp-card-title">Data Pasien</h2>
             </div>
-          </div>
-
-          {/* Histori Layanan */}
-          <div className="dp-history-section">
-            <h2 className="dp-section-title">Histori Layanan</h2>
-            <h3 className="dp-subsection-title">Layanan Program Keluarga Berencana</h3>
             
-            <div className="dp-layanan-list">
-              {/* KB */}
-              <div className="dp-layanan-item">
-                <div className="dp-layanan-label">Nomor Registrasi</div>
-                <div className="dp-layanan-values">
-                  {riwayatLayanan['KB']?.length > 0 ? (
-                    riwayatLayanan['KB'].map((item, index) => (
-                      <div key={item.id_pemeriksaan} className="dp-layanan-value">
-                        {item.nomor_registrasi}
-                        <div className="dp-layanan-actions">
-                          <button className="dp-btn-detail">✏️</button>
-                          <button className="dp-btn-delete-small">🗑️</button>
-                        </div>
+            <div className="dp-card-body">
+              {/* Search Box */}
+              <div className="dp-search-container">
+                <input
+                  type="text"
+                  className="dp-search-input"
+                  placeholder="Cari Data Pasien"
+                  value={searchQuery}
+                  onChange={handleSearch}
+                />
+                <div className="dp-filter-wrapper">
+                  <button 
+                    className="dp-filter-btn"
+                    onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
+                      <path d="M2 4h16M5 9h10M8 14h4" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                  {showFilterDropdown && (
+                    <div className="dp-filter-dropdown">
+                      <div 
+                        className={`dp-filter-option ${selectedFilter === 'semua' ? 'active' : ''}`}
+                        onClick={() => handleFilterSelect('semua')}
+                      >
+                        Semua Layanan
                       </div>
-                    ))
-                  ) : (
-                    <div className="dp-layanan-empty">Data tidak ditemukan</div>
+                      <div 
+                        className={`dp-filter-option ${selectedFilter === 'kb' ? 'active' : ''}`}
+                        onClick={() => handleFilterSelect('kb')}
+                      >
+                        Layanan KB
+                      </div>
+                      <div 
+                        className={`dp-filter-option ${selectedFilter === 'persalinan' ? 'active' : ''}`}
+                        onClick={() => handleFilterSelect('persalinan')}
+                      >
+                        Layanan Persalinan
+                      </div>
+                      <div 
+                        className={`dp-filter-option ${selectedFilter === 'anc' ? 'active' : ''}`}
+                        onClick={() => handleFilterSelect('anc')}
+                      >
+                        Layanan ANC
+                      </div>
+                      <div 
+                        className={`dp-filter-option ${selectedFilter === 'imunisasi' ? 'active' : ''}`}
+                        onClick={() => handleFilterSelect('imunisasi')}
+                      >
+                        Layanan Imunisasi
+                      </div>
+                      <div 
+                        className={`dp-filter-option ${selectedFilter === 'kunjungan' ? 'active' : ''}`}
+                        onClick={() => handleFilterSelect('kunjungan')}
+                      >
+                        Kunjungan Pasien
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
 
-              {/* Persalinan */}
-              <div className="dp-layanan-item">
-                <div className="dp-layanan-label">Layanan Persalinan</div>
-                <div className="dp-layanan-values">
-                  {riwayatLayanan['Persalinan']?.length > 0 ? (
-                    riwayatLayanan['Persalinan'].map((item, index) => (
-                      <div key={item.id_pemeriksaan} className="dp-layanan-value">
-                        {item.nomor_registrasi}
-                        <div className="dp-layanan-actions">
-                          <button className="dp-btn-detail">✏️</button>
-                          <button className="dp-btn-delete-small">🗑️</button>
-                        </div>
+              {/* Patient List */}
+              <div className="dp-patient-list">
+                {isLoading ? (
+                  <div className="dp-loading">Memuat data...</div>
+                ) : pasienList.length > 0 ? (
+                  pasienList.map((pasien) => (
+                    <div key={pasien.id} className="dp-patient-item">
+                      <span className="dp-patient-name">{pasien.nama}</span>
+                      <div className="dp-patient-actions">
+                        <button 
+                          className="dp-btn-edit"
+                          onClick={() => handleEdit(pasien.id)}
+                          title="Edit"
+                        >
+                          <svg width="18" height="18" viewBox="0 0 18 18" fill="white">
+                            <path d="M12.5 2.5L15.5 5.5M1 17L4.5 16.5L16 5C16.5 4.5 16.5 3.5 16 3L15 2C14.5 1.5 13.5 1.5 13 2L1.5 13.5L1 17Z" stroke="white" strokeWidth="1.5" fill="none"/>
+                          </svg>
+                        </button>
+                        <button 
+                          className="dp-btn-delete"
+                          onClick={() => handleDelete(pasien.id)}
+                          title="Hapus"
+                        >
+                          <svg width="18" height="18" viewBox="0 0 18 18" fill="white">
+                            <path d="M3 5h12M7 3h4M7 8v6M11 8v6M5 5l1 11h6l1-11" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                          </svg>
+                        </button>
                       </div>
-                    ))
-                  ) : (
-                    <div className="dp-layanan-empty">Data tidak ditemukan</div>
-                  )}
-                </div>
-              </div>
-
-              {/* ANC */}
-              <div className="dp-layanan-item">
-                <div className="dp-layanan-label">Layanan ANC</div>
-                <div className="dp-layanan-values">
-                  {riwayatLayanan['ANC']?.length > 0 ? (
-                    riwayatLayanan['ANC'].map((item, index) => (
-                      <div key={item.id_pemeriksaan} className="dp-layanan-value">
-                        {item.nomor_registrasi}
-                        <div className="dp-layanan-actions">
-                          <button className="dp-btn-detail">✏️</button>
-                          <button className="dp-btn-delete-small">🗑️</button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="dp-layanan-empty">Data tidak ditemukan</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Imunisasi */}
-              <div className="dp-layanan-item">
-                <div className="dp-layanan-label">Layanan Imunisasi</div>
-                <div className="dp-layanan-values">
-                  {riwayatLayanan['Imunisasi']?.length > 0 ? (
-                    riwayatLayanan['Imunisasi'].map((item, index) => (
-                      <div key={item.id_pemeriksaan} className="dp-layanan-value">
-                        {item.nomor_registrasi}
-                        <div className="dp-layanan-actions">
-                          <button className="dp-btn-detail">✏️</button>
-                          <button className="dp-btn-delete-small">🗑️</button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="dp-layanan-empty">Data tidak ditemukan</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Kunjungan Pasien */}
-              <div className="dp-layanan-item">
-                <div className="dp-layanan-label">Layanan Kunjungan Pasien</div>
-                <div className="dp-layanan-values">
-                  {riwayatLayanan['Kunjungan Pasien']?.length > 0 ? (
-                    riwayatLayanan['Kunjungan Pasien'].map((item, index) => (
-                      <div key={item.id_pemeriksaan} className="dp-layanan-value">
-                        {item.nomor_registrasi}
-                        <div className="dp-layanan-actions">
-                          <button className="dp-btn-detail">✏️</button>
-                          <button className="dp-btn-delete-small">🗑️</button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="dp-layanan-empty">Data tidak ditemukan</div>
-                  )}
-                </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="dp-empty">Tidak ada data pasien</div>
+                )}
               </div>
             </div>
           </div>

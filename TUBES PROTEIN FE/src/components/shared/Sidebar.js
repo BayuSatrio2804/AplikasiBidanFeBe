@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import './Sidebar.css';
 import pinkLogo from '../../assets/images/pink-logo.png';
+import addIcon from '../../assets/images/icons/icons8-add-100.png';
+import postIcon from '../../assets/images/icons/icons8-post-100.png';
+import timeIcon from '../../assets/images/icons/icons8-time-machine-100.png';
 
 function Sidebar({ 
   activePage, 
@@ -16,21 +19,13 @@ function Sidebar({
   onToImunisasi
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isLocked, setIsLocked] = useState(false);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
   
-  const toggleLock = () => {
-    setIsLocked(!isLocked);
-  };
-  
   return (
-    <aside className={`sidebar ${isLocked ? 'sidebar-locked' : ''}`}>
-      <button className="sidebar-lock-btn" onClick={toggleLock} title={isLocked ? 'Unlock Sidebar' : 'Lock Sidebar'}>
-        {isLocked ? '🔒' : '🔓'}
-      </button>
+    <aside className="sidebar">
       <div className="sidebar-profile">
         <div className="sidebar-profile-icon">
           <img src={pinkLogo} alt="Pink Logo" className="sidebar-logo-img" />
@@ -49,7 +44,9 @@ function Sidebar({
               className={`sidebar-menu-item ${isDropdownOpen ? 'sidebar-dropdown-active' : ''}`}
               onClick={toggleDropdown}
             >
-              <span className="sidebar-menu-icon">⊕</span>
+              <span className="sidebar-menu-icon">
+                <img src={addIcon} alt="Add" style={{width: '18px', height: '18px', filter: 'brightness(0) invert(1)'}} />
+              </span>
               Tambah Pasien
               <span className="sidebar-dropdown-arrow">{isDropdownOpen ? '▼' : '›'}</span>
             </button>
@@ -92,14 +89,18 @@ function Sidebar({
             className={`sidebar-menu-item ${activePage === 'tambah-pengunjung' ? 'sidebar-menu-item-active' : ''}`}
             onClick={onTambahPengunjung}
           >
-            <span className="sidebar-menu-icon">⊕</span>
+            <span className="sidebar-menu-icon">
+              <img src={addIcon} alt="Add" style={{width: '18px', height: '18px', filter: 'brightness(0) invert(1)'}} />
+            </span>
             Tambah Pengunjung
           </button>
           <button 
             className={`sidebar-menu-item ${activePage === 'buat-laporan' ? 'sidebar-menu-item-active' : ''}`}
             onClick={onBuatLaporan}
           >
-            <span className="sidebar-menu-icon">⊕</span>
+            <span className="sidebar-menu-icon">
+              <img src={postIcon} alt="Report" style={{width: '18px', height: '18px', filter: 'brightness(0) invert(1)'}} />
+            </span>
             Buat Laporan
           </button>
         </div>

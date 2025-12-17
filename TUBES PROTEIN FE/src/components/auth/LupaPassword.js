@@ -34,8 +34,6 @@ function LupaPassword({ onBack, onLogin, onToVerifikasiOTP }) {
   return (
     <div className="auth-page">
       <div className="auth-container">
-        <h2 className="form-title">Lupa password</h2>
-        
         <div className="form-card">
           <div className="logo-container">
             <div className="logo">

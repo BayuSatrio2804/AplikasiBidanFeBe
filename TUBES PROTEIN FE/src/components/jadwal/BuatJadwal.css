@@ -1,0 +1,352 @@
+/* Buat Jadwal Page */
+.buat-jadwal-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 0;
+  margin: 0;
+}
+
+/* Header */
+.buat-jadwal-header {
+  background: white;
+  border: 1px solid #E89AC7;
+  margin: 20px;
+  border-radius: 15px;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(232, 154, 199, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.buat-jadwal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.buat-jadwal-header-logo {
+  display: flex;
+  align-items: center;
+}
+
+.buat-jadwal-header-logo-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.buat-jadwal-header-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  text-shadow: none;
+}
+
+.btn-kembali-jadwal {
+  background: #C94C8B;
+  color: white;
+  border: none;
+  padding: 10px 30px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-kembali-jadwal:hover {
+  background: #B8417A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(201, 76, 139, 0.3);
+}
+
+/* Content Layout */
+.buat-jadwal-content {
+  display: flex;
+  min-height: calc(100vh - 80px);
+  gap: 0;
+  position: relative;
+  background: #f5f5f5;
+}
+
+/* Main Area */
+.buat-jadwal-main-area {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Form Container */
+.jadwal-form-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.jadwal-form-section {
+  background: linear-gradient(135deg, #E89AC7 0%, #D987BE 100%);
+  padding: 45px 50px;
+  border-radius: 25px;
+  box-sizing: border-box;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(232, 154, 199, 0.3);
+}
+
+.jadwal-form-section-title {
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 35px 0;
+  text-align: left;
+}
+
+.jadwal-form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.jadwal-form-row {
+  display: flex;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+.jadwal-form-group {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.jadwal-form-group.full-width {
+  flex: 1 1 100%;
+  width: 100%;
+}
+
+.jadwal-form-group.small {
+  flex: 0 0 220px;
+  min-width: 220px;
+}
+
+.jadwal-form-group label {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.jadwal-form-group input,
+.jadwal-form-group select {
+  padding: 15px 18px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  background: white;
+  outline: none;
+  transition: all 0.3s;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.jadwal-form-group input:focus,
+.jadwal-form-group select:focus {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+.jadwal-form-group input::placeholder {
+  color: #999;
+}
+
+.jadwal-form-group select {
+  cursor: pointer;
+}
+
+/* Form Actions */
+.jadwal-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.btn-jadwal-submit,
+.btn-jadwal-cancel {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-jadwal-submit {
+  background: #28a745;
+}
+
+.btn-jadwal-submit:hover {
+  background: #218838;
+  transform: scale(1.15);
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.5);
+}
+
+.btn-jadwal-cancel {
+  background: #dc3545;
+}
+
+.btn-jadwal-cancel:hover {
+  background: #c82333;
+  transform: scale(1.15);
+  box-shadow: 0 6px 16px rgba(220, 53, 69, 0.5);
+}
+
+.btn-jadwal-submit svg,
+.btn-jadwal-cancel svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .jadwal-form-container {
+    max-width: 900px;
+  }
+
+  .jadwal-form-section {
+    padding: 40px 45px;
+  }
+}
+
+@media (max-width: 992px) {
+  .jadwal-form-container {
+    max-width: 100%;
+  }
+
+  .jadwal-form-section {
+    padding: 35px 40px;
+  }
+
+  .jadwal-form-group.small {
+    flex: 0 0 180px;
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .buat-jadwal-content {
+    flex-direction: column;
+  }
+
+  .buat-jadwal-main-area {
+    padding: 25px;
+  }
+
+  .jadwal-form-section {
+    padding: 30px;
+  }
+
+  .jadwal-form-section-title {
+    font-size: 20px;
+  }
+
+  .jadwal-form-row {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .jadwal-form-group.small {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .jadwal-form-group label {
+    font-size: 15px;
+  }
+
+  .jadwal-form-group input,
+  .jadwal-form-group select {
+    padding: 13px 16px;
+    font-size: 15px;
+  }
+
+  .btn-jadwal-submit,
+  .btn-jadwal-cancel {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .buat-jadwal-main-area {
+    padding: 15px;
+  }
+
+  .jadwal-form-section {
+    padding: 20px;
+  }
+
+  .jadwal-form-section-title {
+    font-size: 18px;
+    margin-bottom: 25px;
+  }
+
+  .jadwal-form-content {
+    gap: 18px;
+  }
+
+  .jadwal-form-group label {
+    font-size: 14px;
+  }
+
+  .jadwal-form-group input,
+  .jadwal-form-group select {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .btn-jadwal-submit,
+  .btn-jadwal-cancel {
+    width: 45px;
+    height: 45px;
+  }
+
+  .btn-jadwal-submit svg,
+  .btn-jadwal-cancel svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .buat-jadwal-header {
+    padding: 12px 20px;
+  }
+
+  .buat-jadwal-header-logo-img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .buat-jadwal-header-title {
+    font-size: 14px;
+  }
+
+  .btn-kembali-jadwal {
+    padding: 8px 20px;
+    font-size: 14px;
+  }
+}
+

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import './Jadwal.css';
 import Sidebar from '../shared/Sidebar';
 import pinkLogo from '../../assets/images/pink-logo.png';
+import editIcon from '../../assets/images/icons/icons8-edit-pencil-100.png';
+import trashIcon from '../../assets/images/icons/icons8-trash-100.png';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
 import jadwalService from '../../services/jadwal.service';
@@ -292,14 +294,14 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
                           onClick={() => handleEdit(jadwal)}
                           title="Edit"
                         >
-                          ✏️
+                          <img src={editIcon} alt="Edit" style={{width: '16px', height: '16px'}} />
                         </button>
                         <button 
                           className="jadwal-btn-delete"
                           onClick={() => handleDelete(jadwal.id_jadwal)}
                           title="Hapus"
                         >
-                          🗑️
+                          <img src={trashIcon} alt="Delete" style={{width: '16px', height: '16px'}} />
                         </button>
                       </div>
                     </div>

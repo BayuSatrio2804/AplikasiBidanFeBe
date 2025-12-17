@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './Auth.css';
+import eyeIcon from '../../assets/images/icons/icons8-eye-100.png';
 import authService from '../../services/auth.service';
 
 function BuatAkun({ onNavigate }) {
@@ -41,7 +42,6 @@ function BuatAkun({ onNavigate }) {
   return (
     <div className="auth-page">
       <div className="auth-container">
-        <h2 className="form-title">Buat Akun</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-card">
             <div className="logo-container">
@@ -105,7 +105,9 @@ function BuatAkun({ onNavigate }) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <span className="eye-icon">👁</span>
+              <span className="eye-icon">
+                <img src={eyeIcon} alt="Show" style={{width: '20px', height: '20px', opacity: '0.5'}} />
+              </span>
             </div>
             
             <div className="form-footer-center">

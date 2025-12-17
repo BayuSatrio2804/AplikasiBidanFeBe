@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import './ProfilSaya.css';
+import pinkLogo from '../../assets/images/pink-logo.png';
+import passwordIcon from '../../assets/images/icons/icons8-password-100.png';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
 import authService from '../../services/auth.service';
@@ -72,11 +74,7 @@ function ProfilSaya({ onBack, userData }) {
       <header className="profil-header">
         <div className="profil-header-left">
           <div className="profil-header-icon">
-            <svg width="40" height="40" viewBox="0 0 50 50" fill="none">
-              <circle cx="25" cy="25" r="25" fill="#E89AC7"/>
-              <path d="M25 15C25 18.866 21.866 22 18 22C14.134 22 11 18.866 11 15C11 11.134 14.134 8 18 8C21.866 8 25 11.134 25 15Z" fill="white"/>
-              <path d="M25 25C28.866 25 32 28.134 32 32C32 35.866 28.866 39 25 39C21.134 39 18 35.866 18 32C18 28.134 21.134 25 25 25Z" fill="white"/>
-            </svg>
+            <img src={pinkLogo} alt="Pink Logo" className="profil-header-logo-img" />
           </div>
           <h1 className="profil-header-title">Profil Saya</h1>
         </div>
@@ -91,31 +89,7 @@ function ProfilSaya({ onBack, userData }) {
               {/* Left Section - Avatar */}
               <div className="profil-left">
                 <div className="profil-avatar">
-                  <svg width="180" height="180" viewBox="0 0 180 180" fill="none">
-                    <circle cx="90" cy="90" r="85" fill="#E89AC7" opacity="0.3"/>
-                    <circle cx="90" cy="90" r="70" fill="#E89AC7" opacity="0.5"/>
-                    <circle cx="90" cy="90" r="60" fill="white"/>
-                    {/* Heart with hands */}
-                    <path 
-                      d="M90 80C90 80 75 67 75 58C75 52 79 48 83 48C86 48 89 50 90 52C91 50 94 48 97 48C101 48 105 52 105 58C105 67 90 80 90 80Z" 
-                      fill="#C94C8B"
-                    />
-                    {/* Hands */}
-                    <path 
-                      d="M78 80C78 80 70 84 66 88C62 92 62 96 66 100C70 104 74 104 78 100L84 94" 
-                      stroke="#C94C8B" 
-                      strokeWidth="3" 
-                      fill="none"
-                      strokeLinecap="round"
-                    />
-                    <path 
-                      d="M102 80C102 80 110 84 114 88C118 92 118 96 114 100C110 104 106 104 102 100L96 94" 
-                      stroke="#C94C8B" 
-                      strokeWidth="3" 
-                      fill="none"
-                      strokeLinecap="round"
-                    />
-                  </svg>
+                  <img src={pinkLogo} alt="Logo" className="profil-avatar-img" />
                 </div>
               </div>
 
@@ -161,9 +135,20 @@ function ProfilSaya({ onBack, userData }) {
 
                 <h2 className="profil-section-title">Keamanan Pengguna</h2>
 
-                {/* Password Link */}
-                <div className="profil-password-link">
-                  <a href="#ubah-password" className="link-ubah-password">
+                {/* Password Field dengan Ubah Password link */}
+                <div className="profil-field">
+                  <div className="profil-icon">
+                    <img src={passwordIcon} alt="Password" style={{width: '24px', height: '24px', filter: 'brightness(0) invert(1)'}} />
+                  </div>
+                  <div className="profil-input-container">
+                    <input
+                      type="password"
+                      value="Password"
+                      disabled
+                      style={{cursor: 'not-allowed'}}
+                    />
+                  </div>
+                  <a href="#ubah-password" className="link-ubah-password-inline">
                     Ubah Password
                   </a>
                 </div>

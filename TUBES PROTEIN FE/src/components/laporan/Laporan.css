@@ -7,13 +7,19 @@
 
 /* ===== Header ===== */
 .laporan-header {
-  background: linear-gradient(135deg, #E89AC7 0%, #F4A3D2 50%, #FFB8D9 100%);
-  border: none;
+  background: white;
+  border: 1px solid #E89AC7;
+  margin: 20px;
+  border-radius: 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 15px 30px;
-  box-shadow: 0 4px 12px rgba(232, 154, 199, 0.3);
+  box-shadow: 0 4px 12px rgba(232, 154, 199, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: all 0.3s ease;
 }
 
 .laporan-header-left {
@@ -41,9 +47,9 @@
 .laporan-header-title {
   font-size: 24px;
   font-weight: 700;
-  color: white;
+  color: #333;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: none;
 }
 
 .btn-kembali-laporan {

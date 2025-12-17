@@ -2,13 +2,18 @@ import { useState, useEffect } from 'react';
 import './LayananKunjunganPasien.css';
 import Sidebar from '../shared/Sidebar';
 import pinkLogo from '../../assets/images/pink-logo.png';
+import filterIcon from '../../assets/images/icons/icons8-filter-100.png';
+import editIcon from '../../assets/images/icons/icons8-edit-pencil-100.png';
+import trashIcon from '../../assets/images/icons/icons8-trash-100.png';
 import layananService from '../../services/layanan.service';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
 
-function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi }) {
+function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi, onToJadwal }) {
+  const [editingId, setEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   
   const [formData, setFormData] = useState({
@@ -61,7 +66,8 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
     }
   };
 
-  const handleSearch = (query) => {
+  const handleSearch = (e) => {
+    const query = e.target.value;
     setSearchQuery(query);
     fetchRiwayatPelayanan(query);
   };
@@ -80,11 +86,16 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
     setError('');
     
     try {
-      const response = await layananService.createKunjunganPasien(formData);
+      let response;
+      if (editingId) {
+        response = await layananService.updateKunjunganPasien(editingId, formData);
+      } else {
+        response = await layananService.createKunjunganPasien(formData);
+      }
       if (response.success) {
         showNotifikasi({
           type: 'success',
-          message: 'Data kunjungan pasien berhasil disimpan!',
+          message: editingId ? 'Data berhasil diupdate!' : 'Data kunjungan pasien berhasil disimpan!',
           autoClose: true,
           autoCloseDuration: 2000,
           onConfirm: hideNotifikasi
@@ -111,6 +122,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
   };
 
   const resetForm = () => {
+    setEditingId(null);
     setFormData({
       tanggal: '',
       no_reg: '',
@@ -132,13 +144,36 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
     setError('');
   };
 
-  const handleEdit = (item) => {
-    setFormData({
-      ...formData,
-      nama_pasien: item.nama_pasien,
-      tanggal_kunjungan: item.tanggal
-    });
-    setShowForm(true);
+  const handleEdit = async (item) => {
+    try {
+      const response = await layananService.getKunjunganPasienById(item.id);
+      if (response.success) {
+        const data = response.data;
+        setFormData({
+          tanggal: data.tanggal || '',
+          no_reg: data.no_reg || '',
+          jenis_kunjungan: data.jenis_kunjungan || '',
+          nama_pasien: data.nama_pasien || '',
+          nik_pasien: data.nik_pasien || '',
+          umur_pasien: data.umur_pasien || '',
+          bb_pasien: data.bb_pasien || '',
+          td_pasien: data.td_pasien || '',
+          nama_wali: data.nama_wali || '',
+          nik_wali: data.nik_wali || '',
+          umur_wali: data.umur_wali || '',
+          keluhan: data.keluhan || '',
+          diagnosa: data.diagnosa || '',
+          terapi_obat: data.terapi_obat || '',
+          keterangan: data.keterangan || ''
+        });
+        setEditingId(item.id);
+        setShowForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      alert('Gagal mengambil data untuk diedit');
+    }
   };
 
   const handleDelete = async (id) => {
@@ -191,14 +226,14 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
           onProfilSaya={onToProfil}
-          onTambahPasien={onToTambahPasien}
+          onTambahPasien={() => setShowForm(true)}
           onTambahPengunjung={onToTambahPengunjung}
           onBuatLaporan={onToBuatLaporan}
           onToPersalinan={onToPersalinan}
           onToANC={onToANC}
           onToKB={onToKB}
           onToImunisasi={onToImunisasi}
-        />
+        />}
 
         {/* Main Area */}
         <main className="kunjungan-main-area">
@@ -215,7 +250,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                     </svg>
                     <span>Tambah Pasien</span>
                   </button>
-                  <button className="kunjungan-action-btn">
+                  <button className="kunjungan-action-btn" onClick={onToJadwal}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
                       <circle cx="20" cy="20" r="20" fill="white" opacity="0.3"/>
                       <rect x="12" y="12" width="16" height="16" rx="2" stroke="white" strokeWidth="2"/>
@@ -235,11 +270,24 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                     className="kunjungan-search-input"
                     placeholder="Cari Nama Pasien..."
                     value={searchQuery}
-                    onChange={(e) => handleSearch(e.target.value)}
+                    onChange={handleSearch}
                   />
-                  <button className="kunjungan-search-btn">
-                    🔍
-                  </button>
+                  <div className="kunjungan-filter-wrapper">
+                    <button 
+                      className="kunjungan-filter-btn"
+                      onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                    >
+                      <img src={filterIcon} alt="Filter" style={{width: '20px', height: '20px'}} />
+                    </button>
+                    {showFilterDropdown && (
+                      <div className="kunjungan-filter-dropdown">
+                        <div className="kunjungan-filter-option">Semua Data</div>
+                        <div className="kunjungan-filter-option">Hari Ini</div>
+                        <div className="kunjungan-filter-option">Minggu Ini</div>
+                        <div className="kunjungan-filter-option">Bulan Ini</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="kunjungan-riwayat-list">
@@ -258,13 +306,13 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                             className="kunjungan-btn-edit"
                             onClick={() => handleEdit(item)}
                           >
-                            ✏️
+                            <img src={editIcon} alt="Edit" style={{width: '18px', height: '18px'}} />
                           </button>
                           <button 
                             className="kunjungan-btn-delete"
                             onClick={() => handleDelete(item.id)}
                           >
-                            🗑️
+                            <img src={trashIcon} alt="Delete" style={{width: '18px', height: '18px'}} />
                           </button>
                         </div>
                       </div>

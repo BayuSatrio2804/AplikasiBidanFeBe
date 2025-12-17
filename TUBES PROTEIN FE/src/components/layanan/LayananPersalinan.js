@@ -2,16 +2,21 @@ import { useState, useEffect } from 'react';
 import './LayananPersalinan.css';
 import Sidebar from '../shared/Sidebar';
 import pinkLogo from '../../assets/images/pink-logo.png';
+import filterIcon from '../../assets/images/icons/icons8-filter-100.png';
+import editIcon from '../../assets/images/icons/icons8-edit-pencil-100.png';
+import trashIcon from '../../assets/images/icons/icons8-trash-100.png';
 import layananService from '../../services/layanan.service';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
 
-function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi }) {
+function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi, onToJadwal }) {
   const [showForm, setShowForm] = useState(false);
   const [riwayatPelayanan, setRiwayatPelayanan] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   
   const [formData, setFormData] = useState({
@@ -85,12 +90,17 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
     setIsLoading(true);
     
     try {
-      const response = await layananService.createPersalinan(formData);
+      let response;
+      if (editingId) {
+        response = await layananService.updatePersalinan(editingId, formData);
+      } else {
+        response = await layananService.createPersalinan(formData);
+      }
       
       if (response.success) {
         showNotifikasi({
           type: 'success',
-          message: 'Data registrasi persalinan berhasil disimpan!',
+          message: editingId ? 'Data berhasil diupdate!' : 'Data registrasi persalinan berhasil disimpan!',
           autoClose: true,
           autoCloseDuration: 2000,
           onConfirm: hideNotifikasi
@@ -121,6 +131,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
   };
 
   const resetForm = () => {
+    setEditingId(null);
     setFormData({
       tanggal: '',
       no_reg_lama: '',
@@ -151,8 +162,40 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
     setError('');
   };
 
-  const handleEdit = (id) => {
-    console.log('Edit:', id);
+  const handleEdit = async (id) => {
+    try {
+      const response = await layananService.getPersalinanById(id);
+      if (response.success) {
+        const data = response.data;
+        setFormData({
+          jenis_layanan: data.jenis_layanan || '',
+          tanggal: data.tanggal || '',
+          nomor_registrasi_lama: data.nomor_registrasi_lama || '',
+          nomor_registrasi_baru: data.nomor_registrasi_baru || '',
+          metode: data.metode || '',
+          nama_ibu: data.nama_ibu || '',
+          nik_ibu: data.nik_ibu || '',
+          umur_ibu: data.umur_ibu || '',
+          td_ibu: data.td_ibu || '',
+          bb_ibu: data.bb_ibu || '',
+          nama_ayah: data.nama_ayah || '',
+          nik_ayah: data.nik_ayah || '',
+          umur_ayah: data.umur_ayah || '',
+          td_ayah: data.td_ayah || '',
+          bb_ayah: data.bb_ayah || '',
+          alamat: data.alamat || '',
+          no_hp: data.no_hp || '',
+          kunjungan_ulang: data.kunjungan_ulang || '',
+          catatan: data.catatan || ''
+        });
+        setEditingId(id);
+        setShowForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      alert('Gagal mengambil data untuk diedit');
+    }
   };
 
   const handleDelete = async (id) => {
@@ -193,7 +236,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
             <img src={pinkLogo} alt="Pink Logo" className="persalinan-header-logo-img" />
           </div>
           <h1 className="persalinan-header-title">
-            {showForm ? 'Formulir Registrasi Layanan Persalinan' : 'Layanan Persalinan'}
+            {showForm ? (editingId ? 'Edit Registrasi Layanan Persalinan' : 'Formulir Registrasi Layanan Persalinan') : 'Layanan Persalinan'}
           </h1>
         </div>
         <button className="btn-kembali-persalinan" onClick={onBack}>Kembali</button>
@@ -207,7 +250,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
           onProfilSaya={onToProfil}
-          onTambahPasien={onToTambahPasien}
+          onTambahPasien={() => setShowForm(true)}
           onTambahPengunjung={onToTambahPengunjung}
           onBuatLaporan={onToBuatLaporan}
           onToPersalinan={onToPersalinan}
@@ -225,7 +268,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                 <p className="persalinan-welcome-text">Selamat datang, {userData?.username || 'username'}!</p>
                 
                 <div className="persalinan-action-buttons">
-                  <button className="persalinan-action-btn">
+                  <button className="persalinan-action-btn" onClick={() => setShowForm(true)}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
                       <path d="M20 10C20 14.866 15.866 18 11 18C6.134 18 2 14.866 2 10C2 5.134 6.134 2 11 2C15.866 2 20 5.134 20 10Z"/>
                       <path d="M11 19C4.582 19 0 23.582 0 29V35H22V29C22 23.582 17.418 19 11 19Z"/>
@@ -233,7 +276,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                     <span>Tambah Pasien</span>
                   </button>
                   
-                  <button className="persalinan-action-btn" onClick={onToTambahPasien}>
+                  <button className="persalinan-action-btn" onClick={onToJadwal}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
                       <rect x="8" y="8" width="24" height="24" rx="2" stroke="white" strokeWidth="2" fill="none"/>
                       <line x1="8" y1="15" x2="32" y2="15" stroke="white" strokeWidth="2"/>
@@ -258,11 +301,22 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                     onChange={(e) => handleSearch(e.target.value)}
                     className="persalinan-search-input"
                   />
-                  <button className="persalinan-search-btn">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
-                      <path d="M9 3.5C5.686 3.5 3 6.186 3 9.5C3 12.814 5.686 15.5 9 15.5C10.386 15.5 11.678 15.013 12.707 14.207L16.293 17.793L17.707 16.379L14.121 12.793C14.957 11.754 15.5 10.437 15.5 9C15.5 5.686 12.814 3 9 3C9 3 9 3.5 9 3.5ZM9 5C11.761 5 14 7.239 14 10C14 12.761 11.761 15 9 15C6.239 15 4 12.761 4 10C4 7.239 6.239 5 9 5Z"/>
-                    </svg>
-                  </button>
+                  <div className="persalinan-filter-wrapper">
+                    <button 
+                      className="persalinan-filter-btn"
+                      onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                    >
+                      <img src={filterIcon} alt="Filter" style={{width: '20px', height: '20px'}} />
+                    </button>
+                    {showFilterDropdown && (
+                      <div className="persalinan-filter-dropdown">
+                        <div className="persalinan-filter-option">Semua Data</div>
+                        <div className="persalinan-filter-option">Hari Ini</div>
+                        <div className="persalinan-filter-option">Minggu Ini</div>
+                        <div className="persalinan-filter-option">Bulan Ini</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="persalinan-riwayat-list">
@@ -275,8 +329,12 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                           {item.nama_pasien} - {new Date(item.tanggal).toLocaleDateString('id-ID')}
                         </span>
                         <div className="persalinan-riwayat-actions">
-                          <button className="persalinan-btn-edit" onClick={() => handleEdit(item.id)}>✏️</button>
-                          <button className="persalinan-btn-delete" onClick={() => handleDelete(item.id)}>🗑️</button>
+                          <button className="persalinan-btn-edit" onClick={() => handleEdit(item.id)}>
+                            <img src={editIcon} alt="Edit" style={{width: '18px', height: '18px'}} />
+                          </button>
+                          <button className="persalinan-btn-delete" onClick={() => handleDelete(item.id)}>
+                            <img src={trashIcon} alt="Delete" style={{width: '18px', height: '18px'}} />
+                          </button>
                         </div>
                       </div>
                     ))

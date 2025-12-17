@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import './Dashboard.css';
 import pinkLogo from '../../assets/images/pink-logo.png';
+import userIcon from '../../assets/images/icons/icons8-user-100.png';
+import serviceIcon from '../../assets/images/icons/icons8-service-100.png';
+import familyIcon from '../../assets/images/icons/icons8-family-100.png';
+import scheduleIcon from '../../assets/images/icons/icons8-schedule-100.png';
+import reportIcon from '../../assets/images/icons/icons8-graph-report-100.png';
 import Sidebar from '../shared/Sidebar';
 import dashboardService from '../../services/dashboard.service';
 
@@ -95,53 +100,35 @@ function Dashboard({
           <div className="menu-cards">
             <div className="menu-card" onClick={onToInformasiPengguna}>
               <div className="card-icon">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                  <path d="M20 8C16.13 8 13 11.13 13 15C13 18.87 16.13 22 20 22C23.87 22 27 18.87 27 15C27 11.13 23.87 8 20 8ZM20 26C14.67 26 4 28.67 4 34V36H36V34C36 28.67 25.33 26 20 26Z"/>
-                </svg>
+                <img src={userIcon} alt="User" style={{width: '40px', height: '40px', filter: 'brightness(0) invert(1)'}} />
               </div>
               <p className="card-label">Informasi Pengguna</p>
             </div>
 
             <div className="menu-card" onClick={onToLayanan}>
               <div className="card-icon">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                  <path d="M20 15C20 18.866 16.866 22 13 22C9.134 22 6 18.866 6 15C6 11.134 9.134 8 13 8C16.866 8 20 11.134 20 15Z"/>
-                  <path d="M20 20C23.866 20 27 23.134 27 27C27 30.866 23.866 34 20 34C16.134 34 13 30.866 13 27C13 23.134 16.134 20 20 20Z"/>
-                </svg>
+                <img src={serviceIcon} alt="Service" style={{width: '40px', height: '40px', filter: 'brightness(0) invert(1)'}} />
               </div>
               <p className="card-label">Layanan</p>
             </div>
 
             <div className="menu-card" onClick={onToDataPasien}>
               <div className="card-icon">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                  <rect x="8" y="12" width="24" height="20" rx="2" stroke="white" strokeWidth="2" fill="none"/>
-                  <path d="M12 12V10C12 8.89543 12.8954 8 14 8H26C27.1046 8 28 8.89543 28 10V12"/>
-                  <line x1="8" y1="18" x2="32" y2="18" stroke="white" strokeWidth="2"/>
-                </svg>
+                <img src={familyIcon} alt="Family" style={{width: '40px', height: '40px', filter: 'brightness(0) invert(1)'}} />
               </div>
               <p className="card-label">Data Pasien</p>
             </div>
 
             <div className="menu-card" onClick={onToJadwal}>
               <div className="card-icon">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                  <rect x="8" y="8" width="24" height="24" rx="2" stroke="white" strokeWidth="2" fill="none"/>
-                  <line x1="8" y1="14" x2="32" y2="14" stroke="white" strokeWidth="2"/>
-                  <circle cx="14" cy="11" r="1" fill="white"/>
-                  <circle cx="18" cy="11" r="1" fill="white"/>
-                  <circle cx="22" cy="11" r="1" fill="white"/>
-                </svg>
+                <img src={scheduleIcon} alt="Schedule" style={{width: '40px', height: '40px', filter: 'brightness(0) invert(1)'}} />
               </div>
               <p className="card-label">Jadwal</p>
             </div>
 
             <div className="menu-card" onClick={onToLaporan}>
               <div className="card-icon">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                  <path d="M8 8L20 2L32 8V18C32 26 20 34 20 34C20 34 8 26 8 18V8Z" stroke="white" strokeWidth="2" fill="none"/>
-                  <polyline points="14,20 18,24 26,14" stroke="white" strokeWidth="2" fill="none"/>
-                </svg>
+                <img src={reportIcon} alt="Report" style={{width: '40px', height: '40px', filter: 'brightness(0) invert(1)'}} />
               </div>
               <p className="card-label">Laporan</p>
             </div>
