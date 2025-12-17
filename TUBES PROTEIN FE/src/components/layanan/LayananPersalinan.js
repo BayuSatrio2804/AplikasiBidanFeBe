@@ -20,6 +20,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   
   const [formData, setFormData] = useState({
+    jenis_layanan: 'Persalinan',
     tanggal: '',
     no_reg_lama: '',
     no_reg_baru: '',
@@ -59,7 +60,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
         const mappedData = response.data.map(item => ({
           id: item.id_pemeriksaan,
           nama_pasien: item.nama_pasien || 'Pasien',
-          tanggal: item.tanggal_pemeriksaan,
+          tanggal: item.tanggal,
           jenis_layanan: item.jenis_layanan
         }));
         setRiwayatPelayanan(mappedData);
@@ -133,6 +134,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
   const resetForm = () => {
     setEditingId(null);
     setFormData({
+      jenis_layanan: 'Persalinan',
       tanggal: '',
       no_reg_lama: '',
       no_reg_baru: '',
@@ -168,25 +170,31 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
       if (response.success) {
         const data = response.data;
         setFormData({
-          jenis_layanan: data.jenis_layanan || '',
           tanggal: data.tanggal || '',
-          nomor_registrasi_lama: data.nomor_registrasi_lama || '',
-          nomor_registrasi_baru: data.nomor_registrasi_baru || '',
-          metode: data.metode || '',
-          nama_ibu: data.nama_ibu || '',
-          nik_ibu: data.nik_ibu || '',
-          umur_ibu: data.umur_ibu || '',
+          no_reg_lama: data.no_reg_lama || '',
+          no_reg_baru: data.no_reg_baru || '',
+          penolong: data.penolong || '',
+          nama_istri: data.nama_istri || '',
+          nik_istri: data.nik_istri || '',
+          umur_istri: data.umur_istri || '',
           td_ibu: data.td_ibu || '',
           bb_ibu: data.bb_ibu || '',
-          nama_ayah: data.nama_ayah || '',
-          nik_ayah: data.nik_ayah || '',
-          umur_ayah: data.umur_ayah || '',
-          td_ayah: data.td_ayah || '',
-          bb_ayah: data.bb_ayah || '',
+          lila_ibu: data.lila_ibu || '',
+          lida_ibu: data.lida_ibu || '',
+          nama_suami: data.nama_suami || '',
+          nik_suami: data.nik_suami || '',
+          umur_suami: data.umur_suami || '',
           alamat: data.alamat || '',
           no_hp: data.no_hp || '',
-          kunjungan_ulang: data.kunjungan_ulang || '',
-          catatan: data.catatan || ''
+          tanggal_lahir: data.tanggal_lahir || '',
+          jenis_kelamin: data.jenis_kelamin || '',
+          anak_ke: data.anak_ke || '',
+          jenis_partus: data.jenis_partus || '',
+          imd_dilakukan: data.imd_dilakukan || false,
+          as_bayi: data.as_bayi || '',
+          bb_bayi: data.bb_bayi || '',
+          pb_bayi: data.pb_bayi || '',
+          lika_bayi: data.lika_bayi || ''
         });
         setEditingId(id);
         setShowForm(true);
@@ -205,19 +213,29 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
       onConfirm: async () => {
         hideNotifikasi();
         try {
-          showNotifikasi({
-            type: 'success',
-            message: 'Data berhasil dihapus!',
-            autoClose: true,
-            autoCloseDuration: 2000,
-            onConfirm: hideNotifikasi
-          });
-          fetchRiwayatPelayanan();
+          const response = await layananService.deletePersalinan(id);
+          if (response.success) {
+            showNotifikasi({
+              type: 'success',
+              message: 'Data berhasil dihapus!',
+              autoClose: true,
+              autoCloseDuration: 2000,
+              onConfirm: hideNotifikasi
+            });
+            fetchRiwayatPelayanan();
+          } else {
+            showNotifikasi({
+              type: 'error',
+              message: response.message || 'Gagal menghapus data',
+              onConfirm: hideNotifikasi,
+              onCancel: hideNotifikasi
+            });
+          }
         } catch (error) {
           console.error('Error deleting:', error);
           showNotifikasi({
             type: 'error',
-            message: 'Gagal menghapus data',
+            message: error.message || 'Gagal menghapus data',
             onConfirm: hideNotifikasi,
             onCancel: hideNotifikasi
           });
@@ -326,7 +344,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                     riwayatPelayanan.map((item) => (
                       <div key={item.id} className="persalinan-riwayat-item">
                         <span className="persalinan-riwayat-text">
-                          {item.nama_pasien} - {new Date(item.tanggal).toLocaleDateString('id-ID')}
+                          {item.nama_pasien} - {item.tanggal}
                         </span>
                         <div className="persalinan-riwayat-actions">
                           <button className="persalinan-btn-edit" onClick={() => handleEdit(item.id)}>
@@ -358,10 +376,12 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                       <input
                         type="text"
                         name="jenis_layanan"
-                        value={formData.jenis_layanan}
+                        value={formData.jenis_layanan || 'Persalinan'}
                         onChange={handleInputChange}
                         placeholder="Pilih Jenis Layanan"
                         required
+                        readOnly
+                        style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                       />
                     </div>
                     
@@ -383,8 +403,8 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                       <label>Nomor Registrasi Lama</label>
                       <input
                         type="text"
-                        name="nomor_registrasi_lama"
-                        value={formData.nomor_registrasi_lama}
+                        name="no_reg_lama"
+                        value={formData.no_reg_lama}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                       />
@@ -394,27 +414,39 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                       <label>Nomor Registrasi Baru</label>
                       <input
                         type="text"
-                        name="nomor_registrasi_baru"
-                        value={formData.nomor_registrasi_baru}
+                        name="no_reg_baru"
+                        value={formData.no_reg_baru}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                       />
                     </div>
                     
                     <div className="persalinan-form-group">
-                      <label>Metode</label>
+                      <label>Jenis Partus</label>
                       <select
-                        name="metode"
-                        value={formData.metode}
+                        name="jenis_partus"
+                        value={formData.jenis_partus}
                         onChange={handleInputChange}
                         required
                       >
-                        <option value="">Pilih Metode</option>
-                        <option value="Normal">Normal</option>
+                        <option value="">Pilih Jenis Partus</option>
+                        <option value="Spontan Normal">Spontan Normal</option>
                         <option value="Caesar">Caesar</option>
                         <option value="Vacuum">Vacuum</option>
                         <option value="Forceps">Forceps</option>
                       </select>
+                    </div>
+                    
+                    <div className="persalinan-form-group">
+                      <label>Anak Ke</label>
+                      <input
+                        type="number"
+                        name="anak_ke"
+                        value={formData.anak_ke}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan data"
+                        min="1"
+                      />
                     </div>
                   </div>
 
@@ -441,8 +473,8 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                       <label>Nama Istri</label>
                       <input
                         type="text"
-                        name="nama_ibu"
-                        value={formData.nama_ibu}
+                        name="nama_istri"
+                        value={formData.nama_istri}
                         onChange={handleInputChange}
                         placeholder="Masukkan nama lengkap"
                         required
@@ -455,8 +487,8 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                       <label>NIK</label>
                       <input
                         type="text"
-                        name="nik_ibu"
-                        value={formData.nik_ibu}
+                        name="nik_istri"
+                        value={formData.nik_istri}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                         maxLength="16"
@@ -468,8 +500,8 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                       <label>Umur (Th)</label>
                       <input
                         type="number"
-                        name="umur_ibu"
-                        value={formData.umur_ibu}
+                        name="umur_istri"
+                        value={formData.umur_istri}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                         required
@@ -509,11 +541,10 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                       <label>Nama Suami</label>
                       <input
                         type="text"
-                        name="nama_ayah"
-                        value={formData.nama_ayah}
+                        name="nama_suami"
+                        value={formData.nama_suami}
                         onChange={handleInputChange}
                         placeholder="Masukkan nama lengkap"
-                        required
                       />
                     </div>
                   </div>
@@ -523,12 +554,11 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                       <label>NIK</label>
                       <input
                         type="text"
-                        name="nik_ayah"
-                        value={formData.nik_ayah}
+                        name="nik_suami"
+                        value={formData.nik_suami}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                         maxLength="16"
-                        required
                       />
                     </div>
                     
@@ -536,30 +566,8 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                       <label>Umur (Th)</label>
                       <input
                         type="number"
-                        name="umur_ayah"
-                        value={formData.umur_ayah}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan data"
-                      />
-                    </div>
-                    
-                    <div className="persalinan-form-group small">
-                      <label>TD</label>
-                      <input
-                        type="text"
-                        name="td_ayah"
-                        value={formData.td_ayah}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan"
-                      />
-                    </div>
-                    
-                    <div className="persalinan-form-group small">
-                      <label>BB</label>
-                      <input
-                        type="text"
-                        name="bb_ayah"
-                        value={formData.bb_ayah}
+                        name="umur_suami"
+                        value={formData.umur_suami}
                         onChange={handleInputChange}
                         placeholder="Masukkan data"
                       />
@@ -591,8 +599,8 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         onChange={handleInputChange}
                       >
                         <option value="">Pilih Jenis Kelamin</option>
-                        <option value="Laki-laki">Laki-laki</option>
-                        <option value="Perempuan">Perempuan</option>
+                        <option value="L">Laki-laki</option>
+                        <option value="P">Perempuan</option>
                       </select>
                     </div>
                     
@@ -665,24 +673,13 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                     </div>
                     
                     <div className="persalinan-form-group small">
-                      <label>Anak Ke-</label>
+                      <label>Alamat</label>
                       <input
                         type="text"
-                        name="anak_ke"
-                        value={formData.anak_ke}
+                        name="alamat"
+                        value={formData.alamat}
                         onChange={handleInputChange}
-                        placeholder="Masukkan data"
-                      />
-                    </div>
-                    
-                    <div className="persalinan-form-group small">
-                      <label>Jenis Partus</label>
-                      <input
-                        type="text"
-                        name="jenis_partus"
-                        value={formData.jenis_partus}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan data"
+                        placeholder="Masukkan alamat lengkap"
                       />
                     </div>
                     
@@ -693,7 +690,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                           <input
                             type="radio"
                             name="imd_dilakukan"
-                            checked={formData.imd_dilakukan === true || formData.imd_dilakukan === 'true'}
+                            checked={formData.imd_dilakukan === true || formData.imd_dilakukan === 'true' || formData.imd_dilakukan === 1}
                             onChange={() => setFormData(prev => ({ ...prev, imd_dilakukan: true }))}
                             style={{ margin: 0 }}
                           />
@@ -703,7 +700,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                           <input
                             type="radio"
                             name="imd_dilakukan"
-                            checked={formData.imd_dilakukan === false || formData.imd_dilakukan === 'false'}
+                            checked={formData.imd_dilakukan === false || formData.imd_dilakukan === 'false' || formData.imd_dilakukan === 0}
                             onChange={() => setFormData(prev => ({ ...prev, imd_dilakukan: false }))}
                             style={{ margin: 0 }}
                           />

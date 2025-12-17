@@ -51,6 +51,42 @@ export const createKB = async (data) => {
   });
 };
 
+/**
+ * Get KB record by ID
+ * @param {string} id - KB ID (Pemeriksaan ID)
+ * @returns {Promise<object>} Response data with KB details
+ */
+export const getKBById = async (id) => {
+  return apiRequest(`/kb/${id}`);
+};
+
+/**
+ * Update KB registration
+ * @param {string} id - KB ID (Pemeriksaan ID)
+ * @param {object} data - Updated KB data
+ * @returns {Promise<object>} Response data
+ */
+export const updateKB = async (id, data) => {
+  return apiRequest(`/kb/${id}`, {
+    method: 'PUT',
+    body: {
+      jenis_layanan: 'KB',
+      ...data,
+    },
+  });
+};
+
+/**
+ * Delete KB registration
+ * @param {string} id - KB ID (Pemeriksaan ID)
+ * @returns {Promise<object>} Response data
+ */
+export const deleteKB = async (id) => {
+  return apiRequest(`/kb/${id}`, {
+    method: 'DELETE',
+  });
+};
+
 // =====================
 // ANC (Antenatal Care)
 // =====================
@@ -79,6 +115,42 @@ export const createANC = async (data) => {
   });
 };
 
+/**
+ * Update ANC registration
+ * @param {string} id - ANC ID (Pemeriksaan ID)
+ * @param {object} data - Updated ANC data
+ * @returns {Promise<object>} Response data
+ */
+export const updateANC = async (id, data) => {
+  return apiRequest(`/anc/${id}`, {
+    method: 'PUT',
+    body: {
+      jenis_layanan: 'ANC',
+      ...data,
+    },
+  });
+};
+
+/**
+ * Delete ANC registration
+ * @param {string} id - ANC ID (Pemeriksaan ID)
+ * @returns {Promise<object>} Response data
+ */
+export const deleteANC = async (id) => {
+  return apiRequest(`/anc/${id}`, {
+    method: 'DELETE',
+  });
+};
+
+/**
+ * Get ANC record by ID
+ * @param {string} id - ANC ID (Pemeriksaan ID)
+ * @returns {Promise<object>} Response data with ANC details
+ */
+export const getANCById = async (id) => {
+  return apiRequest(`/anc/${id}`);
+};
+
 // =====================
 // Imunisasi (Immunization)
 // =====================
@@ -98,12 +170,106 @@ export const getAllImunisasi = async (search = '') => {
  * @returns {Promise<object>} Response data
  */
 export const createImunisasi = async (data) => {
+  // Map frontend field names to backend expected names
+  const mappedData = {
+    jenis_layanan: 'Imunisasi',
+    tanggal: data.tanggal,
+    no_reg: data.no_reg || data.nomor_registrasi,
+    jenis_imunisasi: data.jenis_imunisasi,
+    
+    // Map ibu fields
+    nama_istri: data.nama_istri || data.nama_ibu,
+    nik_istri: data.nik_istri || data.nik_ibu,
+    umur_istri: data.umur_istri || data.umur_ibu,
+    alamat: data.alamat || data.alamat_ibu,
+    
+    // Map ayah fields
+    nama_suami: data.nama_suami || data.nama_ayah,
+    nik_suami: data.nik_suami || data.nik_ayah,
+    umur_suami: data.umur_suami || data.umur_ayah,
+    
+    // Map bayi fields
+    nama_bayi_balita: data.nama_bayi_balita || data.nama_bayi,
+    tanggal_lahir_bayi: data.tanggal_lahir_bayi || data.tanggal_lahir,
+    tb_bayi: data.tb_bayi || data.tb,
+    bb_bayi: data.bb_bayi || data.bb,
+    
+    // Map other fields
+    jadwal_selanjutnya: data.jadwal_selanjutnya,
+    no_hp: data.no_hp || data.nomor_hp,
+    pengobatan: data.pengobatan,
+  };
+  
   return apiRequest('/imunisasi', {
     method: 'POST',
-    body: {
-      jenis_layanan: 'Imunisasi',
-      ...data,
-    },
+    body: mappedData,
+  });
+};
+
+/**
+ * Get Imunisasi record by ID
+ * @param {string} id - Imunisasi ID (Pemeriksaan ID)
+ * @returns {Promise<object>} Response data with Imunisasi details
+ */
+export const getImunisasiById = async (id) => {
+  return apiRequest(`/imunisasi/${id}`);
+};
+
+/**
+ * Update Imunisasi registration
+ * @param {string} id - Imunisasi ID (Pemeriksaan ID)
+ * @param {object} data - Updated Imunisasi data
+ * @returns {Promise<object>} Response data
+ */
+export const updateImunisasi = async (id, data) => {
+  // Map frontend field names to backend expected names
+  const mappedData = {
+    jenis_layanan: data.jenis_layanan || 'Imunisasi',
+    tanggal: data.tanggal,
+    no_reg: data.no_reg || data.nomor_registrasi,
+    jenis_imunisasi: data.jenis_imunisasi,
+    
+    // Map ibu fields
+    nama_istri: data.nama_istri || data.nama_ibu,
+    nik_istri: data.nik_istri || data.nik_ibu,
+    umur_istri: data.umur_istri || data.umur_ibu,
+    alamat: data.alamat || data.alamat_ibu,
+    
+    // Map ayah fields
+    nama_suami: data.nama_suami || data.nama_ayah,
+    nik_suami: data.nik_suami || data.nik_ayah,
+    umur_suami: data.umur_suami || data.umur_ayah,
+    
+    // Map bayi fields
+    nama_bayi_balita: data.nama_bayi_balita || data.nama_bayi,
+    tanggal_lahir_bayi: data.tanggal_lahir_bayi || data.tanggal_lahir,
+    tb_bayi: data.tb_bayi || data.tb,
+    bb_bayi: data.bb_bayi || data.bb,
+    
+    // Map other fields
+    jadwal_selanjutnya: data.jadwal_selanjutnya,
+    no_hp: data.no_hp || data.nomor_hp,
+    pengobatan: data.pengobatan,
+  };
+  
+  console.log('UPDATE Imunisasi - Original data:', data);
+  console.log('UPDATE Imunisasi - Mapped data:', mappedData);
+  
+  return apiRequest(`/imunisasi/${id}`, {
+    method: 'PUT',
+    body: mappedData,
+  });
+};
+
+
+/**
+ * Delete Imunisasi registration
+ * @param {string} id - Imunisasi ID (Pemeriksaan ID)
+ * @returns {Promise<object>} Response data
+ */
+export const deleteImunisasi = async (id) => {
+  return apiRequest(`/imunisasi/${id}`, {
+    method: 'DELETE',
   });
 };
 
@@ -117,7 +283,20 @@ export const createImunisasi = async (data) => {
  * @returns {Promise<object>} Response data with Persalinan list
  */
 export const getAllPersalinan = async (search = '') => {
-  return getPemeriksaanByLayanan('Persalinan', search);
+  return apiRequest(`/persalinan${search ? `?search=${encodeURIComponent(search)}` : ''}`, {
+    method: 'GET',
+  });
+};
+
+/**
+ * Get Persalinan by ID
+ * @param {string} id - Persalinan ID
+ * @returns {Promise<object>} Response data with Persalinan details
+ */
+export const getPersalinanById = async (id) => {
+  return apiRequest(`/persalinan/${id}`, {
+    method: 'GET',
+  });
 };
 
 /**
@@ -132,6 +311,33 @@ export const createPersalinan = async (data) => {
       jenis_layanan: 'Persalinan',
       ...data,
     },
+  });
+};
+
+/**
+ * Update Persalinan registration
+ * @param {string} id - Persalinan ID
+ * @param {object} data - Updated Persalinan data
+ * @returns {Promise<object>} Response data
+ */
+export const updatePersalinan = async (id, data) => {
+  return apiRequest(`/persalinan/${id}`, {
+    method: 'PUT',
+    body: {
+      jenis_layanan: 'Persalinan',
+      ...data,
+    },
+  });
+};
+
+/**
+ * Delete Persalinan registration
+ * @param {string} id - Persalinan ID
+ * @returns {Promise<object>} Response data
+ */
+export const deletePersalinan = async (id) => {
+  return apiRequest(`/persalinan/${id}`, {
+    method: 'DELETE',
   });
 };
 
@@ -215,15 +421,27 @@ export default {
   // KB
   getAllKB,
   createKB,
+  getKBById,
+  updateKB,
+  deleteKB,
   // ANC
   getAllANC,
   createANC,
+  updateANC,
+  deleteANC,
+  getANCById,
   // Imunisasi
   getAllImunisasi,
   createImunisasi,
+  getImunisasiById,
+  updateImunisasi,
+  deleteImunisasi,
   // Persalinan
   getAllPersalinan,
+  getPersalinanById,
   createPersalinan,
+  updatePersalinan,
+  deletePersalinan,
   // Kunjungan Pasien
   getAllKunjunganPasien,
   createKunjunganPasien,
