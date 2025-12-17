@@ -81,9 +81,9 @@ function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, o
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
           onProfilSaya={onToProfil}
-          onToTambahPasien={onToTambahPasien}
-          onToTambahPengunjung={onToTambahPengunjung}
-          onToBuatLaporan={onToBuatLaporan}
+          onTambahPasien={onToTambahPasien}
+          onTambahPengunjung={onToTambahPengunjung}
+          onBuatLaporan={onToBuatLaporan}
           onToPersalinan={onToPersalinan}
           onToANC={onToANC}
           onToKB={onToKB}

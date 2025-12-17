@@ -162,6 +162,103 @@
   color: #999;
 }
 
+.pasien-form-group select {
+  padding: 15px 18px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  background: white;
+  outline: none;
+  transition: all 0.3s;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+  cursor: pointer;
+}
+
+.pasien-form-group select:focus {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+/* KB Container Layout */
+.pasien-kb-container {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.pasien-kb-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 16px;
+  flex-shrink: 0;
+  min-width: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: fit-content;
+}
+
+.pasien-kb-select {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.pasien-kb-option {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  text-align: left;
+  color: #333;
+}
+
+.pasien-kb-fields {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.pasien-kb-fields input {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  outline: none;
+  cursor: not-allowed;
+}
+
+.pasien-kb-fields input:disabled {
+  background: white;
+  color: #666;
+}
+
+/* Histori Layanan Styles */
+.pasien-histori-subsection {
+  margin-bottom: 20px;
+}
+
+.pasien-histori-subsection:last-child {
+  margin-bottom: 0;
+}
+
+.pasien-histori-subtitle {
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  text-align: left;
+}
+
 /* Form Actions */
 .pasien-form-actions {
   display: flex;

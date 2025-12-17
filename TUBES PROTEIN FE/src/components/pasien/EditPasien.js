@@ -200,7 +200,69 @@ function EditPasien({
                       placeholder="Masukkan alamat lengkap"
                     />
                   </div>
+                  {/* Histori Layanan */}
+                  <h2 className="pasien-form-section-title">Histori Layanan</h2>
+                  
+                  {/* Layanan Program Keluarga Berencana */}
+                  <div className="pasien-histori-subsection">
+                    <h3 className="pasien-histori-subtitle">Layanan Program Keluarga Berencana</h3>
+                    <div className="pasien-kb-container">
+                      <div className="pasien-kb-label">Nomor Registrasi</div>
+                      <div className="pasien-kb-select">
+                        <div className="pasien-kb-option">Data 1</div>
+                        <div className="pasien-kb-option">Data 2</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Layanan Persalinan */}
+                  <div className="pasien-histori-subsection">
+                    <h3 className="pasien-histori-subtitle">Layanan Persalinan</h3>
+                    <div className="pasien-kb-container">
+                      <div className="pasien-kb-label">Nomor Registrasi</div>
+                      <div className="pasien-kb-select">
+                        <div className="pasien-kb-option">Data tidak ditemukan</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Layanan ANC */}
+                  <div className="pasien-histori-subsection">
+                    <h3 className="pasien-histori-subtitle">Layanan ANC</h3>
+                    <div className="pasien-kb-container">
+                      <div className="pasien-kb-label">Nomor Registrasi</div>
+                      <div className="pasien-kb-select">
+                        <div className="pasien-kb-option">Data tidak ditemukan</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Layanan Imunisasi */}
+                  <div className="pasien-histori-subsection">
+                    <h3 className="pasien-histori-subtitle">Layanan Imunisasi</h3>
+                    <div className="pasien-kb-container">
+                      <div className="pasien-kb-label">Nomor Registrasi</div>
+                      <div className="pasien-kb-select">
+                        <div className="pasien-kb-option">Data tidak ditemukan</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Layanan Kunjungan Pasien */}
+                  <div className="pasien-histori-subsection">
+                    <h3 className="pasien-histori-subtitle">Layanan Kunjungan Pasien</h3>
+                    <div className="pasien-kb-container">
+                      <div className="pasien-kb-label">Nomor Registrasi</div>
+                      <div className="pasien-kb-select">
+                        <div className="pasien-kb-option">Data tidak ditemukan</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                
+
+
 
                 {/* Form Actions */}
                 <div className="pasien-form-actions">

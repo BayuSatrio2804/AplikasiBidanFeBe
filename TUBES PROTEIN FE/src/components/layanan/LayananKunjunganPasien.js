@@ -233,7 +233,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
           onToANC={onToANC}
           onToKB={onToKB}
           onToImunisasi={onToImunisasi}
-        />}
+        />
 
         {/* Main Area */}
         <main className="kunjungan-main-area">

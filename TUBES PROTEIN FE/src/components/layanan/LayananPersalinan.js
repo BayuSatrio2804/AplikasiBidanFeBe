@@ -417,6 +417,19 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                       </select>
                     </div>
                   </div>
+
+                  <div className="persalinan-form-row">
+                    <div className="persalinan-form-group">
+                      <label>Penolong</label>
+                      <input
+                        type="text"
+                        name="penolong"
+                        value={formData.penolong}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan nama penolong"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Data Ibu */}
@@ -559,51 +572,154 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                   <h3 className="persalinan-form-section-title">Informasi Tambahan</h3>
                   
                   <div className="persalinan-form-row">
-                    <div className="persalinan-form-group">
-                      <label>Alamat</label>
-                      <input
-                        type="text"
-                        name="alamat"
-                        value={formData.alamat}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan detail alamat"
-                        required
-                      />
-                    </div>
-                    
-                    <div className="persalinan-form-group">
-                      <label>Nomor HP</label>
-                      <input
-                        type="tel"
-                        name="nomor_hp"
-                        value={formData.nomor_hp}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan nomor HP"
-                        required
-                      />
-                    </div>
-                    
-                    <div className="persalinan-form-group">
-                      <label>Kunjungan Ulang</label>
+                    <div className="persalinan-form-group small" style={{ flex: '0 0 295px', minWidth: '295px' }}>
+                      <label>Tanggal Lahir</label>
                       <input
                         type="date"
-                        name="kunjungan_ulang"
-                        value={formData.kunjungan_ulang}
+                        name="tanggal_lahir"
+                        value={formData.tanggal_lahir}
                         onChange={handleInputChange}
                         placeholder="DD/MM/YY"
+                      />
+                    </div>
+                    
+                    <div className="persalinan-form-group small" style={{ flex: '0 0 180px', minWidth: '180px' }}>
+                      <label>L/P</label>
+                      <select
+                        name="jenis_kelamin"
+                        value={formData.jenis_kelamin}
+                        onChange={handleInputChange}
+                      >
+                        <option value="">Pilih Jenis Kelamin</option>
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                      </select>
+                    </div>
+                    
+                    <div className="persalinan-form-group small">
+                      <label>AS</label>
+                      <input
+                        type="text"
+                        name="as_bayi"
+                        value={formData.as_bayi}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan"
+                      />
+                    </div>
+                    
+                    <div className="persalinan-form-group small">
+                      <label>BB (gram)</label>
+                      <input
+                        type="text"
+                        name="bb_bayi"
+                        value={formData.bb_bayi}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan"
+                      />
+                    </div>
+                    
+                    <div className="persalinan-form-group small">
+                      <label>PB (cm)</label>
+                      <input
+                        type="text"
+                        name="pb_bayi"
+                        value={formData.pb_bayi}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan data"
+                      />
+                    </div>
+                    
+                    <div className="persalinan-form-group small">
+                      <label>LIKA (cm)</label>
+                      <input
+                        type="text"
+                        name="lika_bayi"
+                        value={formData.lika_bayi}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan data"
+                      />
+                    </div>
+                    
+                    <div className="persalinan-form-group small">
+                      <label>LIDA (cm)</label>
+                      <input
+                        type="text"
+                        name="lida_ibu"
+                        value={formData.lida_ibu}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan data"
                       />
                     </div>
                   </div>
 
                   <div className="persalinan-form-row">
-                    <div className="persalinan-form-group full-width">
-                      <label>Catatan</label>
-                      <textarea
-                        name="catatan"
-                        value={formData.catatan}
+                    <div className="persalinan-form-group small">
+                      <label>LILA (cm)</label>
+                      <input
+                        type="text"
+                        name="lila_ibu"
+                        value={formData.lila_ibu}
                         onChange={handleInputChange}
-                        placeholder="Tambahkan catatan"
-                        rows="3"
+                        placeholder="Masukkan data"
+                      />
+                    </div>
+                    
+                    <div className="persalinan-form-group small">
+                      <label>Anak Ke-</label>
+                      <input
+                        type="text"
+                        name="anak_ke"
+                        value={formData.anak_ke}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan data"
+                      />
+                    </div>
+                    
+                    <div className="persalinan-form-group small">
+                      <label>Jenis Partus</label>
+                      <input
+                        type="text"
+                        name="jenis_partus"
+                        value={formData.jenis_partus}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan data"
+                      />
+                    </div>
+                    
+                    <div className="persalinan-form-group small">
+                      <label style={{ marginBottom: '8px', display: 'block' }}>IMD</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', margin: 0 }}>
+                          <input
+                            type="radio"
+                            name="imd_dilakukan"
+                            checked={formData.imd_dilakukan === true || formData.imd_dilakukan === 'true'}
+                            onChange={() => setFormData(prev => ({ ...prev, imd_dilakukan: true }))}
+                            style={{ margin: 0 }}
+                          />
+                          <span style={{ fontSize: '14px' }}>Dilakukan</span>
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', margin: 0 }}>
+                          <input
+                            type="radio"
+                            name="imd_dilakukan"
+                            checked={formData.imd_dilakukan === false || formData.imd_dilakukan === 'false'}
+                            onChange={() => setFormData(prev => ({ ...prev, imd_dilakukan: false }))}
+                            style={{ margin: 0 }}
+                          />
+                          <span style={{ fontSize: '14px' }}>Tidak Dilakukan</span>
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <div className="persalinan-form-group" style={{ flex: '1 1 auto', minWidth: '200px' }}>
+                      <label>Nomor HP</label>
+                      <input
+                        type="tel"
+                        name="no_hp"
+                        value={formData.no_hp}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan nomor HP"
                       />
                     </div>
                   </div>

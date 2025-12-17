@@ -26,6 +26,7 @@ import { getToken, getStoredUser, clearAuth } from './services/api';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('masuk');
+  const [previousPage, setPreviousPage] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
   const [resetEmail, setResetEmail] = useState('');
@@ -109,7 +110,17 @@ function App() {
   };
 
   const handleToBuatJadwal = () => {
+    setPreviousPage(currentPage);
     setCurrentPage('buat-jadwal');
+  };
+
+  const handleBackFromBuatJadwal = () => {
+    if (previousPage) {
+      setCurrentPage(previousPage);
+      setPreviousPage(null);
+    } else {
+      setCurrentPage('dashboard');
+    }
   };
 
   const handleToLaporan = () => {
@@ -344,7 +355,7 @@ function App() {
       )}
       {isLoggedIn && currentPage === 'buat-jadwal' && (
         <BuatJadwal 
-          onBack={handleBackToDashboard}
+          onBack={handleBackFromBuatJadwal}
           onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
           onToRiwayatMasukAkun={handleToRiwayatMasukAkun}
           onToProfil={handleToProfil}
