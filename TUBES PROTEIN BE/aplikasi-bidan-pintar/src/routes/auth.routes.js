@@ -44,4 +44,7 @@ router.post('/forgot-password/reset', validate(ForgotPasswordResetSchema), authC
 router.get('/me', verifyToken, authController.getProfile);
 router.put('/me', verifyToken, validate(UpdateProfileSchema), authController.updateProfile);
 
+// Get all active users (bidans)
+router.get('/users', verifyToken, authController.getAllUsers);
+
 module.exports = router;

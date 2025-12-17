@@ -353,6 +353,94 @@
   box-shadow: 0 4px 15px rgba(201, 76, 139, 0.3);
 }
 
+/* ===== Loading State ===== */
+.info-loading {
+  background: linear-gradient(135deg, #E89AC7 0%, #D987BE 100%);
+  border-radius: 20px;
+  padding: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  flex: 1;
+}
+
+.info-loading p {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ===== Error State ===== */
+.info-error {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
+  border-radius: 20px;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  flex: 1;
+}
+
+.info-error p {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ===== Empty State ===== */
+.account-empty {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  padding: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 300px;
+}
+
+.account-empty p {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ===== Account Info (Enhanced) ===== */
+.account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.account-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+}
+
+.account-nama {
+  color: #555;
+  font-weight: 600;
+}
+
+.account-email {
+  color: #777;
+  font-size: 11px;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .info-pengguna-content {

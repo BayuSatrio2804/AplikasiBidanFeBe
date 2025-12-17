@@ -162,6 +162,28 @@ const updatePassword = async (id_user, hashedPassword) => {
   await db.query(query, [hashedPassword, id_user]);
 };
 
+/**
+ * Get all active users (bidans)
+ * @returns {Array} Array of active users
+ */
+const getAllActiveUsers = async () => {
+  const query = `
+    SELECT 
+      id_user,
+      nama_lengkap,
+      username,
+      email,
+      is_verified,
+      created_at,
+      updated_at
+    FROM users
+    WHERE is_verified = 1
+    ORDER BY nama_lengkap ASC
+  `;
+  const [rows] = await db.query(query);
+  return rows;
+};
+
 module.exports = {
   getUserByUsernameOrEmail,
   getUserById,
@@ -170,5 +192,6 @@ module.exports = {
   loginUser,
   verifyOTP,
   updateProfile,
-  updatePassword
+  updatePassword,
+  getAllActiveUsers
 };

@@ -135,6 +135,14 @@ export const updateProfile = async (data) => {
 };
 
 /**
+ * Get all active users (bidans)
+ * @returns {Promise<object>} Response data with users array
+ */
+export const getAllUsers = async () => {
+  return apiRequest('/auth/users');
+};
+
+/**
  * Logout user
  */
 export const logout = () => {
@@ -151,5 +159,5 @@ export default {
   resetPassword,
   getProfile,
   updateProfile,
-  logout,
+  getAllUsers,
 };

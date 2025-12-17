@@ -1,22 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../shared/Sidebar';
 import './InformasiPengguna.css';
 import pinkLogo from '../../assets/images/pink-logo.png';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
+import authService from '../../services/auth.service';
 
 function InformasiPengguna({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi }) {
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
-  const [accounts, setAccounts] = useState([
-    { id: 1, username: 'Username Akun' },
-    { id: 2, username: 'Username Akun' },
-    { id: 3, username: 'Username Akun' }
-  ]);
+  const [accounts, setAccounts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
+
+  // Fetch daftar users aktif saat component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setIsLoading(true);
+        const response = await authService.getAllUsers();
+        
+        if (response.success && response.data) {
+          setAccounts(response.data);
+          setError(null);
+        } else {
+          setError(response.message || 'Gagal mengambil data pengguna');
+          setAccounts([]);
+        }
+      } catch (err) {
+        console.error('Error fetching users:', err);
+        setError('Terjadi kesalahan saat mengambil data pengguna');
+        setAccounts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleAddAccount = (e) => {
     e.preventDefault();
@@ -81,21 +106,49 @@ function InformasiPengguna({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun,
 
         {/* Main Area */}
         <main className="info-main-area">
-          {/* Account List Card */}
-          <div className="account-list-card">
-            <div className="account-list-inner">
-              {accounts.map((account) => (
-                <div key={account.id} className="account-item">
-                  <div className="account-icon">
-                    <svg width="30" height="30" viewBox="0 0 30 30" fill="white">
-                      <path d="M15 15C18.45 15 21.25 12.2 21.25 8.75C21.25 5.3 18.45 2.5 15 2.5C11.55 2.5 8.75 5.3 8.75 8.75C8.75 12.2 11.55 15 15 15ZM15 18.125C10.825 18.125 2.5 20.225 2.5 24.375V27.5H27.5V24.375C27.5 20.225 19.175 18.125 15 18.125Z"/>
-                    </svg>
-                  </div>
-                  <span className="account-username">{account.username}</span>
-                </div>
-              ))}
+          {/* Loading State */}
+          {isLoading && (
+            <div className="info-loading">
+              <p>Memuat data pengguna...</p>
             </div>
-          </div>
+          )}
+
+          {/* Error State */}
+          {error && !isLoading && (
+            <div className="info-error">
+              <p>⚠️ {error}</p>
+            </div>
+          )}
+
+          {/* Account List Card */}
+          {!isLoading && !error && (
+            <div className="account-list-card">
+              {accounts.length > 0 ? (
+                <div className="account-list-inner">
+                  {accounts.map((account) => (
+                    <div key={account.id_user} className="account-item">
+                      <div className="account-icon">
+                        <svg width="30" height="30" viewBox="0 0 30 30" fill="white">
+                          <path d="M15 15C18.45 15 21.25 12.2 21.25 8.75C21.25 5.3 18.45 2.5 15 2.5C11.55 2.5 8.75 5.3 8.75 8.75C8.75 12.2 11.55 15 15 15ZM15 18.125C10.825 18.125 2.5 20.225 2.5 24.375V27.5H27.5V24.375C27.5 20.225 19.175 18.125 15 18.125Z"/>
+                        </svg>
+                      </div>
+                      <div className="account-info">
+                        <div className="account-username">{account.username}</div>
+                        <div className="account-details">
+                          <span className="account-nama">{account.nama_lengkap}</span>
+                          <span className="account-email">{account.email}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="account-empty">
+                  <p>Tidak ada pengguna aktif</p>
+                </div>
+              )}
+            </div>
+          )}
         </main>
       </div>
 

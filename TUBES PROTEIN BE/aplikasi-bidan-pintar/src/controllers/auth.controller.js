@@ -301,6 +301,20 @@ const resetPassword = async (req, res) => {
   }
 };
 
+/**
+ * Get all active users (bidans)
+ * GET /api/auth/users
+ */
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await authService.getAllActiveUsers();
+    
+    return success(res, 'Daftar pengguna berhasil diambil', users);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil daftar pengguna', error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -310,5 +324,6 @@ module.exports = {
   updateProfile,
   requestPasswordReset,
   verifyResetCode,
-  resetPassword
+  resetPassword,
+  getAllUsers
 };
