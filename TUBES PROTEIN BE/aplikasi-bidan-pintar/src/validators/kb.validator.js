@@ -16,33 +16,27 @@ const RegistrasiKBSchema = Joi.object({
   // Method (required)
   metode: Joi.string().required(),
   
-  // Mother data (Data Ibu) - required name, rest are flexible
+  // Mother data (Data Ibu) - required fields match form
   nama_ibu: Joi.string().min(1).required(),
-  nik_ibu: Joi.alternatives().try(
-    Joi.string().allow(''),
-    Joi.number()
-  ).optional(),
+  nik_ibu: Joi.string().allow('').optional(), // optional at DB level even if form has required
   umur_ibu: Joi.alternatives().try(
     Joi.number(),
     Joi.string().allow(''),
     Joi.number().allow(null)
   ).optional(),
   td_ibu: Joi.string().allow('').optional(),
-  bb_ibu: Joi.string().allow('').optional(),
+  bb_ibu: Joi.alternatives().try(Joi.string(), Joi.number()).allow('').optional(),
   
-  // Father/Spouse data (Data Ayah) - required name, rest are flexible
+  // Father/Spouse data (Data Ayah) - required fields match form
   nama_ayah: Joi.string().min(1).required(),
-  nik_ayah: Joi.alternatives().try(
-    Joi.string().allow(''),
-    Joi.number()
-  ).optional(),
+  nik_ayah: Joi.string().allow('').optional(), // optional at DB level
   umur_ayah: Joi.alternatives().try(
     Joi.number(),
     Joi.string().allow(''),
     Joi.number().allow(null)
   ).optional(),
   td_ayah: Joi.string().allow('').optional(),
-  bb_ayah: Joi.string().allow('').optional(),
+  bb_ayah: Joi.alternatives().try(Joi.string(), Joi.number()).allow('').optional(),
   
   // Address and contact
   alamat: Joi.string().min(1).required(),

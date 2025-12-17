@@ -102,6 +102,10 @@ const verifyOTP = async (req, res) => {
     // Verify OTP
     const verifiedUser = await authService.verifyOTP(user, otp_code);
 
+    // Record successful login
+    const ipAddress = req.ip;
+    await auditService.recordLoginAttempt(verifiedUser.id_user, verifiedUser.username, 'BERHASIL', ipAddress);
+
     // Generate JWT token
     const token = jwt.sign(
       { id: verifiedUser.id_user, username: verifiedUser.username, email: verifiedUser.email },

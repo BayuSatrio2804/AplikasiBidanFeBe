@@ -1,45 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../shared/Sidebar';
 import './RiwayatMasukAkun.css';
+import auditService from '../../services/audit.service';
 
 function RiwayatMasukAkun({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi }) {
   const [riwayatLogin, setRiwayatLogin] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchRiwayatLogin();
   }, []);
 
-  const fetchRiwayatLogin = () => {
-    const mockData = [
-      {
-        id: 1,
-        tanggal: 'DD/MM/YY',
-        username: 'Username Pengguna',
-        aktivitas: 'Login Berhasil'
-      },
-      {
-        id: 2,
-        tanggal: 'DD/MM/YY',
-        username: 'Username Pengguna',
-        aktivitas: 'Login Gagal'
-      },
-      {
-        id: 3,
-        tanggal: 'DD/MM/YY',
-        username: 'Username Pengguna',
-        aktivitas: 'Login Gagal'
-      },
-      {
-        id: 4,
-        tanggal: 'DD/MM/YY',
-        username: 'Username Pengguna',
-        aktivitas: 'Login Berhasil'
-      }
-    ];
-
-    setRiwayatLogin(mockData);
+  const formatDate = (date) => {
+    if (!date) return '-';
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
   };
+
+  const fetchRiwayatLogin = async () => {
+    try {
+      setLoading(true);
+      const response = await auditService.getAccessLogs({ type: 'login' });
+      
+      // Extract data from response wrapper
+      const logs = response && response.data ? response.data : response;
+      
+      if (logs && Array.isArray(logs)) {
+        const formattedData = logs.map((item, idx) => ({
+          id: item.id_akses || idx,
+          tanggal: formatDate(item.tanggal_akses),
+          username: item.username || '-',
+          aktivitas: item.status === 'BERHASIL' ? 'Login Berhasil' : 'Login Gagal'
+        }));
+        setRiwayatLogin(formattedData);
+      } else {
+        setRiwayatLogin([]);
+      }
+    } catch (error) {
+      console.error('Error fetching riwayat login:', error);
+      setRiwayatLogin([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   return (
     <div className="riwayat-masuk-akun-page">
@@ -106,17 +117,23 @@ function RiwayatMasukAkun({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, 
                 </tr>
               </thead>
               <tbody>
-                {riwayatLogin.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.tanggal}</td>
-                    <td>{item.username}</td>
-                    <td>
-                      <span className={`rma-status ${item.aktivitas === 'Login Berhasil' ? 'status-berhasil' : 'status-gagal'}`}>
-                        {item.aktivitas}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {loading ? (
+                  <tr><td colSpan="3" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr>
+                ) : riwayatLogin.length === 0 ? (
+                  <tr><td colSpan="3" style={{ textAlign: 'center', padding: '20px' }}>Belum ada riwayat login</td></tr>
+                ) : (
+                  riwayatLogin.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.tanggal}</td>
+                      <td>{item.username}</td>
+                      <td>
+                        <span className={`rma-status ${item.aktivitas === 'Login Berhasil' ? 'status-berhasil' : 'status-gagal'}`}>
+                          {item.aktivitas}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

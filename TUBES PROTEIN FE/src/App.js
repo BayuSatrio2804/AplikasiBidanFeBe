@@ -9,8 +9,9 @@ import ProfilSaya from './components/profil/ProfilSaya';
 import InformasiPengguna from './components/profil/InformasiPengguna';
 import DataPasien from './components/pasien/DataPasien';
 import EditPasien from './components/pasien/EditPasien';
-import RiwayatUbahData from './components/pasien/RiwayatUbahData';
+import RiwayatUbahDataPasien from './components/pasien/RiwayatUbahData';
 import RiwayatMasukAkun from './components/profil/RiwayatMasukAkun';
+import RiwayatUbahData from './components/profil/RiwayatUbahData';
 import Jadwal from './components/jadwal/Jadwal';
 import BuatJadwal from './components/jadwal/BuatJadwal';
 import Laporan from './components/laporan/Laporan';
@@ -294,7 +295,7 @@ function App() {
         />
       )}
       {isLoggedIn && currentPage === 'riwayat-data-masuk' && (
-        <RiwayatUbahData 
+        <RiwayatUbahDataPasien 
           onBack={handleBackToDashboard}
           onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
           onToRiwayatMasukAkun={handleToRiwayatMasukAkun}

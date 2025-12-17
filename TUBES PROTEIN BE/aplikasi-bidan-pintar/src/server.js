@@ -29,6 +29,7 @@ const ancRoutes = require('./routes/anc.routes');
 const kbRoutes = require('./routes/kb.routes');
 const imunisasiRoutes = require('./routes/imunisasi.routes');
 const persalinanRoutes = require('./routes/persalinan.routes');
+const auditRoutes = require('./routes/audit.routes');
 
 // ============================================
 // Middleware Configuration
@@ -82,6 +83,7 @@ app.use('/api/anc', ancRoutes);
 app.use('/api/kb', kbRoutes);
 app.use('/api/imunisasi', imunisasiRoutes);
 app.use('/api/persalinan', persalinanRoutes);
+app.use('/api/audit', auditRoutes);
 
 // Legacy routes (v1 prefix for backward compatibility)
 app.use('/v1/auth', authRoutes);

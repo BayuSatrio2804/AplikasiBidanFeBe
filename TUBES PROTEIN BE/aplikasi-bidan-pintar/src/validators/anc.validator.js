@@ -12,8 +12,11 @@ const RegistrasiANCSchema = Joi.object({
     
     // Mother information (required)
     nama_istri: Joi.string().required(),
-    nik_istri: Joi.string().length(16).pattern(/^[0-9]+$/).required(),
-    umur_istri: Joi.number().required(),
+    nik_istri: Joi.alternatives().try(
+      Joi.string().length(16).pattern(/^[0-9]+$/),
+      Joi.string().allow('')
+    ).optional(),
+    umur_istri: Joi.alternatives().try(Joi.number(), Joi.string()).allow('').optional(),
     alamat: Joi.string().required(),
     
     // Contact information
@@ -25,15 +28,18 @@ const RegistrasiANCSchema = Joi.object({
     
     // Spouse information (optional)
     nama_suami: Joi.string().allow('').optional(),
-    nik_suami: Joi.string().allow('').optional(),
-    umur_suami: Joi.number().allow(null).optional(),
+    nik_suami: Joi.alternatives().try(
+      Joi.string().length(16).pattern(/^[0-9]+$/),
+      Joi.string().allow('')
+    ).optional(),
+    umur_suami: Joi.alternatives().try(Joi.number(), Joi.string()).allow(null, '').optional(),
     
     // Pregnancy information (optional)
     hpht: Joi.string().allow('').optional(),
     hpl: Joi.string().allow('').optional(),
     
     // Examination findings (required)
-    hasil_pemeriksaan: Joi.string().required(),
+    hasil_pemeriksaan: Joi.string().allow('').optional(),
     
     // Additional information (optional)
     tindakan: Joi.string().allow('').optional(),
