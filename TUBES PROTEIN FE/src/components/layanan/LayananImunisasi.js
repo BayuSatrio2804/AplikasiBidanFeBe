@@ -20,22 +20,23 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   
   const [formData, setFormData] = useState({
+    jenis_layanan: 'Imunisasi',
     tanggal: '',
-    no_reg: '',
+    nomor_registrasi: '',
     jenis_imunisasi: '',
-    nama_istri: '',
-    nik_istri: '',
-    umur_istri: '',
-    alamat: '',
-    nama_suami: '',
-    nik_suami: '',
-    umur_suami: '',
-    nama_bayi_balita: '',
-    tanggal_lahir_bayi: '',
-    tb_bayi: '',
-    bb_bayi: '',
+    nama_ibu: '',
+    nik_ibu: '',
+    umur_ibu: '',
+    alamat_ibu: '',
+    nama_ayah: '',
+    nik_ayah: '',
+    umur_ayah: '',
+    nama_bayi: '',
+    tanggal_lahir: '',
+    tb: '',
+    bb: '',
     jadwal_selanjutnya: '',
-    no_hp: '',
+    nomor_hp: '',
     pengobatan: ''
   });
 
@@ -73,7 +74,12 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    console.log(`Input changed: ${name} = ${value}`);
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      console.log('Updated formData:', updated);
+      return updated;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -81,9 +87,14 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
     setError('');
     setIsLoading(true);
     
+    console.log('=== SUBMIT DATA ===');
+    console.log('editingId:', editingId);
+    console.log('formData being sent:', JSON.stringify(formData, null, 2));
+    
     try {
       let response;
       if (editingId) {
+        console.log('Calling updateImunisasi with:', editingId, formData);
         response = await layananService.updateImunisasi(editingId, formData);
       } else {
         response = await layananService.createImunisasi(formData);
@@ -125,22 +136,23 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
   const resetForm = () => {
     setEditingId(null);
     setFormData({
+      jenis_layanan: 'Imunisasi',
       tanggal: '',
-      no_reg: '',
+      nomor_registrasi: '',
       jenis_imunisasi: '',
-      nama_istri: '',
-      nik_istri: '',
-      umur_istri: '',
-      alamat: '',
-      nama_suami: '',
-      nik_suami: '',
-      umur_suami: '',
-      nama_bayi_balita: '',
-      tanggal_lahir_bayi: '',
-      tb_bayi: '',
-      bb_bayi: '',
+      nama_ibu: '',
+      nik_ibu: '',
+      umur_ibu: '',
+      alamat_ibu: '',
+      nama_ayah: '',
+      nik_ayah: '',
+      umur_ayah: '',
+      nama_bayi: '',
+      tanggal_lahir: '',
+      tb: '',
+      bb: '',
       jadwal_selanjutnya: '',
-      no_hp: '',
+      nomor_hp: '',
       pengobatan: ''
     });
     setError('');
@@ -148,26 +160,30 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
 
   const handleEdit = async (id) => {
     try {
+      console.log('=== LOADING DATA FOR EDIT ===');
+      console.log('Loading data for id:', id);
       const response = await layananService.getImunisasiById(id);
+      console.log('Received data:', response.data);
       if (response.success) {
         const data = response.data;
         setFormData({
+          jenis_layanan: 'Imunisasi',
           tanggal: data.tanggal || '',
-          no_reg: data.no_reg || '',
+          nomor_registrasi: data.no_reg || '',
           jenis_imunisasi: data.jenis_imunisasi || '',
-          nama_istri: data.nama_istri || '',
-          nik_istri: data.nik_istri || '',
-          umur_istri: data.umur_istri || '',
-          alamat: data.alamat || '',
-          nama_suami: data.nama_suami || '',
-          nik_suami: data.nik_suami || '',
-          umur_suami: data.umur_suami || '',
-          nama_bayi_balita: data.nama_bayi_balita || '',
-          tanggal_lahir_bayi: data.tanggal_lahir_bayi || '',
-          tb_bayi: data.tb_bayi || '',
-          bb_bayi: data.bb_bayi || '',
+          nama_ibu: data.nama_istri || '',
+          nik_ibu: data.nik_istri || '',
+          umur_ibu: data.umur_istri || '',
+          alamat_ibu: data.alamat || '',
+          nama_ayah: data.nama_suami || '',
+          nik_ayah: data.nik_suami || '',
+          umur_ayah: data.umur_suami || '',
+          nama_bayi: data.nama_bayi_balita || '',
+          tanggal_lahir: data.tanggal_lahir_bayi || '',
+          tb: data.tb_bayi || '',
+          bb: data.bb_bayi || '',
           jadwal_selanjutnya: data.jadwal_selanjutnya || '',
-          no_hp: data.no_hp || '',
+          nomor_hp: data.no_hp || '',
           pengobatan: data.pengobatan || ''
         });
         setEditingId(id);
@@ -187,19 +203,29 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
       onConfirm: async () => {
         hideNotifikasi();
         try {
-          showNotifikasi({
-            type: 'success',
-            message: 'Data berhasil dihapus!',
-            autoClose: true,
-            autoCloseDuration: 2000,
-            onConfirm: hideNotifikasi
-          });
-          fetchRiwayatPelayanan();
+          const response = await layananService.deleteImunisasi(id);
+          if (response.success) {
+            showNotifikasi({
+              type: 'success',
+              message: 'Data berhasil dihapus!',
+              autoClose: true,
+              autoCloseDuration: 2000,
+              onConfirm: hideNotifikasi
+            });
+            fetchRiwayatPelayanan();
+          } else {
+            showNotifikasi({
+              type: 'error',
+              message: response.message || 'Gagal menghapus data',
+              onConfirm: hideNotifikasi,
+              onCancel: hideNotifikasi
+            });
+          }
         } catch (error) {
           console.error('Error deleting:', error);
           showNotifikasi({
             type: 'error',
-            message: 'Gagal menghapus data',
+            message: error.message || 'Gagal menghapus data',
             onConfirm: hideNotifikasi,
             onCancel: hideNotifikasi
           });
@@ -341,9 +367,10 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         type="text"
                         name="jenis_layanan"
                         value={formData.jenis_layanan}
-                        onChange={handleInputChange}
-                        placeholder="Pilih Jenis Layanan"
-                        required
+                        readOnly
+                        disabled
+                        placeholder="Imunisasi"
+                        style={{ backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
                       />
                     </div>
                     

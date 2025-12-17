@@ -17,6 +17,7 @@ USE aplikasi_bidan;
 -- =============================================================================
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS laporan;
 DROP TABLE IF EXISTS layanan_kunjungan_pasien;
 DROP TABLE IF EXISTS layanan_persalinan;
 DROP TABLE IF EXISTS layanan_imunisasi;
@@ -71,7 +72,7 @@ CREATE TABLE otp_codes (
 CREATE TABLE pasien (
     id_pasien CHAR(36) NOT NULL PRIMARY KEY,
     nama VARCHAR(100) NOT NULL,
-    nik CHAR(16) NOT NULL,
+    nik VARCHAR(20) NOT NULL,
     umur INT NOT NULL,
     alamat TEXT,
     no_hp VARCHAR(15),
@@ -132,19 +133,22 @@ CREATE TABLE pemeriksaan (
 -- =============================================================================
 -- TABLE: layanan_kb
 -- Description: Family Planning (KB) service records
+-- Matches frontend field names from LayananKB component
 -- =============================================================================
 CREATE TABLE layanan_kb (
     id_kb CHAR(36) NOT NULL PRIMARY KEY,
     id_pemeriksaan CHAR(36) NOT NULL,
-    no_reg_lama VARCHAR(50),
-    no_reg_baru VARCHAR(50),
-    nama_suami VARCHAR(100),
-    nik_suami CHAR(16),
-    umur_suami INT,
+    nomor_registrasi_lama VARCHAR(50),
+    nomor_registrasi_baru VARCHAR(50),
+    metode VARCHAR(50) NOT NULL,
+    td_ibu VARCHAR(20),
+    bb_ibu DECIMAL(5,2),
+    nama_ayah VARCHAR(100),
+    nik_ayah VARCHAR(20),
+    umur_ayah INT,
     td_ayah VARCHAR(20),
     bb_ayah DECIMAL(5,2),
-    metode_kb ENUM('KDM', 'PIL', 'SUNTIK', 'IMP', 'IUD', 'LAINNYA') NOT NULL,
-    kunjungan_ulang DATE,
+    kunjungan_ulang VARCHAR(100),
     catatan TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -152,7 +156,7 @@ CREATE TABLE layanan_kb (
     CONSTRAINT fk_kb_pemeriksaan FOREIGN KEY (id_pemeriksaan) 
         REFERENCES pemeriksaan(id_pemeriksaan) ON DELETE CASCADE,
     
-    INDEX idx_metode_kb (metode_kb)
+    INDEX idx_metode (metode)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================
@@ -187,21 +191,28 @@ CREATE TABLE layanan_imunisasi (
     id_imunisasi CHAR(36) NOT NULL PRIMARY KEY,
     id_pemeriksaan CHAR(36) NOT NULL,
     no_reg VARCHAR(50),
-    nama_bayi_balita VARCHAR(100) NOT NULL,
-    tanggal_lahir_bayi DATE NOT NULL,
+    nama_bayi_balita VARCHAR(100),
+    tanggal_lahir_bayi DATE,
     tb_bayi DECIMAL(5,2) COMMENT 'Tinggi Badan dalam cm',
     bb_bayi DECIMAL(5,2) COMMENT 'Berat Badan dalam kg',
     jenis_imunisasi VARCHAR(100) NOT NULL,
     pengobatan TEXT,
-    jadwal_selanjutnya DATE,
+    jadwal_selanjutnya VARCHAR(100),
     no_hp_kontak VARCHAR(15),
+    nama_ibu VARCHAR(100),
+    nik_ibu VARCHAR(20),
+    umur_ibu INT,
+    nama_ayah VARCHAR(100),
+    nik_ayah VARCHAR(20),
+    umur_ayah INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     CONSTRAINT fk_imunisasi_pemeriksaan FOREIGN KEY (id_pemeriksaan) 
         REFERENCES pemeriksaan(id_pemeriksaan) ON DELETE CASCADE,
     
-    INDEX idx_jenis_imunisasi (jenis_imunisasi)
+    INDEX idx_jenis_imunisasi (jenis_imunisasi),
+    INDEX idx_nama_bayi (nama_bayi_balita)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================
@@ -305,6 +316,26 @@ CREATE TABLE audit_logs (
     
     INDEX idx_action (action),
     INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================================================
+-- TABLE: laporan
+-- Description: Report summary data
+-- =============================================================================
+CREATE TABLE laporan (
+    id_laporan CHAR(36) NOT NULL PRIMARY KEY,
+    jenis_layanan VARCHAR(50) NOT NULL COMMENT 'Jenis layanan: ANC, KB, Imunisasi, Persalinan, Kunjungan Pasien, Semua',
+    periode VARCHAR(20) NOT NULL COMMENT 'Format: MM/YYYY atau Bulan YYYY',
+    tanggal_dibuat DATE NOT NULL,
+    jumlah_pasien INT DEFAULT 0 COMMENT 'Total unique pasien dalam periode',
+    jumlah_kunjungan INT DEFAULT 0 COMMENT 'Total kunjungan dalam periode',
+    label VARCHAR(100) DEFAULT NULL COMMENT 'Label custom untuk laporan',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_jenis_layanan (jenis_layanan),
+    INDEX idx_periode (periode),
+    INDEX idx_tanggal (tanggal_dibuat)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================
@@ -423,9 +454,9 @@ INSERT INTO pemeriksaan (id_pemeriksaan, id_pasien, jenis_layanan, subjektif, ob
 -- =============================================================================
 -- SAMPLE DATA: Layanan KB
 -- =============================================================================
-INSERT INTO layanan_kb (id_kb, id_pemeriksaan, no_reg_lama, no_reg_baru, nama_suami, nik_suami, umur_suami, td_ayah, bb_ayah, metode_kb, kunjungan_ulang, catatan) VALUES
-('990e8400-e29b-41d4-a716-446655440001', '880e8400-e29b-41d4-a716-446655440003', 'KB-2024-001', 'KB-2025-001', 'Ahmad Hidayat', '3201234567890102', 35, '130/85', 70.00, 'SUNTIK', '2026-03-03', 'Akseptor aktif sejak 2022'),
-('990e8400-e29b-41d4-a716-446655440002', '880e8400-e29b-41d4-a716-446655440004', NULL, 'KB-2025-002', 'Budi Santoso', '3201234567890106', 38, '125/80', 75.00, 'IUD', '2026-01-07', 'Konseling pergantian metode dari pil ke IUD');
+INSERT INTO layanan_kb (id_kb, id_pemeriksaan, nomor_registrasi_lama, nomor_registrasi_baru, metode, td_ibu, bb_ibu, nama_ayah, nik_ayah, umur_ayah, td_ayah, bb_ayah, kunjungan_ulang, catatan) VALUES
+('990e8400-e29b-41d4-a716-446655440001', '880e8400-e29b-41d4-a716-446655440003', 'KB-2024-001', 'KB-2025-001', 'Suntik KB', '120/80', 55.00, 'Ahmad Hidayat', '3201234567890102', 35, '130/85', 70.00, '2026-03-03', 'Akseptor aktif sejak 2022'),
+('990e8400-e29b-41d4-a716-446655440002', '880e8400-e29b-41d4-a716-446655440004', NULL, 'KB-2025-002', 'IUD', '115/75', 60.00, 'Budi Santoso', '3201234567890106', 38, '125/80', 75.00, '2026-01-07', 'Konseling pergantian metode dari pil ke IUD');
 
 -- =============================================================================
 -- SAMPLE DATA: Layanan ANC
@@ -476,6 +507,21 @@ INSERT INTO audit_logs (id_audit, id_user, action, description, id_data_terkait,
 ('ff0e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440001', 'CREATE', 'layanan_kunjungan_pasien', 'dd0e8400-e29b-41d4-a716-446655440001', '2025-12-09 10:00:00');
 
 -- =============================================================================
+-- SAMPLE DATA: Laporan
+-- =============================================================================
+INSERT INTO laporan (id_laporan, jenis_layanan, periode, tanggal_dibuat, jumlah_pasien, jumlah_kunjungan, label) VALUES
+('110e8400-e29b-41d4-a716-446655440001', 'ANC', '01/2025', '2025-01-31', 45, 120, 'Laporan ANC Januari 2025'),
+('110e8400-e29b-41d4-a716-446655440002', 'KB', '01/2025', '2025-01-31', 30, 45, 'Laporan KB Januari 2025'),
+('110e8400-e29b-41d4-a716-446655440003', 'Imunisasi', '02/2025', '2025-02-28', 25, 50, 'Laporan Imunisasi Februari 2025'),
+('110e8400-e29b-41d4-a716-446655440004', 'Persalinan', '02/2025', '2025-02-28', 15, 15, 'Laporan Persalinan Februari 2025'),
+('110e8400-e29b-41d4-a716-446655440005', 'Kunjungan Pasien', '03/2025', '2025-03-31', 60, 85, 'Laporan Kunjungan Maret 2025'),
+('110e8400-e29b-41d4-a716-446655440006', 'ANC', '04/2025', '2025-04-30', 52, 138, 'Laporan ANC April 2025'),
+('110e8400-e29b-41d4-a716-446655440007', 'KB', '04/2025', '2025-04-30', 35, 52, 'Laporan KB April 2025'),
+('110e8400-e29b-41d4-a716-446655440008', 'Semua', '05/2025', '2025-05-31', 180, 450, 'Laporan Lengkap Mei 2025'),
+('110e8400-e29b-41d4-a716-446655440009', 'ANC', '11/2025', '2025-11-30', 48, 125, 'Laporan ANC November 2025'),
+('110e8400-e29b-41d4-a716-446655440010', 'Imunisasi', '12/2025', '2025-12-17', 28, 56, 'Laporan Imunisasi Desember 2025 (In Progress)');
+
+-- =============================================================================
 -- VERIFICATION QUERIES
 -- =============================================================================
 -- Uncomment to verify data after import:
@@ -490,7 +536,8 @@ INSERT INTO audit_logs (id_audit, id_user, action, description, id_data_terkait,
 -- UNION ALL SELECT 'Layanan Persalinan', COUNT(*) FROM layanan_persalinan
 -- UNION ALL SELECT 'Layanan Kunjungan', COUNT(*) FROM layanan_kunjungan_pasien
 -- UNION ALL SELECT 'Audit Log Akses', COUNT(*) FROM audit_log_akses
--- UNION ALL SELECT 'Audit Logs', COUNT(*) FROM audit_logs;
+-- UNION ALL SELECT 'Audit Logs', COUNT(*) FROM audit_logs
+-- UNION ALL SELECT 'Laporan', COUNT(*) FROM laporan;
 
 -- =============================================================================
 -- END OF SCRIPT

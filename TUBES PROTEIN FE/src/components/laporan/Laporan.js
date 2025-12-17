@@ -11,58 +11,14 @@ function Laporan({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfi
   const [filterBulan, setFilterBulan] = useState('');
   const [filterTahun, setFilterTahun] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDownloading, setIsDownloading] = useState(false);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
-
-  // Load data laporan
-  useEffect(() => {
-    fetchLaporan();
-  }, []);
 
   const fetchLaporan = async () => {
     try {
-      // Note: API /laporan hanya untuk generate Excel, bukan list
-      // Untuk list, gunakan data dari endpoint lain atau mock data
-      
-      // Mock data
-      const mockData = [
-        { 
-          id_laporan: '1',
-          jenis_layanan: 'ANC',
-          periode: 'Januari 2025',
-          tanggal_dibuat: '2025-01-31',
-          jumlah_pasien: 45,
-          jumlah_kunjungan: 120,
-          label: 'Data Pertama'
-        },
-        { 
-          id_laporan: '2',
-          jenis_layanan: 'KB',
-          periode: 'Januari 2025',
-          tanggal_dibuat: '2025-01-31',
-          jumlah_pasien: 30,
-          jumlah_kunjungan: 45,
-          label: 'Data Kedua'
-        },
-        { 
-          id_laporan: '3',
-          jenis_layanan: 'Imunisasi',
-          periode: 'Februari 2025',
-          tanggal_dibuat: '2025-02-28',
-          jumlah_pasien: 25,
-          jumlah_kunjungan: 50,
-          label: 'Data Pertama'
-        },
-        { 
-          id_laporan: '4',
-          jenis_layanan: 'Persalinan',
-          periode: 'Februari 2025',
-          tanggal_dibuat: '2025-02-28',
-          jumlah_pasien: 15,
-          jumlah_kunjungan: 15,
-          label: 'Data Pertama'
-        }
-      ];
-      setLaporanList(mockData);
+      // Fetch data dari API
+      const data = await laporanService.getLaporanList();
+      setLaporanList(data);
     } catch (error) {
       console.error('Error fetching laporan:', error);
       showNotifikasi({
@@ -73,6 +29,12 @@ function Laporan({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfi
       });
     }
   };
+
+  // Load data laporan
+  useEffect(() => {
+    fetchLaporan();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleFilter = async () => {
     if (!filterBulan || !filterTahun) {
@@ -85,30 +47,17 @@ function Laporan({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfi
       return;
     }
     
+    setIsDownloading(true);
     try {
-      // Generate Excel dengan API GET /laporan
-      // const params = new URLSearchParams({
-      //   format: 'excel',
-      //   bulan: filterBulan,
-      //   tahun: filterTahun
-      // });
-      // const response = await fetch(`https://api.bidan-digital.com/v1/laporan?${params}`, {
-      //   headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      // });
-      // const blob = await response.blob();
-      // const url = window.URL.createObjectURL(blob);
-      // const a = document.createElement('a');
-      // a.href = url;
-      // a.download = `laporan_${filterBulan}_${filterTahun}.xlsx`;
-      // document.body.appendChild(a);
-      // a.click();
-      // window.URL.revokeObjectURL(url);
-      // document.body.removeChild(a);
+      // Generate Excel dari API backend
+      await laporanService.downloadLaporanBulanan(
+        parseInt(filterBulan), 
+        parseInt(filterTahun)
+      );
       
-      console.log('Generate laporan Excel:', { bulan: filterBulan, tahun: filterTahun });
       showNotifikasi({
         type: 'success',
-        message: `Laporan Excel untuk ${filterBulan}/${filterTahun} berhasil didownload!`,
+        message: `Laporan Excel untuk bulan ${filterBulan}/${filterTahun} berhasil didownload!`,
         autoClose: true,
         autoCloseDuration: 2000,
         onConfirm: hideNotifikasi
@@ -117,18 +66,21 @@ function Laporan({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfi
       console.error('Error generating laporan:', error);
       showNotifikasi({
         type: 'error',
-        message: 'Gagal generate laporan',
+        message: error.message || 'Gagal generate laporan. Pastikan koneksi internet dan data tersedia.',
         onConfirm: hideNotifikasi,
         onCancel: hideNotifikasi
       });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
   const handleDownload = async () => {
-    if (!filterBulan || !filterTahun) {
+    // Export data list yang ditampilkan saat ini ke Excel (client-side)
+    if (laporanList.length === 0) {
       showNotifikasi({
         type: 'error',
-        message: 'Silakan pilih Bulan dan Tahun terlebih dahulu',
+        message: 'Tidak ada data untuk di-export',
         onConfirm: hideNotifikasi,
         onCancel: hideNotifikasi
       });
@@ -136,23 +88,32 @@ function Laporan({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfi
     }
     
     try {
-      await laporanService.downloadLaporanBulanan(
-        parseInt(filterBulan), 
-        parseInt(filterTahun)
-      );
+      // Format data untuk export
+      const dataToExport = laporanList.map((laporan, index) => ({
+        'No': index + 1,
+        'Label': laporan.label,
+        'Jenis Layanan': laporan.jenis_layanan,
+        'Periode': laporan.periode,
+        'Tanggal Dibuat': laporan.tanggal_dibuat,
+        'Jumlah Pasien': laporan.jumlah_pasien,
+        'Jumlah Kunjungan': laporan.jumlah_kunjungan
+      }));
+      
+      const filename = `Laporan_List_${new Date().toISOString().split('T')[0]}.xlsx`;
+      laporanService.exportToExcel(dataToExport, filename);
       
       showNotifikasi({
         type: 'success',
-        message: `File laporan ${filterBulan}/${filterTahun}.xlsx berhasil didownload!`,
+        message: 'Data laporan berhasil di-export ke Excel!',
         autoClose: true,
         autoCloseDuration: 2000,
         onConfirm: hideNotifikasi
       });
     } catch (error) {
-      console.error('Error downloading laporan:', error);
+      console.error('Error exporting laporan:', error);
       showNotifikasi({
         type: 'error',
-        message: 'Gagal mendownload laporan. Pastikan koneksi internet dan data tersedia.',
+        message: 'Gagal export data ke Excel',
         onConfirm: hideNotifikasi,
         onCancel: hideNotifikasi
       });
@@ -250,8 +211,12 @@ function Laporan({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfi
                 </select>
               </div>
 
-              <button className="btn-filter-laporan" onClick={handleFilter}>
-                Generate Excel
+              <button 
+                className="btn-filter-laporan" 
+                onClick={handleFilter}
+                disabled={isDownloading}
+              >
+                {isDownloading ? 'Mengunduh...' : 'Generate Excel'}
               </button>
             </div>
           </div>

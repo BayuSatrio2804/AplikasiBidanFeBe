@@ -14,6 +14,10 @@ const { RegistrasiPersalinanSchema } = require('../validators/persalinan.validat
 router.use(verifyToken);
 
 // Delivery endpoints
+router.get('/', persalinanController.getAllPersalinan);
 router.post('/', validate(RegistrasiPersalinanSchema), persalinanController.createRegistrasiPersalinan);
+router.get('/:id', persalinanController.getPersalinanById);
+router.put('/:id', validate(RegistrasiPersalinanSchema), persalinanController.updateRegistrasiPersalinan);
+router.delete('/:id', persalinanController.deleteRegistrasiPersalinan);
 
 module.exports = router;

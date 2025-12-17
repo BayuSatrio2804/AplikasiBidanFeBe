@@ -21,6 +21,9 @@ const validateBody = (schema) => (req, res, next) => {
       field: detail.context?.key || 'unknown',
       message: detail.message.replace(/"/g, '')
     }));
+    
+    console.error('[VALIDATION_ERROR] Request body:', JSON.stringify(req.body, null, 2));
+    console.error('[VALIDATION_ERROR] Validation errors:', JSON.stringify(errors, null, 2));
 
     return validationError(res, errors);
   }

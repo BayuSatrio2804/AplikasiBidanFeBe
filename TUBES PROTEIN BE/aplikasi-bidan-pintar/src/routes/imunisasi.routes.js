@@ -14,6 +14,10 @@ const { RegistrasiImunisasiSchema } = require('../validators/imunisasi.validator
 router.use(verifyToken);
 
 // Immunization endpoints
+router.get('/', imunisasiController.getAllImunisasi);
 router.post('/', validate(RegistrasiImunisasiSchema), imunisasiController.createRegistrasiImunisasi);
+router.get('/:id', imunisasiController.getImunisasiById);
+router.put('/:id', validate(RegistrasiImunisasiSchema), imunisasiController.updateRegistrasiImunisasi);
+router.delete('/:id', imunisasiController.deleteRegistrasiImunisasi);
 
 module.exports = router;
