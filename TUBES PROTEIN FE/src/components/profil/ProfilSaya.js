@@ -6,7 +6,7 @@ import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
 import authService from '../../services/auth.service';
 
-function ProfilSaya({ onBack, userData }) {
+function ProfilSaya({ onBack, onToUbahPassword, userData }) {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -148,9 +148,13 @@ function ProfilSaya({ onBack, userData }) {
                       style={{cursor: 'not-allowed'}}
                     />
                   </div>
-                  <a href="#ubah-password" className="link-ubah-password-inline">
+                  <button
+                    type="button"
+                    className="link-ubah-password-inline"
+                    onClick={() => onToUbahPassword && onToUbahPassword()}
+                  >
                     Ubah Password
-                  </a>
+                  </button>
                 </div>
 
                 {/* Simpan Button */}
