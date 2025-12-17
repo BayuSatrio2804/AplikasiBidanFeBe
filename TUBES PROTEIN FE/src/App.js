@@ -7,6 +7,7 @@ import VerifikasiOTP from './components/auth/VerifikasiOTP';
 import Dashboard from './components/dashboard/Dashboard';
 import ProfilSaya from './components/profil/ProfilSaya';
 import InformasiPengguna from './components/profil/InformasiPengguna';
+import UbahPassword from './components/profil/UbahPassword';
 import DataPasien from './components/pasien/DataPasien';
 import EditPasien from './components/pasien/EditPasien';
 import RiwayatUbahDataPasien from './components/pasien/RiwayatUbahData';
@@ -88,6 +89,10 @@ function App() {
 
   const handleToInformasiPengguna = () => {
     setCurrentPage('informasi-pengguna');
+  };
+
+  const handleToUbahPassword = () => {
+    setCurrentPage('ubah-password');
   };
 
   const handleToDataPasien = () => {
@@ -235,6 +240,7 @@ function App() {
         <ProfilSaya 
           onBack={handleBackToDashboard}
           userData={userData}
+          onToUbahPassword={handleToUbahPassword}
           onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
           onToRiwayatMasukAkun={handleToRiwayatMasukAkun}
           onToProfil={handleToProfil}
@@ -245,6 +251,11 @@ function App() {
           onToANC={handleToANC}
           onToKB={handleToKB}
           onToImunisasi={handleToImunisasi}
+        />
+      )}
+      {isLoggedIn && currentPage === 'ubah-password' && (
+        <UbahPassword 
+          onBack={handleToProfil}
         />
       )}
       {isLoggedIn && currentPage === 'informasi-pengguna' && (

@@ -258,18 +258,23 @@
 }
 
 .link-ubah-password-inline {
+  background: none;
+  border: none;
   color: #E91E8C;
-  text-decoration: underline;
+  text-decoration: none;
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   margin-left: auto;
   padding-right: 10px;
+  padding: 0;
+  cursor: pointer;
   transition: color 0.3s ease;
 }
 
 .link-ubah-password-inline:hover {
   color: #C94C8B;
+  text-decoration: underline;
 }
 
 /* ===== Responsive ===== */
