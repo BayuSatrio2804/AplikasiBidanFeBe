@@ -3,6 +3,7 @@ import Sidebar from '../shared/Sidebar';
 import './EditPasien.css';
 import pinkLogo from '../../assets/images/pink-logo.png';
 import pasienService from '../../services/pasien.service';
+import * as layananService from '../../services/layanan.service';
 
 function EditPasien({ 
   onBack, 
@@ -26,6 +27,13 @@ function EditPasien({
     alamat: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [historiLayanan, setHistoriLayanan] = useState({
+    kb: [],
+    anc: [],
+    imunisasi: [],
+    persalinan: [],
+    kunjunganPasien: []
+  });
 
   useEffect(() => {
     if (pasienId) {
@@ -46,12 +54,57 @@ function EditPasien({
           no_hp: data.no_hp || '',
           alamat: data.alamat || ''
         });
+        // Fetch historiLayanan after getting pasien data
+        await fetchHistoriLayanan(pasienId);
       }
     } catch (error) {
       console.error('Error fetching pasien:', error);
       alert('Gagal mengambil data pasien');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchHistoriLayanan = async (id_pasien) => {
+    try {
+      console.log('📋 Fetching histori layanan for pasien:', id_pasien);
+      const [kbRes, ancRes, imunRes, persRes, kunjRes] = await Promise.all([
+        layananService.getAllKB(),
+        layananService.getAllANC(),
+        layananService.getAllImunisasi(),
+        layananService.getAllPersalinan(),
+        layananService.getAllKunjunganPasien()
+      ]);
+
+      console.log('🏥 KB Response:', kbRes);
+      console.log('🏥 ANC Response:', ancRes);
+      console.log('🏥 Imunisasi Response:', imunRes);
+      console.log('🏥 Persalinan Response:', persRes);
+      console.log('🏥 Kunjungan Pasien Response:', kunjRes);
+
+      const kbFiltered = (kbRes?.data || kbRes || []).filter(item => item?.id_pasien === id_pasien);
+      const ancFiltered = (ancRes?.data || ancRes || []).filter(item => item?.id_pasien === id_pasien);
+      const imunFiltered = (imunRes?.data || imunRes || []).filter(item => item?.id_pasien === id_pasien);
+      const persFiltered = (persRes?.data || persRes || []).filter(item => item?.id_pasien === id_pasien);
+      const kunjFiltered = (kunjRes?.data || kunjRes || []).filter(item => item?.id_pasien === id_pasien);
+
+      console.log('✅ After filtering:', {
+        kb: kbFiltered.length,
+        anc: ancFiltered.length,
+        imunisasi: imunFiltered.length,
+        persalinan: persFiltered.length,
+        kunjunganPasien: kunjFiltered.length
+      });
+
+      setHistoriLayanan({
+        kb: kbFiltered,
+        anc: ancFiltered,
+        imunisasi: imunFiltered,
+        persalinan: persFiltered,
+        kunjunganPasien: kunjFiltered
+      });
+    } catch (error) {
+      console.error('Error fetching historiLayanan:', error);
     }
   };
 
@@ -76,7 +129,7 @@ function EditPasien({
       const payload = {
         nama: formData.nama,
         umur: parseInt(formData.umur),
-        nik: formData.nik,
+        NIK: formData.nik,
         no_hp: formData.no_hp,
         alamat: formData.alamat
       };
@@ -209,8 +262,15 @@ function EditPasien({
                     <div className="pasien-kb-container">
                       <div className="pasien-kb-label">Nomor Registrasi</div>
                       <div className="pasien-kb-select">
-                        <div className="pasien-kb-option">Data 1</div>
-                        <div className="pasien-kb-option">Data 2</div>
+                        {historiLayanan.kb && historiLayanan.kb.length > 0 ? (
+                          historiLayanan.kb.map(item => (
+                            <div key={item.id_kb || item.id_pemeriksaan} className="pasien-kb-option">
+                              {item.nomor_registrasi || item.no_registrasi || 'N/A'}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="pasien-kb-option">Data tidak ditemukan</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -221,7 +281,15 @@ function EditPasien({
                     <div className="pasien-kb-container">
                       <div className="pasien-kb-label">Nomor Registrasi</div>
                       <div className="pasien-kb-select">
-                        <div className="pasien-kb-option">Data tidak ditemukan</div>
+                        {historiLayanan.persalinan && historiLayanan.persalinan.length > 0 ? (
+                          historiLayanan.persalinan.map(item => (
+                            <div key={item.id_persalinan || item.id_pemeriksaan} className="pasien-kb-option">
+                              {item.nomor_registrasi || item.no_registrasi || 'N/A'}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="pasien-kb-option">Data tidak ditemukan</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -232,7 +300,15 @@ function EditPasien({
                     <div className="pasien-kb-container">
                       <div className="pasien-kb-label">Nomor Registrasi</div>
                       <div className="pasien-kb-select">
-                        <div className="pasien-kb-option">Data tidak ditemukan</div>
+                        {historiLayanan.anc && historiLayanan.anc.length > 0 ? (
+                          historiLayanan.anc.map(item => (
+                            <div key={item.id_anc || item.id_pemeriksaan} className="pasien-kb-option">
+                              {item.nomor_registrasi || item.no_registrasi || 'N/A'}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="pasien-kb-option">Data tidak ditemukan</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -243,7 +319,15 @@ function EditPasien({
                     <div className="pasien-kb-container">
                       <div className="pasien-kb-label">Nomor Registrasi</div>
                       <div className="pasien-kb-select">
-                        <div className="pasien-kb-option">Data tidak ditemukan</div>
+                        {historiLayanan.imunisasi && historiLayanan.imunisasi.length > 0 ? (
+                          historiLayanan.imunisasi.map(item => (
+                            <div key={item.id_imunisasi || item.id_pemeriksaan} className="pasien-kb-option">
+                              {item.nomor_registrasi || item.no_registrasi || 'N/A'}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="pasien-kb-option">Data tidak ditemukan</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -254,7 +338,15 @@ function EditPasien({
                     <div className="pasien-kb-container">
                       <div className="pasien-kb-label">Nomor Registrasi</div>
                       <div className="pasien-kb-select">
-                        <div className="pasien-kb-option">Data tidak ditemukan</div>
+                        {historiLayanan.kunjunganPasien && historiLayanan.kunjunganPasien.length > 0 ? (
+                          historiLayanan.kunjunganPasien.map(item => (
+                            <div key={item.id_kunjungan_pasien || item.id_pemeriksaan} className="pasien-kb-option">
+                              {item.nomor_registrasi || item.no_registrasi || 'N/A'}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="pasien-kb-option">Data tidak ditemukan</div>
+                        )}
                       </div>
                     </div>
                   </div>

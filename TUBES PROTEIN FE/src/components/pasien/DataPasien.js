@@ -180,12 +180,12 @@ function DataPasien({
                   <div className="dp-loading">Memuat data...</div>
                 ) : pasienList.length > 0 ? (
                   pasienList.map((pasien) => (
-                    <div key={pasien.id} className="dp-patient-item">
+                    <div key={pasien.id_pasien} className="dp-patient-item">
                       <span className="dp-patient-name">{pasien.nama}</span>
                       <div className="dp-patient-actions">
                         <button 
                           className="dp-btn-edit"
-                          onClick={() => handleEdit(pasien.id)}
+                          onClick={() => handleEdit(pasien.id_pasien)}
                           title="Edit"
                         >
                           <svg width="18" height="18" viewBox="0 0 18 18" fill="white">
@@ -194,7 +194,7 @@ function DataPasien({
                         </button>
                         <button 
                           className="dp-btn-delete"
-                          onClick={() => handleDelete(pasien.id)}
+                          onClick={() => handleDelete(pasien.id_pasien)}
                           title="Hapus"
                         >
                           <svg width="18" height="18" viewBox="0 0 18 18" fill="white">

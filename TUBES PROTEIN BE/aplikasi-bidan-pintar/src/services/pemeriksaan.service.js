@@ -24,10 +24,40 @@ const getAllPemeriksaan = async (jenisLayanan = null, search = null) => {
   
   let query = `
     SELECT p.*, pas.nama AS nama_pasien
+  `;
+
+  // Add layanan-specific fields based on jenis_layanan
+  if (jenisLayanan === 'KB') {
+    query += `, kb.id_kb, kb.nomor_registrasi_lama, kb.nomor_registrasi_baru, kb.metode`;
+  } else if (jenisLayanan === 'ANC') {
+    query += `, anc.id_anc, anc.no_reg_lama, anc.no_reg_baru`;
+  } else if (jenisLayanan === 'Imunisasi') {
+    query += `, imun.id_imunisasi, imun.no_reg, imun.jenis_imunisasi`;
+  } else if (jenisLayanan === 'Persalinan') {
+    query += `, per.id_persalinan, per.no_reg`;
+  } else if (jenisLayanan === 'Kunjungan Pasien') {
+    query += `, kp.id_kunjungan_pasien`;
+  }
+
+  query += `
     FROM pemeriksaan p
     LEFT JOIN pasien pas ON p.id_pasien = pas.id_pasien
-    WHERE 1=1
   `;
+
+  // Add layanan JOINs based on jenis_layanan
+  if (jenisLayanan === 'KB') {
+    query += ` LEFT JOIN layanan_kb kb ON p.id_pemeriksaan = kb.id_pemeriksaan`;
+  } else if (jenisLayanan === 'ANC') {
+    query += ` LEFT JOIN layanan_anc anc ON p.id_pemeriksaan = anc.id_pemeriksaan`;
+  } else if (jenisLayanan === 'Imunisasi') {
+    query += ` LEFT JOIN layanan_imunisasi imun ON p.id_pemeriksaan = imun.id_pemeriksaan`;
+  } else if (jenisLayanan === 'Persalinan') {
+    query += ` LEFT JOIN layanan_persalinan per ON p.id_pemeriksaan = per.id_pemeriksaan`;
+  } else if (jenisLayanan === 'Kunjungan Pasien') {
+    query += ` LEFT JOIN layanan_kunjungan_pasien kp ON p.id_pemeriksaan = kp.id_pemeriksaan`;
+  }
+
+  query += ` WHERE 1=1`;
   const params = [];
 
   // Filter by jenis_layanan if provided
@@ -49,7 +79,23 @@ const getAllPemeriksaan = async (jenisLayanan = null, search = null) => {
   console.log('  📝 Final query params:', params);
   const [rows] = await db.query(query, params);
   console.log('  ✅ Query returned:', rows.length, 'rows');
-  return rows;
+  
+  // Normalize field names for consistency in frontend
+  const normalizedRows = rows.map(row => {
+    // Normalize nomor_registrasi field based on service type
+    if (row.jenis_layanan === 'KB' && row.nomor_registrasi_baru) {
+      row.nomor_registrasi = row.nomor_registrasi_baru || row.nomor_registrasi_lama;
+    } else if (row.jenis_layanan === 'ANC') {
+      row.nomor_registrasi = row.no_reg_baru || row.no_reg_lama;
+    } else if (row.jenis_layanan === 'Imunisasi') {
+      row.nomor_registrasi = row.no_reg;
+    } else if (row.jenis_layanan === 'Persalinan') {
+      row.nomor_registrasi = row.no_reg;
+    }
+    return row;
+  });
+  
+  return normalizedRows;
 };
 
 /**
