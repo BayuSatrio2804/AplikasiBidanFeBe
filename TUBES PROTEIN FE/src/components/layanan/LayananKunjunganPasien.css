@@ -361,6 +361,8 @@
   justify-content: space-between;
   align-items: center;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .kunjungan-riwayat-item:hover {
@@ -377,6 +379,8 @@
 .kunjungan-riwayat-actions {
   display: flex;
   gap: 10px;
+  position: relative;
+  z-index: 100;
 }
 
 .kunjungan-btn-edit,
@@ -385,13 +389,22 @@
   border: none;
   padding: 10px;
   border-radius: 6px;
-  cursor: pointer;
+  cursor: pointer !important;
   transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
+  position: relative;
+  z-index: 1000;
+  pointer-events: auto !important;
+}
+
+.kunjungan-btn-edit img,
+.kunjungan-btn-delete img {
+  pointer-events: none;
+  user-select: none;
 }
 
 .kunjungan-btn-edit:hover {
@@ -509,6 +522,9 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
 }
 
 .kunjungan-btn-batal {

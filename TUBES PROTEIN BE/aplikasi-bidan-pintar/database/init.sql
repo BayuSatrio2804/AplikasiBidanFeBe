@@ -256,8 +256,9 @@ CREATE TABLE layanan_persalinan (
 CREATE TABLE layanan_kunjungan_pasien (
     id_kunjungan CHAR(36) NOT NULL PRIMARY KEY,
     id_pemeriksaan CHAR(36) NOT NULL,
+    tanggal DATE NOT NULL,
     no_reg VARCHAR(50),
-    jenis_kunjungan ENUM('Bayi/Anak', 'Umum', 'Lain-lain') NOT NULL,
+    jenis_kunjungan ENUM('Bayi','Anak', 'Hamil','Nifas', 'KB', 'Lansia') NOT NULL,
     nama_pasien VARCHAR(100) NOT NULL,
     nik_pasien CHAR(16),
     umur_pasien VARCHAR(20) COMMENT 'Format: "6 bln" atau "2 thn"',
@@ -481,10 +482,10 @@ INSERT INTO layanan_persalinan (id_persalinan, id_pemeriksaan, no_reg_lama, no_r
 -- =============================================================================
 -- SAMPLE DATA: Layanan Kunjungan Pasien
 -- =============================================================================
-INSERT INTO layanan_kunjungan_pasien (id_kunjungan, id_pemeriksaan, no_reg, jenis_kunjungan, nama_pasien, nik_pasien, umur_pasien, bb_pasien, td_pasien, nama_wali, nik_wali, umur_wali, keluhan, diagnosa, terapi_obat, keterangan) VALUES
-('dd0e8400-e29b-41d4-a716-446655440001', '880e8400-e29b-41d4-a716-446655440008', 'KP-2025-001', 'Bayi/Anak', 'Rafi Pratama', '3201234567890207', '8 bln', 7.50, NULL, 'Putri Ayu Lestari', '3201234567890007', 29, 'Batuk dan pilek', 'ISPA ringan', 'Paracetamol sirup 3x0.5ml, Ambroxol sirup 2x2.5ml', 'Observasi di rumah, kembali jika demam tinggi'),
-('dd0e8400-e29b-41d4-a716-446655440002', '880e8400-e29b-41d4-a716-446655440009', 'KP-2025-002', 'Bayi/Anak', 'Keyla Azzahra', '3201234567890209', '10 bln', 9.00, NULL, 'Dian Permatasari', '3201234567890009', 31, 'Konsultasi tumbuh kembang', 'Tumbuh kembang sesuai usia', NULL, 'Lanjutkan ASI, stimulasi sesuai usia'),
-('dd0e8400-e29b-41d4-a716-446655440003', '880e8400-e29b-41d4-a716-446655440010', 'KP-2025-003', 'Bayi/Anak', 'Arya Putra', '3201234567890210', '5 bln', 6.80, NULL, 'Nurul Hidayah', '3201234567890010', 26, 'Ruam popok', 'Dermatitis popok', 'Salep zinc oxide', 'Jaga kebersihan area popok');
+INSERT INTO layanan_kunjungan_pasien (id_kunjungan, id_pemeriksaan, tanggal, no_reg, jenis_kunjungan, nama_pasien, nik_pasien, umur_pasien, bb_pasien, td_pasien, nama_wali, nik_wali, umur_wali, keluhan, diagnosa, terapi_obat, keterangan) VALUES
+('dd0e8400-e29b-41d4-a716-446655440001', '880e8400-e29b-41d4-a716-446655440008', '2025-12-09', 'KP-2025-001', 'Bayi/Anak', 'Rafi Pratama', '3201234567890207', 8, 7.50, NULL, 'Putri Ayu Lestari', '3201234567890007', 29, 'Batuk dan pilek', 'ISPA ringan', 'Paracetamol sirup 3x0.5ml, Ambroxol sirup 2x2.5ml', 'Observasi di rumah, kembali jika demam tinggi'),
+('dd0e8400-e29b-41d4-a716-446655440002', '880e8400-e29b-41d4-a716-446655440009', '2025-12-12', 'KP-2025-002', 'Bayi/Anak', 'Keyla Azzahra', '3201234567890209', 10, 9.00, NULL, 'Dian Permatasari', '3201234567890009', 31, 'Konsultasi tumbuh kembang', 'Tumbuh kembang sesuai usia', NULL, 'Lanjutkan ASI, stimulasi sesuai usia'),
+('dd0e8400-e29b-41d4-a716-446655440003', '880e8400-e29b-41d4-a716-446655440010', '2025-12-13', 'KP-2025-003', 'Bayi/Anak', 'Arya Putra', '3201234567890210', 5, 6.80, NULL, 'Nurul Hidayah', '3201234567890010', 26, 'Ruam popok', 'Dermatitis popok', 'Salep zinc oxide', 'Jaga kebersihan area popok');
 
 -- =============================================================================
 -- SAMPLE DATA: Audit Log Akses

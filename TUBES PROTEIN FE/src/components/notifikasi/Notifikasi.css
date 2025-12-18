@@ -9,8 +9,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10000;
+  z-index: 10000 !important;
   animation: fadeIn 0.2s ease-in-out;
+  pointer-events: auto !important;
 }
 
 @keyframes fadeIn {
@@ -28,6 +29,9 @@
   border-radius: 20px;
   padding: 40px;
   min-width: 400px;
+  position: relative;
+  z-index: 10001 !important;
+  pointer-events: auto !important;
   max-width: 500px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -111,9 +115,12 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
+  cursor: pointer !important;
   transition: all 0.3s ease;
   min-width: 100px;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 10002;
 }
 
 .notifikasi-btn-cancel {
