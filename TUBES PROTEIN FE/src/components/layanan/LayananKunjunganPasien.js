@@ -17,6 +17,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   
   const [formData, setFormData] = useState({
+    jenis_layanan: 'Kunjungan Pasien',
     tanggal: '',
     no_reg: '',
     jenis_kunjungan: '',
@@ -49,9 +50,9 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
       const response = await layananService.getAllKunjunganPasien(search);
       if (response.success && response.data) {
         const mappedData = response.data.map(item => ({
-          id: item.id_pemeriksaan,
+          id: item.id,
           nama_pasien: item.nama_pasien || 'Pasien',
-          tanggal: item.tanggal_pemeriksaan,
+          tanggal: item.tanggal,
           jenis_layanan: item.jenis_layanan
         }));
         setRiwayatPelayanan(mappedData);
@@ -61,6 +62,14 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
     } catch (error) {
       console.error('Error fetching data:', error);
       setRiwayatPelayanan([]);
+      // Only show error if it's not a simple empty result
+      if (error.response?.status !== 404) {
+        showNotifikasi({
+          type: 'error',
+          message: 'Gagal memuat data riwayat pelayanan',
+          onConfirm: hideNotifikasi
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -74,6 +83,21 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Validasi NIK - hanya angka dan maksimal 16 digit
+    if (name === 'nik_pasien' || name === 'nik_wali') {
+      // Hapus karakter non-angka
+      const numericValue = value.replace(/[^0-9]/g, '');
+      // Batasi maksimal 16 digit
+      const limitedValue = numericValue.slice(0, 16);
+      
+      setFormData({
+        ...formData,
+        [name]: limitedValue
+      });
+      return;
+    }
+    
     setFormData({
       ...formData,
       [name]: value
@@ -85,6 +109,27 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
     setIsLoading(true);
     setError('');
     
+    // Validasi NIK sebelum submit
+    if (formData.nik_pasien && formData.nik_pasien.length !== 16) {
+      showNotifikasi({
+        type: 'error',
+        message: 'NIK Pasien harus 16 digit!',
+        onConfirm: hideNotifikasi
+      });
+      setIsLoading(false);
+      return;
+    }
+    
+    if (formData.nik_wali && formData.nik_wali.length > 0 && formData.nik_wali.length !== 16) {
+      showNotifikasi({
+        type: 'error',
+        message: 'NIK Wali harus 16 digit!',
+        onConfirm: hideNotifikasi
+      });
+      setIsLoading(false);
+      return;
+    }
+    
     try {
       let response;
       if (editingId) {
@@ -95,20 +140,23 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
       if (response.success) {
         showNotifikasi({
           type: 'success',
-          message: editingId ? 'Data berhasil diupdate!' : 'Data kunjungan pasien berhasil disimpan!',
+          message: editingId ? 'Data kunjungan pasien berhasil diupdate!' : 'Data kunjungan pasien berhasil disimpan!',
           autoClose: true,
           autoCloseDuration: 2000,
           onConfirm: hideNotifikasi
         });
         resetForm();
         fetchRiwayatPelayanan();
+      } else {
+        throw new Error(response.message || 'Gagal menyimpan data');
       }
     } catch (error) {
       console.error('Error:', error);
-      setError(error.message || 'Terjadi kesalahan saat menyimpan data');
+      const errorMessage = error.response?.data?.message || error.message || 'Terjadi kesalahan saat menyimpan data';
+      setError(errorMessage);
       showNotifikasi({
         type: 'error',
-        message: error.message || 'Terjadi kesalahan saat menyimpan data',
+        message: errorMessage,
         onConfirm: hideNotifikasi,
         onCancel: hideNotifikasi
       });
@@ -118,12 +166,15 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
   };
 
   const handleBatal = () => {
+    console.log('handleBatal clicked!');
     resetForm();
+    setShowForm(false);
   };
 
   const resetForm = () => {
     setEditingId(null);
     setFormData({
+      jenis_layanan: 'Kunjungan Pasien',
       tanggal: '',
       no_reg: '',
       jenis_kunjungan: '',
@@ -146,10 +197,14 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
 
   const handleEdit = async (item) => {
     try {
+      setIsLoading(true);
+      console.log('Editing item:', item);
+      console.log('Item ID:', item.id);
       const response = await layananService.getKunjunganPasienById(item.id);
       if (response.success) {
         const data = response.data;
         setFormData({
+          jenis_layanan: data.jenis_layanan || 'Kunjungan Pasien',
           tanggal: data.tanggal || '',
           no_reg: data.no_reg || '',
           jenis_kunjungan: data.jenis_kunjungan || '',
@@ -169,33 +224,63 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
         setEditingId(item.id);
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        throw new Error(response.message || 'Gagal mengambil data');
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      alert('Gagal mengambil data untuk diedit');
+      showNotifikasi({
+        type: 'error',
+        message: error.response?.data?.message || error.message || 'Gagal mengambil data untuk diedit',
+        onConfirm: hideNotifikasi,
+        onCancel: hideNotifikasi
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
+    console.log('handleDelete clicked with id:', id);
+    console.log('About to show delete confirmation...');
     showNotifikasi({
       type: 'confirm-delete',
-      message: 'Apakah Anda yakin ingin menghapus data ini?',
+      message: 'Yakin ingin menghapus data ini?',
       onConfirm: async () => {
+        console.log('Delete confirmed by user');
         hideNotifikasi();
         try {
-          showNotifikasi({
-            type: 'success',
-            message: 'Data berhasil dihapus!',
-            autoClose: true,
-            autoCloseDuration: 2000,
-            onConfirm: hideNotifikasi
-          });
-          fetchRiwayatPelayanan();
+          console.log(`🗑️ Deleting Kunjungan Pasien data for ID: ${id}`);
+          const response = await layananService.deleteKunjunganPasien(id);
+          console.log('📦 Delete response:', response);
+          
+          if (response && response.success) {
+            console.log('✅ Delete successful');
+            showNotifikasi({
+              type: 'success',
+              message: 'Data berhasil dihapus!',
+              autoClose: true,
+              autoCloseDuration: 2000,
+              onConfirm: hideNotifikasi
+            });
+            fetchRiwayatPelayanan();
+          } else {
+            console.error('❌ Delete failed:', response);
+            showNotifikasi({
+              type: 'error',
+              message: response?.message || 'Gagal menghapus data',
+              onConfirm: hideNotifikasi,
+              onCancel: hideNotifikasi
+            });
+          }
         } catch (error) {
-          console.error('Error:', error);
+          console.error('❌ Error deleting:', error);
+          console.error('   Error type:', error.type);
+          console.error('   Error status:', error.status);
+          console.error('   Error data:', error.data);
           showNotifikasi({
             type: 'error',
-            message: 'Terjadi kesalahan saat menghapus data',
+            message: error.message || 'Gagal menghapus data',
             onConfirm: hideNotifikasi,
             onCancel: hideNotifikasi
           });
@@ -241,7 +326,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
             <>
               {/* Welcome Section */}
               <div className="kunjungan-welcome-section">
-                <p className="kunjungan-welcome-text">Selamat datang, username!</p>
+                <p className="kunjungan-welcome-text">Selamat datang, {userData?.nama_lengkap || userData?.username || 'Pengguna'}!</p>
                 <div className="kunjungan-action-buttons">
                   <button className="kunjungan-action-btn" onClick={() => setShowForm(true)}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
@@ -306,13 +391,13 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                             className="kunjungan-btn-edit"
                             onClick={() => handleEdit(item)}
                           >
-                            <img src={editIcon} alt="Edit" style={{width: '18px', height: '18px'}} />
+                            <img src={editIcon} alt="Edit" style={{width: '18px', height: '18px', pointerEvents: 'none'}} />
                           </button>
                           <button 
                             className="kunjungan-btn-delete"
                             onClick={() => handleDelete(item.id)}
                           >
-                            <img src={trashIcon} alt="Delete" style={{width: '18px', height: '18px'}} />
+                            <img src={trashIcon} alt="Delete" style={{width: '18px', height: '18px', pointerEvents: 'none'}} />
                           </button>
                         </div>
                       </div>
@@ -336,36 +421,56 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                         name="jenis_layanan"
                         value={formData.jenis_layanan}
                         readOnly
+                        style={{ backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
                       />
                     </div>
                     <div className="kunjungan-form-group">
-                      <label>Tanggal Kunjungan</label>
+                      <label>Tanggal</label>
                       <input
                         type="date"
-                        name="tanggal_kunjungan"
-                        value={formData.tanggal_kunjungan}
+                        name="tanggal"
+                        value={formData.tanggal}
                         onChange={handleInputChange}
+                        placeholder="DD/MM/YY"
                         required
                       />
                     </div>
                   </div>
                   <div className="kunjungan-form-row">
                     <div className="kunjungan-form-group">
-                      <label>Keluhan</label>
-                      <textarea
-                        name="keluhan"
-                        value={formData.keluhan}
+                      <label>Nomor Registrasi</label>
+                      <input
+                        type="text"
+                        name="no_reg"
+                        value={formData.no_reg}
                         onChange={handleInputChange}
-                        placeholder="Masukkan keluhan pasien"
+                        placeholder="Masukkan data"
                         required
                       />
+                    </div>
+                    <div className="kunjungan-form-group">
+                      <label>Jenis Kunjungan</label>
+                      <select
+                        name="jenis_kunjungan"
+                        value={formData.jenis_kunjungan}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option value="">Pilih Jenis Kunjungan</option>
+                        <option value="Bayi">Bayi</option>
+                        <option value="Anak">Anak</option>
+                        <option value="Hamil">Hamil</option>
+                        <option value="Nifas">Nifas</option>
+                        <option value="KB">KB</option>
+                        <option value="Lansia">Lansia</option>
+                      </select>
                     </div>
                   </div>
                 </div>
 
-                {/* Data Diri Pasien */}
+                {/* Data Pasien */}
                 <div className="kunjungan-form-section">
-                  <h3 className="kunjungan-form-section-title">Data Diri Pasien</h3>
+                  <h3 className="kunjungan-form-section-title">Data Pasien</h3>
                   <div className="kunjungan-form-row">
                     <div className="kunjungan-form-group">
                       <label>Nama Pasien</label>
@@ -374,7 +479,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                         name="nama_pasien"
                         value={formData.nama_pasien}
                         onChange={handleInputChange}
-                        placeholder="Nama Lengkap"
+                        placeholder="Masukkan nama lengkap"
                         required
                       />
                     </div>
@@ -382,88 +487,97 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                       <label>NIK</label>
                       <input
                         type="text"
-                        name="nik"
-                        value={formData.nik}
+                        name="nik_pasien"
+                        value={formData.nik_pasien}
                         onChange={handleInputChange}
-                        placeholder="Nomor Induk Kependudukan"
+                        placeholder="16 digit angka"
+                        maxLength="16"
+                        pattern="[0-9]{16}"
+                        title="NIK harus 16 digit angka"
                         required
                       />
+                      {formData.nik_pasien && formData.nik_pasien.length < 16 && (
+                        <small style={{color: 'red', fontSize: '12px'}}>NIK harus 16 digit ({formData.nik_pasien.length}/16)</small>
+                      )}
                     </div>
                   </div>
                   <div className="kunjungan-form-row">
                     <div className="kunjungan-form-group">
-                      <label>Umur</label>
+                      <label>Umur (Th)</label>
                       <input
                         type="number"
-                        name="umur"
-                        value={formData.umur}
+                        name="umur_pasien"
+                        value={formData.umur_pasien}
                         onChange={handleInputChange}
-                        placeholder="Umur (tahun)"
+                        placeholder="Masukkan data"
                         required
                       />
                     </div>
                     <div className="kunjungan-form-group">
-                      <label>Alamat</label>
+                      <label>BB (kg)</label>
                       <input
                         type="text"
-                        name="alamat"
-                        value={formData.alamat}
+                        name="bb_pasien"
+                        value={formData.bb_pasien}
                         onChange={handleInputChange}
-                        placeholder="Alamat Lengkap"
+                        placeholder="Masukkan data"
+                        required
+                      />
+                    </div>
+                    <div className="kunjungan-form-group">
+                      <label>TD</label>
+                      <input
+                        type="text"
+                        name="td_pasien"
+                        value={formData.td_pasien}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan"
                         required
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Data Kesehatan */}
+                {/* Data Wali Pasien */}
                 <div className="kunjungan-form-section">
-                  <h3 className="kunjungan-form-section-title">Data Kesehatan</h3>
+                  <h3 className="kunjungan-form-section-title">Data Wali Pasien</h3>
                   <div className="kunjungan-form-row">
                     <div className="kunjungan-form-group">
-                      <label>Tekanan Darah</label>
+                      <label>Nama Wali</label>
                       <input
                         type="text"
-                        name="tekanan_darah"
-                        value={formData.tekanan_darah}
+                        name="nama_wali"
+                        value={formData.nama_wali}
                         onChange={handleInputChange}
-                        placeholder="Contoh: 120/80"
-                        required
+                        placeholder="Masukkan nama lengkap"
                       />
                     </div>
                     <div className="kunjungan-form-group">
-                      <label>Suhu Tubuh (°C)</label>
+                      <label>NIK</label>
                       <input
                         type="text"
-                        name="suhu_tubuh"
-                        value={formData.suhu_tubuh}
+                        name="nik_wali"
+                        value={formData.nik_wali}
                         onChange={handleInputChange}
-                        placeholder="Contoh: 36.5"
-                        required
+                        placeholder="16 digit angka (opsional)"
+                        maxLength="16"
+                        pattern="[0-9]{16}"
+                        title="NIK harus 16 digit angka"
                       />
+                      {formData.nik_wali && formData.nik_wali.length > 0 && formData.nik_wali.length < 16 && (
+                        <small style={{color: 'red', fontSize: '12px'}}>NIK harus 16 digit ({formData.nik_wali.length}/16)</small>
+                      )}
                     </div>
                   </div>
                   <div className="kunjungan-form-row">
                     <div className="kunjungan-form-group">
-                      <label>Berat Badan (kg)</label>
+                      <label>Umur (Th)</label>
                       <input
-                        type="text"
-                        name="berat_badan"
-                        value={formData.berat_badan}
+                        type="number"
+                        name="umur_wali"
+                        value={formData.umur_wali}
                         onChange={handleInputChange}
-                        placeholder="Berat Badan"
-                        required
-                      />
-                    </div>
-                    <div className="kunjungan-form-group">
-                      <label>Tinggi Badan (cm)</label>
-                      <input
-                        type="text"
-                        name="tinggi_badan"
-                        value={formData.tinggi_badan}
-                        onChange={handleInputChange}
-                        placeholder="Tinggi Badan"
-                        required
+                        placeholder="Masukkan data"
                       />
                     </div>
                   </div>
@@ -474,36 +588,44 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                   <h3 className="kunjungan-form-section-title">Informasi Tambahan</h3>
                   <div className="kunjungan-form-row">
                     <div className="kunjungan-form-group">
-                      <label>Diagnosis</label>
+                      <label>Keluhan</label>
                       <textarea
-                        name="diagnosis"
-                        value={formData.diagnosis}
+                        name="keluhan"
+                        value={formData.keluhan}
                         onChange={handleInputChange}
-                        placeholder="Diagnosis dokter"
+                        placeholder="Masukkan detail keluhan"
+                        required
+                      />
+                    </div>
+                    <div className="kunjungan-form-group">
+                      <label>Diagnosa</label>
+                      <textarea
+                        name="diagnosa"
+                        value={formData.diagnosa}
+                        onChange={handleInputChange}
+                        placeholder="Masukkan detail diagnosa"
                         required
                       />
                     </div>
                   </div>
                   <div className="kunjungan-form-row">
                     <div className="kunjungan-form-group">
-                      <label>Tindakan</label>
+                      <label>Terapi Obat yang Diberikan</label>
                       <textarea
-                        name="tindakan"
-                        value={formData.tindakan}
+                        name="terapi_obat"
+                        value={formData.terapi_obat}
                         onChange={handleInputChange}
-                        placeholder="Tindakan yang diberikan"
+                        placeholder="Tambahkan catatan terapi obat yang diberikan"
                         required
                       />
                     </div>
-                  </div>
-                  <div className="kunjungan-form-row">
                     <div className="kunjungan-form-group">
-                      <label>Catatan</label>
+                      <label>Keterangan</label>
                       <textarea
-                        name="catatan"
-                        value={formData.catatan}
+                        name="keterangan"
+                        value={formData.keterangan}
                         onChange={handleInputChange}
-                        placeholder="Catatan tambahan"
+                        placeholder="Tambahkan Keterangan"
                       />
                     </div>
                   </div>
@@ -527,7 +649,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
       <Notifikasi
         type={notifikasi.type}
         message={notifikasi.message}
-        isOpen={notifikasi.isOpen}
+        show={notifikasi.show}
         onConfirm={notifikasi.onConfirm}
         onCancel={notifikasi.onCancel}
         autoClose={notifikasi.autoClose}

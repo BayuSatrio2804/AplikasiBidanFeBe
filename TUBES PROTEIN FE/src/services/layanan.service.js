@@ -351,7 +351,17 @@ export const deletePersalinan = async (id) => {
  * @returns {Promise<object>} Response data with Kunjungan Pasien list
  */
 export const getAllKunjunganPasien = async (search = '') => {
-  return getPemeriksaanByLayanan('Kunjungan Pasien', search);
+  const params = search ? `?search=${encodeURIComponent(search)}` : '';
+  return apiRequest(`/kunjungan-pasien${params}`);
+};
+
+/**
+ * Get Kunjungan Pasien by ID
+ * @param {string} id - Kunjungan Pasien ID
+ * @returns {Promise<object>} Response data with Kunjungan Pasien details
+ */
+export const getKunjunganPasienById = async (id) => {
+  return apiRequest(`/kunjungan-pasien/${id}`);
 };
 
 /**
@@ -366,6 +376,33 @@ export const createKunjunganPasien = async (data) => {
       jenis_layanan: 'Kunjungan Pasien',
       ...data,
     },
+  });
+};
+
+/**
+ * Update Kunjungan Pasien registration
+ * @param {string} id - Kunjungan Pasien ID
+ * @param {object} data - Updated Kunjungan Pasien data
+ * @returns {Promise<object>} Response data
+ */
+export const updateKunjunganPasien = async (id, data) => {
+  return apiRequest(`/kunjungan-pasien/${id}`, {
+    method: 'PUT',
+    body: {
+      jenis_layanan: 'Kunjungan Pasien',
+      ...data,
+    },
+  });
+};
+
+/**
+ * Delete Kunjungan Pasien registration
+ * @param {string} id - Kunjungan Pasien ID
+ * @returns {Promise<object>} Response data
+ */
+export const deleteKunjunganPasien = async (id) => {
+  return apiRequest(`/kunjungan-pasien/${id}`, {
+    method: 'DELETE',
   });
 };
 
@@ -444,7 +481,10 @@ export default {
   deletePersalinan,
   // Kunjungan Pasien
   getAllKunjunganPasien,
+  getKunjunganPasienById,
   createKunjunganPasien,
+  updateKunjunganPasien,
+  deleteKunjunganPasien,
   // Pemeriksaan
   getAllPemeriksaan,
   getPemeriksaanById,

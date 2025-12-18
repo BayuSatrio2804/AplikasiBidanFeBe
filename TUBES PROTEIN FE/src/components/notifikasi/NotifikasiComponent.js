@@ -29,6 +29,10 @@ function Notifikasi({
 }) {
   
   React.useEffect(() => {
+    console.log('Notifikasi render - show:', show, 'type:', type, 'message:', message);
+  }, [show, type, message]);
+  
+  React.useEffect(() => {
     if (show && autoClose && (type === 'success' || type === 'success-login')) {
       const timer = setTimeout(() => {
         if (onConfirm) onConfirm();
@@ -107,13 +111,19 @@ function Notifikasi({
               <>
                 <button 
                   className="notifikasi-btn notifikasi-btn-cancel" 
-                  onClick={onCancel}
+                  onClick={() => {
+                    console.log('Cancel button clicked');
+                    if (onCancel) onCancel();
+                  }}
                 >
                   {cancelText}
                 </button>
                 <button 
                   className="notifikasi-btn notifikasi-btn-confirm" 
-                  onClick={onConfirm}
+                  onClick={() => {
+                    console.log('Confirm button clicked');
+                    if (onConfirm) onConfirm();
+                  }}
                 >
                   {confirmText}
                 </button>
