@@ -8,12 +8,12 @@ const auditService = require('./audit.service');
  */
 const convertDate = (dateStr) => {
   if (!dateStr) return null;
-  
+
   // Already in YYYY-MM-DD format
   if (dateStr.includes('-') && dateStr.split('-')[0].length === 4) {
     return dateStr;
   }
-  
+
   // Convert DD/MM/YYYY to YYYY-MM-DD
   if (dateStr.includes('/')) {
     const parts = dateStr.split('/');
@@ -22,7 +22,7 @@ const convertDate = (dateStr) => {
       return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     }
   }
-  
+
   return dateStr;
 };
 
@@ -69,9 +69,13 @@ const createRegistrasiPersalinan = async (data, userId) => {
 
     // 2. Create examination record
     const id_pemeriksaan = uuidv4();
-    
+
+    // Subjektif & Objektif for SOAP completeness (optional duplicates for display)
     const subjektif_final = `Persalinan Anak Ke-${anak_ke || '-'}, Jenis Partus: ${jenis_partus || '-'}`;
-    const objektif_final = `Ibu - TD: ${td_ibu || '-'}, BB: ${bb_ibu || '-'} kg, LILA: ${lila_ibu || '-'} cm, LIDA: ${lida_ibu || '-'} cm | Bayi - BB: ${bb_bayi || '-'} gram, PB: ${pb_bayi || '-'} cm, LIKA: ${lika_bayi || '-'} cm, AS: ${as_bayi || '-'}`;
+
+    // Updated Objektif: Still useful to keep a summary string for quick viewing in SOAP history
+    const objektif_final = `Ibu - TD: ${td_ibu || '-'} mmHg, BB: ${bb_ibu || '-'} kg, LILA: ${lila_ibu || '-'} cm | Bayi - BB: ${bb_bayi || '-'} gram, PB: ${pb_bayi || '-'} cm`;
+
     const tatalaksana_final = `Penolong: ${penolong || '-'}, IMD: ${imd_dilakukan ? 'Ya' : 'Tidak'}`;
 
     await connection.query(
@@ -85,13 +89,13 @@ const createRegistrasiPersalinan = async (data, userId) => {
     await connection.query(
       `INSERT INTO layanan_persalinan (
         id_persalinan, id_pemeriksaan, no_reg_lama, no_reg_baru, penolong,
-        nama_suami, nik_suami, umur_suami,
+        nama_suami, nik_suami, umur_suami, td_ibu, bb_ibu,
         tanggal_lahir, jenis_kelamin, anak_ke, jenis_partus, imd_dilakukan,
         as_bayi, bb_bayi, pb_bayi, lila_ibu, lida_ibu, lika_bayi
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id_persalinan, id_pemeriksaan, no_reg_lama || null, no_reg_baru || null, penolong || null,
-        nama_suami || null, nik_suami || null, umur_suami || null,
+        nama_suami || null, nik_suami || null, umur_suami || null, td_ibu || null, bb_ibu || null,
         tanggalLahirConverted || null, jenis_kelamin || null, anak_ke || null, jenis_partus || null,
         imd_dilakukan ? 1 : 0, as_bayi || null, bb_bayi || null, pb_bayi || null,
         lila_ibu || null, lida_ibu || null, lika_bayi || null
@@ -131,6 +135,8 @@ const getPersalinanById = async (id_pemeriksaan) => {
       pers.nama_suami,
       pers.nik_suami,
       pers.umur_suami,
+      pers.td_ibu,
+      pers.bb_ibu,
       pers.lila_ibu,
       pers.lida_ibu,
       DATE_FORMAT(pers.tanggal_lahir, '%Y-%m-%d') as tanggal_lahir,
@@ -154,20 +160,22 @@ const getPersalinanById = async (id_pemeriksaan) => {
     WHERE p.id_pemeriksaan = ? AND p.jenis_layanan = 'Persalinan'
   `;
   const [rows] = await db.query(query, [id_pemeriksaan]);
-  
+
   if (rows[0]) {
-    // Parse objektif field to extract td_ibu and bb_ibu
-    const objektif = rows[0].objektif || '';
-    
-    // Extract TD Ibu (format: "TD: 120/80 mmHg")
-    const tdMatch = objektif.match(/TD:\s*([^\s,]+)/);
-    rows[0].td_ibu = tdMatch ? tdMatch[1] : '';
-    
-    // Extract BB Ibu (format: "BB: 65 kg" or "BB: 65.5 kg")
-    const bbMatch = objektif.match(/BB:\s*([\d.]+)/);
-    rows[0].bb_ibu = bbMatch ? bbMatch[1] : '';
+    // If td_ibu/bb_ibu are null (legacy data), try to extract from objektif text
+    if (!rows[0].td_ibu) {
+      const objektif = rows[0].objektif || '';
+      const tdMatch = objektif.match(/TD:\s*([^\s,]+)/);
+      rows[0].td_ibu = tdMatch ? tdMatch[1] : '';
+    }
+
+    if (!rows[0].bb_ibu) {
+      const objektif = rows[0].objektif || '';
+      const bbMatch = objektif.match(/BB:\s*([\d.]+)/);
+      rows[0].bb_ibu = bbMatch ? bbMatch[1] : '';
+    }
   }
-  
+
   return rows[0] || null;
 };
 
@@ -246,7 +254,7 @@ const updateRegistrasiPersalinan = async (id_pemeriksaan, data, userId) => {
 
     // Update pemeriksaan
     const subjektif_final = `Persalinan Anak Ke-${anak_ke || '-'}, Jenis Partus: ${jenis_partus || '-'}`;
-    const objektif_final = `Ibu - TD: ${td_ibu || '-'}, BB: ${bb_ibu || '-'} kg, LILA: ${lila_ibu || '-'} cm, LIDA: ${lida_ibu || '-'} cm | Bayi - BB: ${bb_bayi || '-'} gram, PB: ${pb_bayi || '-'} cm, LIKA: ${lika_bayi || '-'} cm, AS: ${as_bayi || '-'}`;
+    const objektif_final = `Ibu - TD: ${td_ibu || '-'} mmHg, BB: ${bb_ibu || '-'} kg, LILA: ${lila_ibu || '-'} cm | Bayi - BB: ${bb_bayi || '-'} gram, PB: ${pb_bayi || '-'} cm`;
     const tatalaksana_final = `Penolong: ${penolong || '-'}, IMD: ${imd_dilakukan ? 'Ya' : 'Tidak'}`;
 
     await connection.query(
@@ -265,6 +273,8 @@ const updateRegistrasiPersalinan = async (id_pemeriksaan, data, userId) => {
         nama_suami = ?,
         nik_suami = ?,
         umur_suami = ?,
+        td_ibu = ?,
+        bb_ibu = ?,
         lila_ibu = ?,
         lida_ibu = ?,
         tanggal_lahir = ?,
@@ -280,6 +290,7 @@ const updateRegistrasiPersalinan = async (id_pemeriksaan, data, userId) => {
       [
         no_reg_lama || null, no_reg_baru || null, penolong || null,
         nama_suami || null, nik_suami || null, umur_suami || null,
+        td_ibu || null, bb_ibu || null,
         lila_ibu || null, lida_ibu || null,
         tanggalLahirConverted || null, jenis_kelamin || null, anak_ke || null, jenis_partus || null,
         imd_dilakukan ? 1 : 0, as_bayi || null, bb_bayi || null, pb_bayi || null, lika_bayi || null,

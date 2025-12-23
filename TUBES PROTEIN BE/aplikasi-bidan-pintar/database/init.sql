@@ -228,6 +228,8 @@ CREATE TABLE layanan_persalinan (
     nama_suami VARCHAR(100),
     nik_suami CHAR(16),
     umur_suami INT,
+    td_ibu VARCHAR(20),
+    bb_ibu DECIMAL(5,2),
     tanggal_lahir DATE NOT NULL,
     jenis_kelamin ENUM('L', 'P', 'Tidak Diketahui') NOT NULL,
     anak_ke INT NOT NULL,
@@ -476,8 +478,8 @@ INSERT INTO layanan_imunisasi (id_imunisasi, id_pemeriksaan, no_reg, nama_bayi_b
 -- =============================================================================
 -- SAMPLE DATA: Layanan Persalinan
 -- =============================================================================
-INSERT INTO layanan_persalinan (id_persalinan, id_pemeriksaan, no_reg_lama, no_reg_baru, penolong, nama_suami, nik_suami, umur_suami, tanggal_lahir, jenis_kelamin, anak_ke, jenis_partus, imd_dilakukan, as_bayi, bb_bayi, pb_bayi, lila_ibu, lida_ibu, lika_bayi) VALUES
-('cc0e8400-e29b-41d4-a716-446655440001', '880e8400-e29b-41d4-a716-446655440007', 'PSL-2024-001', 'PSL-2025-001', 'Bidan Siti Nurhaliza', 'Fajar Ramadhan', '3201234567890104', 33, '2025-12-08', 'L', 2, 'Spontan Normal', 1, '8/9', 3200.00, 49.00, 26.50, 88.00, 33.00);
+INSERT INTO layanan_persalinan (id_persalinan, id_pemeriksaan, no_reg_lama, no_reg_baru, penolong, nama_suami, nik_suami, umur_suami, td_ibu, bb_ibu, tanggal_lahir, jenis_kelamin, anak_ke, jenis_partus, imd_dilakukan, as_bayi, bb_bayi, pb_bayi, lila_ibu, lida_ibu, lika_bayi) VALUES
+('cc0e8400-e29b-41d4-a716-446655440001', '880e8400-e29b-41d4-a716-446655440007', 'PSL-2024-001', 'PSL-2025-001', 'Bidan Siti Nurhaliza', 'Fajar Ramadhan', '3201234567890104', 33, '120/80', 65.00, '2025-12-08', 'L', 2, 'Spontan Normal', 1, '8/9', 3200.00, 49.00, 26.50, 88.00, 33.00);
 
 -- =============================================================================
 -- SAMPLE DATA: Layanan Kunjungan Pasien
