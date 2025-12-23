@@ -5,7 +5,12 @@ import auditService from '../../services/audit.service';
 
 function RiwayatMasukAkun({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi }) {
   const [riwayatLogin, setRiwayatLogin] = useState([]);
+  const [allRiwayat, setAllRiwayat] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterStartDate, setFilterStartDate] = useState('');
+  const [filterEndDate, setFilterEndDate] = useState('');
+  const [showFilter, setShowFilter] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,20 +40,69 @@ function RiwayatMasukAkun({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, 
         const formattedData = logs.map((item, idx) => ({
           id: item.id_akses || idx,
           tanggal: formatDate(item.tanggal_akses),
+          tanggal_raw: item.tanggal_akses, // Untuk filtering
           username: item.username || '-',
+          status: item.status || 'GAGAL', // BERHASIL atau GAGAL
           aktivitas: item.status === 'BERHASIL' ? 'Login Berhasil' : 'Login Gagal'
         }));
+        setAllRiwayat(formattedData);
         setRiwayatLogin(formattedData);
       } else {
+        setAllRiwayat([]);
         setRiwayatLogin([]);
       }
     } catch (error) {
       console.error('Error fetching riwayat login:', error);
+      setAllRiwayat([]);
       setRiwayatLogin([]);
     } finally {
       setLoading(false);
     }
   };
+
+  // Filter data berdasarkan search dan filter yang dipilih
+  const applyFilter = () => {
+    let filtered = allRiwayat;
+
+    // Filter berdasarkan username
+    if (searchQuery) {
+      filtered = filtered.filter(item =>
+        item.username.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter berdasarkan status
+    if (filterStatus) {
+      filtered = filtered.filter(item => item.status === filterStatus);
+    }
+
+    // Filter berdasarkan tanggal mulai
+    if (filterStartDate) {
+      const startDate = new Date(filterStartDate);
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.tanggal_raw);
+        return itemDate >= startDate;
+      });
+    }
+
+    // Filter berdasarkan tanggal akhir
+    if (filterEndDate) {
+      const endDate = new Date(filterEndDate);
+      endDate.setHours(23, 59, 59); // Termasuk seluruh hari
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.tanggal_raw);
+        return itemDate <= endDate;
+      });
+    }
+
+    setRiwayatLogin(filtered);
+  };
+
+  // Gunakan applyFilter ketika ada perubahan di filter atau search
+  useEffect(() => {
+    applyFilter();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, filterStatus, filterStartDate, filterEndDate, allRiwayat]);
 
 
 
@@ -98,12 +152,63 @@ function RiwayatMasukAkun({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button className="rma-filter-btn">
+              <button 
+                className="rma-filter-btn"
+                onClick={() => setShowFilter(!showFilter)}
+              >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
                   <path d="M3 6h14M6 10h8M8 14h4" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </button>
             </div>
+
+            {/* Filter Panel */}
+            {showFilter && (
+              <div className="rma-filter-panel">
+                <div className="filter-group">
+                  <label>Status</label>
+                  <select 
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                  >
+                    <option value="">Semua Status</option>
+                    <option value="BERHASIL">Login Berhasil</option>
+                    <option value="GAGAL">Login Gagal</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label>Dari Tanggal</label>
+                  <input
+                    type="date"
+                    value={filterStartDate}
+                    onChange={(e) => setFilterStartDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="filter-group">
+                  <label>Sampai Tanggal</label>
+                  <input
+                    type="date"
+                    value={filterEndDate}
+                    onChange={(e) => setFilterEndDate(e.target.value)}
+                  />
+                </div>
+
+                <button 
+                  className="btn-reset-filter"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilterStatus('');
+                    setFilterStartDate('');
+                    setFilterEndDate('');
+                    setShowFilter(false);
+                  }}
+                >
+                  Reset Filter
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Table */}

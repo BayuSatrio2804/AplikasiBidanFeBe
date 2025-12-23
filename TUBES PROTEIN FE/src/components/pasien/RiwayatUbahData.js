@@ -1,60 +1,132 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../shared/Sidebar';
 import './RiwayatUbahData.css';
+import auditService from '../../services/audit.service';
 
 function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi }) {
   const [riwayatList, setRiwayatList] = useState([]);
+  const [allRiwayat, setAllRiwayat] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterAction, setFilterAction] = useState('');
+  const [filterKategori, setFilterKategori] = useState('');
+  const [filterStartDate, setFilterStartDate] = useState('');
+  const [filterEndDate, setFilterEndDate] = useState('');
   const [showFilter, setShowFilter] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchRiwayatList();
   }, []);
 
+  const formatDate = (date) => {
+    if (!date) return '-';
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  };
+
   const fetchRiwayatList = async () => {
     try {
-      setRiwayatList([
-        { 
-          id: '1', 
-          tanggal: 'DD/MM/YY', 
-          nama: 'Nama Pasien', 
-          nomor_registrasi: 'Nomor Registrasi',
-          kategori: 'Layanan ANC',
-          keterangan: 'Diubah',
-          diubah_oleh: 'Username'
-        },
-        { 
-          id: '2', 
-          tanggal: 'DD/MM/YY', 
-          nama: 'Nama Pasien', 
-          nomor_registrasi: 'Nomor Registrasi',
-          kategori: 'Jadwal',
-          keterangan: 'Dihapus',
-          diubah_oleh: 'Username'
-        },
-        { 
-          id: '3', 
-          tanggal: 'DD/MM/YY', 
-          nama: 'Nama Pasien', 
-          nomor_registrasi: 'Nomor Registrasi',
-          kategori: 'Layanan Persalinan',
-          keterangan: 'Dihapus',
-          diubah_oleh: 'Username'
-        },
-        { 
-          id: '4', 
-          tanggal: 'DD/MM/YY', 
-          nama: 'Nama Pasien', 
-          nomor_registrasi: 'Nomor Registrasi',
-          kategori: 'Layanan Imunisasi',
-          keterangan: 'Diubah',
-          diubah_oleh: 'Username'
-        }
-      ]);
+      setLoading(true);
+      const response = await auditService.getDetailedDataLogs();
+      
+      // Extract data from response wrapper
+      const logs = response && response.data ? response.data : response;
+      
+      if (logs && Array.isArray(logs)) {
+        const formattedData = logs.map((item, idx) => ({
+          id: item.id_audit || idx,
+          tanggal: formatDate(item.tanggal),
+          tanggal_raw: item.tanggal,
+          nama_pasien: item.nama_pasien || '-',
+          nomor_registrasi: item.nomor_registrasi || '-',
+          kategori: item.kategori || '-',
+          action: item.action || 'CREATE',
+          keterangan: getKeterangan(item.action),
+          diubah_oleh: item.diubah_oleh || '-'
+        }));
+        setAllRiwayat(formattedData);
+        setRiwayatList(formattedData);
+      } else {
+        setAllRiwayat([]);
+        setRiwayatList([]);
+      }
     } catch (error) {
-      console.error('Error fetching riwayat:', error);
+      console.error('Error fetching riwayat ubah data:', error);
+      setAllRiwayat([]);
+      setRiwayatList([]);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const getKeterangan = (action) => {
+    switch (action) {
+      case 'CREATE':
+        return 'Dibuat';
+      case 'UPDATE':
+        return 'Diubah';
+      case 'DELETE':
+        return 'Dihapus';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  // Filter data berdasarkan search dan filter yang dipilih
+  const applyFilter = () => {
+    let filtered = allRiwayat;
+
+    // Filter berdasarkan nama pasien, nomor registrasi, atau username
+    if (searchQuery) {
+      filtered = filtered.filter(item =>
+        item.nama_pasien.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.nomor_registrasi.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.diubah_oleh.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter berdasarkan action (CREATE, UPDATE, DELETE)
+    if (filterAction) {
+      filtered = filtered.filter(item => item.action === filterAction);
+    }
+
+    // Filter berdasarkan kategori
+    if (filterKategori) {
+      filtered = filtered.filter(item => item.kategori === filterKategori);
+    }
+
+    // Filter berdasarkan tanggal mulai
+    if (filterStartDate) {
+      const startDate = new Date(filterStartDate);
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.tanggal_raw);
+        return itemDate >= startDate;
+      });
+    }
+
+    // Filter berdasarkan tanggal akhir
+    if (filterEndDate) {
+      const endDate = new Date(filterEndDate);
+      endDate.setHours(23, 59, 59); // Termasuk seluruh hari
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.tanggal_raw);
+        return itemDate <= endDate;
+      });
+    }
+
+    setRiwayatList(filtered);
+  };
+
+  // Gunakan applyFilter ketika ada perubahan di filter atau search
+  useEffect(() => {
+    applyFilter();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, filterAction, filterKategori, filterStartDate, filterEndDate, allRiwayat]);
 
   return (
     <div className="riwayat-ubah-data-page">
@@ -111,6 +183,73 @@ function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, o
                 </svg>
               </button>
             </div>
+
+            {/* Filter Panel */}
+            {showFilter && (
+              <div className="rud-filter-panel">
+                <div className="filter-group">
+                  <label>Tipe Aksi</label>
+                  <select 
+                    value={filterAction}
+                    onChange={(e) => setFilterAction(e.target.value)}
+                  >
+                    <option value="">Semua Aksi</option>
+                    <option value="CREATE">Dibuat</option>
+                    <option value="UPDATE">Diubah</option>
+                    <option value="DELETE">Dihapus</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label>Kategori</label>
+                  <select 
+                    value={filterKategori}
+                    onChange={(e) => setFilterKategori(e.target.value)}
+                  >
+                    <option value="">Semua Kategori</option>
+                    <option value="pemeriksaan">Pemeriksaan</option>
+                    <option value="layanan_anc">Layanan ANC</option>
+                    <option value="layanan_kb">Layanan KB</option>
+                    <option value="layanan_imunisasi">Layanan Imunisasi</option>
+                    <option value="layanan_persalinan">Layanan Persalinan</option>
+                    <option value="layanan_kunjungan_pasien">Layanan Kunjungan Pasien</option>
+                    <option value="jadwal">Jadwal</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label>Dari Tanggal</label>
+                  <input
+                    type="date"
+                    value={filterStartDate}
+                    onChange={(e) => setFilterStartDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="filter-group">
+                  <label>Sampai Tanggal</label>
+                  <input
+                    type="date"
+                    value={filterEndDate}
+                    onChange={(e) => setFilterEndDate(e.target.value)}
+                  />
+                </div>
+
+                <button 
+                  className="btn-reset-filter"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilterAction('');
+                    setFilterKategori('');
+                    setFilterStartDate('');
+                    setFilterEndDate('');
+                    setShowFilter(false);
+                  }}
+                >
+                  Reset Filter
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Table */}
@@ -127,28 +266,34 @@ function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, o
                 </tr>
               </thead>
               <tbody>
-                {riwayatList.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.tanggal}</td>
-                    <td>{item.nama}</td>
-                    <td>{item.nomor_registrasi}</td>
-                    <td>{item.kategori}</td>
-                    <td>
-                      <span className={`rud-status ${item.keterangan === 'Diubah' ? 'status-diubah' : 'status-dihapus'}`}>
-                        {item.keterangan}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="rud-user">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                          <circle cx="12" cy="12" r="10" fill="#E5E5E5"/>
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#999"/>
-                        </svg>
-                        <span>{item.diubah_oleh}</span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {loading ? (
+                  <tr><td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr>
+                ) : riwayatList.length === 0 ? (
+                  <tr><td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>Belum ada riwayat ubah data</td></tr>
+                ) : (
+                  riwayatList.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.tanggal}</td>
+                      <td>{item.nama_pasien}</td>
+                      <td>{item.nomor_registrasi}</td>
+                      <td>{item.kategori}</td>
+                      <td>
+                        <span className={`rud-status ${item.action === 'UPDATE' ? 'status-diubah' : item.action === 'DELETE' ? 'status-dihapus' : 'status-dibuat'}`}>
+                          {item.keterangan}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="rud-user">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" fill="#E5E5E5"/>
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#999"/>
+                          </svg>
+                          <span>{item.diubah_oleh}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

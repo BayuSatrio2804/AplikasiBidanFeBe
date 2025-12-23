@@ -196,4 +196,66 @@
   color: #C94C8B;
 }
 
+/* Filter Panel Styles */
+.rma-filter-panel {
+  background: white;
+  border: 1px solid #E89AC7;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 15px;
+  box-shadow: 0 4px 12px rgba(232, 154, 199, 0.15);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  align-items: flex-end;
+}
 
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.filter-group select,
+.filter-group input[type="date"] {
+  padding: 10px 14px;
+  border: 1px solid #E89AC7;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-group select:focus,
+.filter-group input[type="date"]:focus {
+  outline: none;
+  border-color: #C94C8B;
+  box-shadow: 0 0 0 3px rgba(201, 76, 139, 0.1);
+}
+
+.btn-reset-filter {
+  background: linear-gradient(135deg, #E89AC7 0%, #D987BE 50%, #C94C8B 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-reset-filter:hover {
+  background: linear-gradient(135deg, #D987BE 0%, #C94C8B 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(201, 76, 139, 0.3);
+}
