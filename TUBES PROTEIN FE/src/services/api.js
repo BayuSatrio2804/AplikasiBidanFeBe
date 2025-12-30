@@ -59,14 +59,14 @@ const buildHeaders = (withAuth = true) => {
   const headers = {
     'Content-Type': 'application/json',
   };
-  
+
   if (withAuth) {
     const token = getToken();
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
   }
-  
+
   return headers;
 };
 
@@ -78,23 +78,23 @@ const buildHeaders = (withAuth = true) => {
  */
 const handleResponse = async (response, endpoint = '') => {
   const data = await response.json();
-  
+
   if (!response.ok) {
     // Handle specific error codes
     if (response.status === 401) {
       // For password change endpoint, just throw error without redirect
-      if (!endpoint.includes('/auth/me')) {
+      if (!endpoint.includes('/auth/me') && !endpoint.includes('/auth/login')) {
         clearAuth();
         window.location.href = '/';
       }
     }
-    
+
     const error = new Error(data.message || 'Terjadi kesalahan');
     error.status = response.status;
     error.data = data;
     throw error;
   }
-  
+
   return data;
 };
 
@@ -141,7 +141,7 @@ export const apiRequest = async (endpoint, options = {}) => {
  */
 export const downloadFile = async (endpoint, filename) => {
   const token = getToken();
-  
+
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: 'GET',
     headers: {

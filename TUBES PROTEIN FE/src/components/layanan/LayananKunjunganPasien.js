@@ -15,7 +15,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
   const [error, setError] = useState('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
-  
+
   const [formData, setFormData] = useState({
     jenis_layanan: 'Kunjungan Pasien',
     tanggal: '',
@@ -83,21 +83,21 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Validasi NIK - hanya angka dan maksimal 16 digit
     if (name === 'nik_pasien' || name === 'nik_wali') {
       // Hapus karakter non-angka
       const numericValue = value.replace(/[^0-9]/g, '');
       // Batasi maksimal 16 digit
       const limitedValue = numericValue.slice(0, 16);
-      
+
       setFormData({
         ...formData,
         [name]: limitedValue
       });
       return;
     }
-    
+
     setFormData({
       ...formData,
       [name]: value
@@ -108,7 +108,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
+
     // Validasi NIK sebelum submit
     if (formData.nik_pasien && formData.nik_pasien.length !== 16) {
       showNotifikasi({
@@ -119,7 +119,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
       setIsLoading(false);
       return;
     }
-    
+
     if (formData.nik_wali && formData.nik_wali.length > 0 && formData.nik_wali.length !== 16) {
       showNotifikasi({
         type: 'error',
@@ -129,7 +129,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
       setIsLoading(false);
       return;
     }
-    
+
     try {
       let response;
       if (editingId) {
@@ -253,7 +253,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
           console.log(`🗑️ Deleting Kunjungan Pasien data for ID: ${id}`);
           const response = await layananService.deleteKunjunganPasien(id);
           console.log('📦 Delete response:', response);
-          
+
           if (response && response.success) {
             console.log('✅ Delete successful');
             showNotifikasi({
@@ -290,6 +290,14 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
     });
   };
 
+  const handleHeaderBack = () => {
+    if (showForm) {
+      handleBatal();
+    } else {
+      onBack();
+    }
+  };
+
   return (
     <div className="layanan-kunjungan-page">
       {/* Header */}
@@ -300,13 +308,13 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
           </div>
           <h1 className="kunjungan-header-title">Layanan Kunjungan Pasien</h1>
         </div>
-        <button className="btn-kembali-kunjungan" onClick={onBack}>Kembali</button>
+        <button className="btn-kembali-kunjungan" onClick={handleHeaderBack}>Kembali</button>
       </div>
 
       {/* Main Content */}
       <div className="kunjungan-content">
         {/* Sidebar */}
-        <Sidebar 
+        <Sidebar
           activePage="kunjungan"
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
@@ -330,16 +338,16 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                 <div className="kunjungan-action-buttons">
                   <button className="kunjungan-action-btn" onClick={() => setShowForm(true)}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                      <circle cx="20" cy="20" r="20" fill="white" opacity="0.3"/>
-                      <path d="M20 10V30M10 20H30" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+                      <circle cx="20" cy="20" r="20" fill="white" opacity="0.3" />
+                      <path d="M20 10V30M10 20H30" stroke="white" strokeWidth="3" strokeLinecap="round" />
                     </svg>
                     <span>Tambah Pasien</span>
                   </button>
                   <button className="kunjungan-action-btn" onClick={onToJadwal}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                      <circle cx="20" cy="20" r="20" fill="white" opacity="0.3"/>
-                      <rect x="12" y="12" width="16" height="16" rx="2" stroke="white" strokeWidth="2"/>
-                      <path d="M16 12V8M24 12V8M12 16H28" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                      <circle cx="20" cy="20" r="20" fill="white" opacity="0.3" />
+                      <rect x="12" y="12" width="16" height="16" rx="2" stroke="white" strokeWidth="2" />
+                      <path d="M16 12V8M24 12V8M12 16H28" stroke="white" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                     <span>Buat Jadwal</span>
                   </button>
@@ -358,11 +366,11 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                     onChange={handleSearch}
                   />
                   <div className="kunjungan-filter-wrapper">
-                    <button 
+                    <button
                       className="kunjungan-filter-btn"
                       onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                     >
-                      <img src={filterIcon} alt="Filter" style={{width: '20px', height: '20px'}} />
+                      <img src={filterIcon} alt="Filter" style={{ width: '20px', height: '20px' }} />
                     </button>
                     {showFilterDropdown && (
                       <div className="kunjungan-filter-dropdown">
@@ -387,17 +395,17 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                           {item.nama_pasien} - {item.tanggal}
                         </span>
                         <div className="kunjungan-riwayat-actions">
-                          <button 
+                          <button
                             className="kunjungan-btn-edit"
                             onClick={() => handleEdit(item)}
                           >
-                            <img src={editIcon} alt="Edit" style={{width: '18px', height: '18px', pointerEvents: 'none'}} />
+                            <img src={editIcon} alt="Edit" style={{ width: '18px', height: '18px', pointerEvents: 'none' }} />
                           </button>
-                          <button 
+                          <button
                             className="kunjungan-btn-delete"
                             onClick={() => handleDelete(item.id)}
                           >
-                            <img src={trashIcon} alt="Delete" style={{width: '18px', height: '18px', pointerEvents: 'none'}} />
+                            <img src={trashIcon} alt="Delete" style={{ width: '18px', height: '18px', pointerEvents: 'none' }} />
                           </button>
                         </div>
                       </div>
@@ -497,7 +505,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                         required
                       />
                       {formData.nik_pasien && formData.nik_pasien.length < 16 && (
-                        <small style={{color: 'red', fontSize: '12px'}}>NIK harus 16 digit ({formData.nik_pasien.length}/16)</small>
+                        <small style={{ color: 'red', fontSize: '12px' }}>NIK harus 16 digit ({formData.nik_pasien.length}/16)</small>
                       )}
                     </div>
                   </div>
@@ -565,7 +573,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                         title="NIK harus 16 digit angka"
                       />
                       {formData.nik_wali && formData.nik_wali.length > 0 && formData.nik_wali.length < 16 && (
-                        <small style={{color: 'red', fontSize: '12px'}}>NIK harus 16 digit ({formData.nik_wali.length}/16)</small>
+                        <small style={{ color: 'red', fontSize: '12px' }}>NIK harus 16 digit ({formData.nik_wali.length}/16)</small>
                       )}
                     </div>
                   </div>
@@ -645,7 +653,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
           )}
         </main>
       </div>
-      
+
       <Notifikasi
         type={notifikasi.type}
         message={notifikasi.message}

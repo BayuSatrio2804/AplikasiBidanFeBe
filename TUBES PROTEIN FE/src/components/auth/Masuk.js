@@ -13,18 +13,18 @@ function Masuk({ onNavigate, onLogin }) {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
       const response = await authService.login({
         usernameOrEmail,
         password,
       });
-      
+
       if (response.success) {
         // Login berhasil, OTP dikirim ke email
-        onNavigate('verifikasi-otp', { 
-          email: response.data?.email || response.email, 
-          usernameOrEmail 
+        onNavigate('verifikasi-otp', {
+          email: response.data?.email || response.email,
+          usernameOrEmail
         });
       } else {
         setError(response.message || 'Login gagal');
@@ -47,20 +47,22 @@ function Masuk({ onNavigate, onLogin }) {
                 <img src={pinkLogo} alt="Pink Logo" className="auth-logo-img" />
               </div>
             </div>
-            
+
             {error && (
-              <div className="error-message" style={{ 
-                color: '#ff6b6b', 
-                textAlign: 'center', 
+              <div className="error-message" style={{
+                color: '#D32F2F',
+                textAlign: 'center',
                 marginBottom: '15px',
-                padding: '10px',
-                backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                borderRadius: '5px'
+                padding: '12px',
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: '8px',
+                fontWeight: '500',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
               }}>
                 {error}
               </div>
             )}
-            
+
             <div className="form-group">
               <input
                 type="text"
@@ -71,7 +73,7 @@ function Masuk({ onNavigate, onLogin }) {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <input
                 type="password"
@@ -82,7 +84,7 @@ function Masuk({ onNavigate, onLogin }) {
                 required
               />
             </div>
-            
+
             <div className="form-footer">
               <label className="checkbox-container">
                 <input type="checkbox" />
@@ -90,11 +92,11 @@ function Masuk({ onNavigate, onLogin }) {
               </label>
               <a href="#" className="forgot-password" onClick={(e) => { e.preventDefault(); onNavigate('lupa-password'); }}>Lupa password</a>
             </div>
-            
+
             <button type="submit" className="btn-submit" disabled={isLoading}>
               {isLoading ? 'Memproses...' : 'Masuk'}
             </button>
-            
+
             <div className="link-text">
               Belum punya akun? <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('buat-akun'); }}>Buat Akun</a>
             </div>

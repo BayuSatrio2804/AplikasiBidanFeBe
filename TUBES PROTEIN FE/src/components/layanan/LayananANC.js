@@ -246,6 +246,14 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
     });
   };
 
+  const handleHeaderBack = () => {
+    if (showForm) {
+      handleBatal();
+    } else {
+      onBack();
+    }
+  };
+
   return (
     <div className="layanan-anc-page">
       {/* Header */}
@@ -258,7 +266,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
             {showForm ? (editingId ? 'Edit Registrasi Layanan Antenatal Care (ANC)' : 'Formulir Registrasi Layanan Antenatal Care (ANC)') : 'Layanan Antenatal Care (ANC)'}
           </h1>
         </div>
-        <button className="btn-kembali-anc" onClick={onBack}>Kembali</button>
+        <button className="btn-kembali-anc" onClick={handleHeaderBack}>Kembali</button>
       </div>
 
       {/* Main Content */}

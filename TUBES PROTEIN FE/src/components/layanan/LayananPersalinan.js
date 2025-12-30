@@ -18,7 +18,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
-  
+
   const [formData, setFormData] = useState({
     jenis_layanan: 'Persalinan',
     tanggal: '',
@@ -89,7 +89,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
       let response;
       if (editingId) {
@@ -97,7 +97,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
       } else {
         response = await layananService.createPersalinan(formData);
       }
-      
+
       if (response.success) {
         showNotifikasi({
           type: 'success',
@@ -245,6 +245,14 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
     });
   };
 
+  const handleHeaderBack = () => {
+    if (showForm) {
+      handleBatal();
+    } else {
+      onBack();
+    }
+  };
+
   return (
     <div className="layanan-persalinan-page">
       {/* Header */}
@@ -257,13 +265,13 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
             {showForm ? (editingId ? 'Edit Registrasi Layanan Persalinan' : 'Formulir Registrasi Layanan Persalinan') : 'Layanan Persalinan'}
           </h1>
         </div>
-        <button className="btn-kembali-persalinan" onClick={onBack}>Kembali</button>
+        <button className="btn-kembali-persalinan" onClick={handleHeaderBack}>Kembali</button>
       </div>
 
       {/* Main Content */}
       <div className="persalinan-content">
         {/* Sidebar */}
-        <Sidebar 
+        <Sidebar
           activePage="persalinan"
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
@@ -284,23 +292,23 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
               {/* Welcome Message & Action Buttons */}
               <div className="persalinan-welcome-section">
                 <p className="persalinan-welcome-text">Selamat datang, {userData?.username || 'username'}!</p>
-                
+
                 <div className="persalinan-action-buttons">
                   <button className="persalinan-action-btn" onClick={() => setShowForm(true)}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                      <path d="M20 10C20 14.866 15.866 18 11 18C6.134 18 2 14.866 2 10C2 5.134 6.134 2 11 2C15.866 2 20 5.134 20 10Z"/>
-                      <path d="M11 19C4.582 19 0 23.582 0 29V35H22V29C22 23.582 17.418 19 11 19Z"/>
+                      <path d="M20 10C20 14.866 15.866 18 11 18C6.134 18 2 14.866 2 10C2 5.134 6.134 2 11 2C15.866 2 20 5.134 20 10Z" />
+                      <path d="M11 19C4.582 19 0 23.582 0 29V35H22V29C22 23.582 17.418 19 11 19Z" />
                     </svg>
                     <span>Tambah Pasien</span>
                   </button>
-                  
+
                   <button className="persalinan-action-btn" onClick={onToJadwal}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                      <rect x="8" y="8" width="24" height="24" rx="2" stroke="white" strokeWidth="2" fill="none"/>
-                      <line x1="8" y1="15" x2="32" y2="15" stroke="white" strokeWidth="2"/>
-                      <circle cx="14" cy="11.5" r="1" fill="white"/>
-                      <circle cx="18" cy="11.5" r="1" fill="white"/>
-                      <circle cx="22" cy="11.5" r="1" fill="white"/>
+                      <rect x="8" y="8" width="24" height="24" rx="2" stroke="white" strokeWidth="2" fill="none" />
+                      <line x1="8" y1="15" x2="32" y2="15" stroke="white" strokeWidth="2" />
+                      <circle cx="14" cy="11.5" r="1" fill="white" />
+                      <circle cx="18" cy="11.5" r="1" fill="white" />
+                      <circle cx="22" cy="11.5" r="1" fill="white" />
                     </svg>
                     <span>Buat Jadwal</span>
                   </button>
@@ -310,7 +318,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
               {/* Riwayat Pelayanan */}
               <div className="persalinan-riwayat-section">
                 <h2 className="persalinan-section-title">Riwayat Pelayanan</h2>
-                
+
                 <div className="persalinan-search-bar">
                   <input
                     type="text"
@@ -320,11 +328,11 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                     className="persalinan-search-input"
                   />
                   <div className="persalinan-filter-wrapper">
-                    <button 
+                    <button
                       className="persalinan-filter-btn"
                       onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                     >
-                      <img src={filterIcon} alt="Filter" style={{width: '20px', height: '20px'}} />
+                      <img src={filterIcon} alt="Filter" style={{ width: '20px', height: '20px' }} />
                     </button>
                     {showFilterDropdown && (
                       <div className="persalinan-filter-dropdown">
@@ -348,10 +356,10 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         </span>
                         <div className="persalinan-riwayat-actions">
                           <button className="persalinan-btn-edit" onClick={() => handleEdit(item.id)}>
-                            <img src={editIcon} alt="Edit" style={{width: '18px', height: '18px'}} />
+                            <img src={editIcon} alt="Edit" style={{ width: '18px', height: '18px' }} />
                           </button>
                           <button className="persalinan-btn-delete" onClick={() => handleDelete(item.id)}>
-                            <img src={trashIcon} alt="Delete" style={{width: '18px', height: '18px'}} />
+                            <img src={trashIcon} alt="Delete" style={{ width: '18px', height: '18px' }} />
                           </button>
                         </div>
                       </div>
@@ -369,7 +377,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                 {/* Informasi Layanan */}
                 <div className="persalinan-form-section">
                   <h3 className="persalinan-form-section-title">Informasi Layanan</h3>
-                  
+
                   <div className="persalinan-form-row">
                     <div className="persalinan-form-group">
                       <label>Jenis Layanan</label>
@@ -384,7 +392,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group">
                       <label>Tanggal</label>
                       <input
@@ -409,7 +417,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         placeholder="Masukkan data"
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group">
                       <label>Nomor Registrasi Baru</label>
                       <input
@@ -420,7 +428,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         placeholder="Masukkan data"
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group">
                       <label>Jenis Partus</label>
                       <select
@@ -436,7 +444,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         <option value="Forceps">Forceps</option>
                       </select>
                     </div>
-                    
+
                     <div className="persalinan-form-group">
                       <label>Anak Ke</label>
                       <input
@@ -467,7 +475,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                 {/* Data Ibu */}
                 <div className="persalinan-form-section">
                   <h3 className="persalinan-form-section-title">Data Ibu</h3>
-                  
+
                   <div className="persalinan-form-row">
                     <div className="persalinan-form-group full-width">
                       <label>Nama Istri</label>
@@ -495,7 +503,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         required
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group small">
                       <label>Umur (Th)</label>
                       <input
@@ -507,7 +515,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         required
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group small">
                       <label>TD</label>
                       <input
@@ -518,7 +526,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         placeholder="Masukkan"
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group small">
                       <label>BB</label>
                       <input
@@ -535,7 +543,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                 {/* Data Ayah */}
                 <div className="persalinan-form-section">
                   <h3 className="persalinan-form-section-title">Data Ayah</h3>
-                  
+
                   <div className="persalinan-form-row">
                     <div className="persalinan-form-group full-width">
                       <label>Nama Suami</label>
@@ -561,7 +569,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         maxLength="16"
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group small">
                       <label>Umur (Th)</label>
                       <input
@@ -578,7 +586,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                 {/* Informasi Tambahan */}
                 <div className="persalinan-form-section">
                   <h3 className="persalinan-form-section-title">Informasi Tambahan</h3>
-                  
+
                   <div className="persalinan-form-row">
                     <div className="persalinan-form-group small" style={{ flex: '0 0 295px', minWidth: '295px' }}>
                       <label>Tanggal Lahir</label>
@@ -590,7 +598,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         placeholder="DD/MM/YY"
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group small" style={{ flex: '0 0 180px', minWidth: '180px' }}>
                       <label>L/P</label>
                       <select
@@ -603,7 +611,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         <option value="P">Perempuan</option>
                       </select>
                     </div>
-                    
+
                     <div className="persalinan-form-group small">
                       <label>AS</label>
                       <input
@@ -614,7 +622,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         placeholder="Masukkan"
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group small">
                       <label>BB (gram)</label>
                       <input
@@ -625,7 +633,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         placeholder="Masukkan"
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group small">
                       <label>PB (cm)</label>
                       <input
@@ -636,7 +644,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         placeholder="Masukkan data"
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group small">
                       <label>LIKA (cm)</label>
                       <input
@@ -647,7 +655,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         placeholder="Masukkan data"
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group small">
                       <label>LIDA (cm)</label>
                       <input
@@ -671,7 +679,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         placeholder="Masukkan data"
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group small">
                       <label>Alamat</label>
                       <input
@@ -682,7 +690,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         placeholder="Masukkan alamat lengkap"
                       />
                     </div>
-                    
+
                     <div className="persalinan-form-group small">
                       <label style={{ marginBottom: '8px', display: 'block' }}>IMD</label>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -708,7 +716,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                         </label>
                       </div>
                     </div>
-                    
+
                     <div className="persalinan-form-group" style={{ flex: '1 1 auto', minWidth: '200px' }}>
                       <label>Nomor HP</label>
                       <input
@@ -736,7 +744,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
           )}
         </main>
       </div>
-      
+
       {/* Komponen Notifikasi */}
       <Notifikasi
         show={notifikasi.show}

@@ -47,9 +47,9 @@
 }
 
 .auth-logo-img {
-  width: 90px;
-  height: 90px;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .form-group {
@@ -177,11 +177,11 @@
   .form-card {
     padding: 40px 30px;
   }
-  
+
   .form-title {
     font-size: 20px;
   }
-  
+
   .logo {
     width: 80px;
     height: 80px;
@@ -192,7 +192,7 @@
   .auth-page {
     padding: 20px 15px;
   }
-  
+
   .form-card {
     padding: 35px 25px;
   }

@@ -241,6 +241,14 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
     });
   };
 
+  const handleHeaderBack = () => {
+    if (showForm) {
+      handleBatal();
+    } else {
+      onBack();
+    }
+  };
+
   return (
     <div className="layanan-imunisasi-page">
       {/* Header */}
@@ -253,7 +261,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
             {showForm ? (editingId ? 'Edit Registrasi Layanan Imunisasi' : 'Formulir Registrasi Layanan Imunisasi') : 'Layanan Imunisasi'}
           </h1>
         </div>
-        <button className="btn-kembali-imunisasi" onClick={onBack}>Kembali</button>
+        <button className="btn-kembali-imunisasi" onClick={handleHeaderBack}>Kembali</button>
       </div>
 
       {/* Main Content */}

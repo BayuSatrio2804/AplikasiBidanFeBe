@@ -260,6 +260,14 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
     });
   };
 
+  const handleHeaderBack = () => {
+    if (showForm) {
+      handleBatal();
+    } else {
+      onBack();
+    }
+  };
+
   return (
     <div className="layanan-kb-page">
       {/* Header */}
@@ -272,7 +280,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
             {showForm ? (editingId ? 'Edit Registrasi Layanan Keluarga Berencana' : 'Formulir Registrasi Layanan Keluarga Berencana') : 'Layanan Program Keluarga Berencana (KB)'}
           </h1>
         </div>
-        <button className="btn-kembali-kb" onClick={onBack}>Kembali</button>
+        <button className="btn-kembali-kb" onClick={handleHeaderBack}>Kembali</button>
       </div>
 
       {/* Main Content */}
