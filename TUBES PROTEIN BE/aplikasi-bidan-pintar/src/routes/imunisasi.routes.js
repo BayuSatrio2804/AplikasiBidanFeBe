@@ -10,7 +10,7 @@ const { verifyToken } = require('../middleware/auth');
 const validate = require('../middleware/validator.middleware');
 const { RegistrasiImunisasiSchema } = require('../validators/imunisasi.validator');
 
-// Public endpoint for auto-linking (no auth required)
+// Public endpoint untuk auto-linking (no auth required)
 router.get('/ibu/:nik', imunisasiController.getDataIbuByNIK);
 
 // All other routes require authentication

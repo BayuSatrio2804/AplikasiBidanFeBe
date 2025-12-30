@@ -84,7 +84,7 @@ const deleteRegistrasiImunisasi = async (req, res) => {
 };
 
 /**
- * Get mother's data by NIK for auto-linking
+ * Memndapatkan data ibu berdasarkan NIK untuk auto-linking
  * GET /api/imunisasi/ibu/:nik
  */
 const getDataIbuByNIK = async (req, res) => {

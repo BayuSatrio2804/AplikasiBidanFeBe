@@ -29,7 +29,7 @@ const pool = mysql.createPool(dbConfig);
 // Tes koneksi saat startup
 pool.getConnection((err, connection) => {
   if (err) {
-    console.error('❌ Koneksi database gagal:', err.code);
+    console.error('Koneksi database gagal:', err.code);
     console.error('   Pesan:', err.message);
 
     // Memberikan pesan error yang membantu
@@ -41,7 +41,7 @@ pool.getConnection((err, connection) => {
       console.error('   → Database tidak ditemukan');
     }
   } else {
-    console.log('✅ Terhubung ke Database MySQL:', dbConfig.database);
+    console.log('Terhubung ke Database MySQL:', dbConfig.database);
     connection.release();
   }
 });
