@@ -19,7 +19,7 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingJadwal, setEditingJadwal] = useState(null);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
-  
+
   // Form state
   const [formData, setFormData] = useState({
     id_pasien: '',
@@ -52,9 +52,9 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
       if (bulan) filters.bulan = bulan;
       if (tahun) filters.tahun = tahun;
       if (layanan) filters.layanan = layanan;
-      
+
       const response = await jadwalService.getAllJadwal(filters);
-      
+
       if (response.success) {
         setJadwalList(response.data);
       } else {
@@ -77,10 +77,10 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       console.log('🔍 Form data before validation:', formData);
-      
+
       // Validation
       if (!formData.id_pasien || !formData.jenis_layanan || !formData.tanggal || !formData.jam_mulai) {
         console.error('❌ Validation failed - missing fields:', {
@@ -127,7 +127,7 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
           onConfirm: hideNotifikasi
         });
       }
-      
+
       // Reset form
       setFormData({
         id_pasien: '',
@@ -143,17 +143,17 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
       console.error('Error saving jadwal:', error);
       console.error('Error data:', error.data);
       console.error('Error status:', error.status);
-      
+
       // Format validation errors for display
       let errorMessage = 'Gagal menyimpan jadwal';
       let errorDetail = '';
-      
+
       if (error.data && error.data.errors && Array.isArray(error.data.errors)) {
         errorMessage = 'Validasi gagal:';
         errorDetail = error.data.errors.map(e => `${e.field}: ${e.message}`).join('\n');
         console.error('Validation errors:', errorDetail);
       }
-      
+
       showNotifikasi({
         type: 'error',
         message: errorMessage,
@@ -239,7 +239,7 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
       {/* Main Content */}
       <div className="jadwal-content">
         {/* Sidebar */}
-        <Sidebar 
+        <Sidebar
           activePage="jadwal"
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
@@ -260,8 +260,8 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
             <div className="jadwal-filter-group">
               <div className="filter-item">
                 <label>Bulan</label>
-                <select 
-                  value={filterBulan} 
+                <select
+                  value={filterBulan}
                   onChange={(e) => setFilterBulan(e.target.value)}
                 >
                   <option value="">Pilih Bulan</option>
@@ -282,8 +282,8 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
 
               <div className="filter-item">
                 <label>Tahun</label>
-                <select 
-                  value={filterTahun} 
+                <select
+                  value={filterTahun}
                   onChange={(e) => setFilterTahun(e.target.value)}
                 >
                   <option value="">Pilih Tahun</option>
@@ -295,8 +295,8 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
 
               <div className="filter-item">
                 <label>Layanan</label>
-                <select 
-                  value={filterLayanan} 
+                <select
+                  value={filterLayanan}
                   onChange={(e) => setFilterLayanan(e.target.value)}
                 >
                   <option value="">Pilih Layanan</option>
@@ -312,7 +312,7 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
                 Filter
               </button>
 
-              <button 
+              <button
                 className="btn-buat-jadwal"
                 onClick={() => {
                   setFormData({
@@ -360,19 +360,19 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
                             </span>
                           </div>
                           <div className="jadwal-item-actions">
-                            <button 
+                            <button
                               className="jadwal-btn-edit"
                               onClick={() => handleEdit(jadwal)}
                               title="Edit"
                             >
-                              <img src={editIcon} alt="Edit" style={{width: '16px', height: '16px'}} />
+                              <img src={editIcon} alt="Edit" style={{ width: '16px', height: '16px' }} />
                             </button>
-                            <button 
+                            <button
                               className="jadwal-btn-delete"
                               onClick={() => handleDelete(jadwal.id_jadwal)}
                               title="Hapus"
                             >
-                              <img src={trashIcon} alt="Delete" style={{width: '16px', height: '16px'}} />
+                              <img src={trashIcon} alt="Delete" style={{ width: '16px', height: '16px' }} />
                             </button>
                           </div>
                         </div>
@@ -415,7 +415,7 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
                     <option value="Kunjungan Pasien">Kunjungan Pasien</option>
                   </select>
                 </div>
-                
+
                 <div className="jadwal-modal-form-group full-width">
                   <label>Tanggal *</label>
                   <input
@@ -456,19 +456,29 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
 
                 <div className="jadwal-modal-form-group full-width">
                   <label>Nama Pasien *</label>
-                  <select
-                    name="id_pasien"
-                    value={formData.id_pasien}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Pilih Pasien</option>
-                    {pasienList.map(pasien => (
-                      <option key={pasien.id_pasien} value={pasien.id_pasien}>
-                        {pasien.nama}
-                      </option>
-                    ))}
-                  </select>
+                  {editingJadwal ? (
+                    <input
+                      type="text"
+                      value={editingJadwal.nama_pasien || 'Pasien tidak diketahui'}
+                      disabled
+                      className="form-control-disabled"
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                    />
+                  ) : (
+                    <select
+                      name="id_pasien"
+                      value={formData.id_pasien}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Pilih Pasien</option>
+                      {pasienList.map(pasien => (
+                        <option key={pasien.id_pasien} value={pasien.id_pasien}>
+                          {pasien.nama}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <div className="jadwal-modal-form-group full-width">
@@ -483,9 +493,9 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
               </div>
 
               <div className="jadwal-modal-actions">
-                <button 
-                  type="button" 
-                  className="jadwal-btn-modal-batal" 
+                <button
+                  type="button"
+                  className="jadwal-btn-modal-batal"
                   onClick={() => { setShowAddModal(false); setEditingJadwal(null); }}
                 >
                   ✕
@@ -498,7 +508,7 @@ function Jadwal({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil
           </div>
         </div>
       )}
-      
+
       {/* Komponen Notifikasi */}
       <Notifikasi
         show={notifikasi.show}

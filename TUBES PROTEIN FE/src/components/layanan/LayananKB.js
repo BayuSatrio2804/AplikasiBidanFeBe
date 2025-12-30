@@ -18,7 +18,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
   const [error, setError] = useState('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
-  
+
   const [formData, setFormData] = useState({
     jenis_layanan: 'KB',
     tanggal: '',
@@ -38,6 +38,8 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
     alamat: '',
     nomor_hp: '',
     kunjungan_ulang: '',
+    jam_kunjungan_ulang: '08:00',
+    jam_kunjungan_ulang_selesai: '',
     catatan: ''
   });
 
@@ -83,7 +85,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
       let response;
       if (editingId) {
@@ -91,7 +93,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
       } else {
         response = await layananService.createKB(formData);
       }
-      
+
       if (response.success) {
         showNotifikasi({
           type: 'success',
@@ -108,14 +110,14 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
       }
     } catch (error) {
       console.error('Error saving KB registration:', error);
-      
+
       // Log detailed error information for debugging
       if (error.data && error.data.errors) {
         console.error('Validation errors:', error.data.errors);
         const errorDetails = error.data.errors.map(e => `${e.field}: ${e.message}`).join('\n');
         console.error('Error details:\n' + errorDetails);
       }
-      
+
       setError(error.message || 'Gagal menyimpan data registrasi KB');
       showNotifikasi({
         type: 'error',
@@ -154,6 +156,8 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
       alamat: '',
       nomor_hp: '',
       kunjungan_ulang: '',
+      jam_kunjungan_ulang: '08:00',
+      jam_kunjungan_ulang_selesai: '',
       catatan: ''
     });
     setError('');
@@ -164,11 +168,11 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
       console.log(`🔍 Fetching KB data for ID: ${id}`);
       const response = await layananService.getKBById(id);
       console.log('📦 Response received:', response);
-      
+
       if (response && response.success) {
         const data = response.data;
         console.log('📋 KB data:', data);
-        
+
         setFormData({
           jenis_layanan: 'KB',
           tanggal: data.tanggal_pemeriksaan || '',
@@ -188,6 +192,8 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
           alamat: data.alamat || '',
           nomor_hp: data.no_hp || '',
           kunjungan_ulang: data.kunjungan_ulang || '',
+          jam_kunjungan_ulang: data.jam_kunjungan_ulang || '08:00',
+          jam_kunjungan_ulang_selesai: data.jam_kunjungan_ulang_selesai || '',
           catatan: data.catatan || ''
         });
         setEditingId(id);
@@ -217,7 +223,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
           console.log(`🗑️ Deleting KB data for ID: ${id}`);
           const response = await layananService.deleteKB(id);
           console.log('📦 Delete response:', response);
-          
+
           if (response && response.success) {
             console.log('✅ Delete successful');
             showNotifikasi({
@@ -272,7 +278,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
       {/* Main Content */}
       <div className="kb-content">
         {/* Sidebar */}
-        <Sidebar 
+        <Sidebar
           activePage="kb"
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
@@ -293,23 +299,23 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
               {/* Welcome Message & Action Buttons */}
               <div className="kb-welcome-section">
                 <p className="kb-welcome-text">Selamat datang, {userData?.username || 'username'}!</p>
-                
+
                 <div className="kb-action-buttons">
                   <button className="kb-action-btn" onClick={() => setShowForm(true)}>
                     <svg width="30" height="30" viewBox="0 0 30 30" fill="white">
-                      <path d="M15 8C15 11.866 11.866 15 8 15C4.134 15 1 11.866 1 8C1 4.134 4.134 1 8 1C11.866 1 15 4.134 15 8Z"/>
-                      <path d="M8 16C3.582 16 0 19.582 0 24V28H16V24C16 19.582 12.418 16 8 16Z"/>
+                      <path d="M15 8C15 11.866 11.866 15 8 15C4.134 15 1 11.866 1 8C1 4.134 4.134 1 8 1C11.866 1 15 4.134 15 8Z" />
+                      <path d="M8 16C3.582 16 0 19.582 0 24V28H16V24C16 19.582 12.418 16 8 16Z" />
                     </svg>
                     <span>Tambah Pasien</span>
                   </button>
-                  
+
                   <button className="kb-action-btn" onClick={onToJadwal}>
                     <svg width="30" height="30" viewBox="0 0 30 30" fill="white">
-                      <rect x="5" y="5" width="20" height="20" rx="2" stroke="white" strokeWidth="2" fill="none"/>
-                      <line x1="5" y1="11" x2="25" y2="11" stroke="white" strokeWidth="2"/>
-                      <circle cx="10" cy="8" r="1" fill="white"/>
-                      <circle cx="14" cy="8" r="1" fill="white"/>
-                      <circle cx="18" cy="8" r="1" fill="white"/>
+                      <rect x="5" y="5" width="20" height="20" rx="2" stroke="white" strokeWidth="2" fill="none" />
+                      <line x1="5" y1="11" x2="25" y2="11" stroke="white" strokeWidth="2" />
+                      <circle cx="10" cy="8" r="1" fill="white" />
+                      <circle cx="14" cy="8" r="1" fill="white" />
+                      <circle cx="18" cy="8" r="1" fill="white" />
                     </svg>
                     <span>Buat Jadwal</span>
                   </button>
@@ -319,7 +325,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
               {/* Riwayat Pelayanan */}
               <div className="kb-riwayat-section">
                 <h2 className="kb-section-title">Riwayat Pelayanan</h2>
-                
+
                 <div className="kb-search-bar">
                   <input
                     type="text"
@@ -329,11 +335,11 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                     className="kb-search-input"
                   />
                   <div className="kb-filter-wrapper">
-                    <button 
+                    <button
                       className="kb-filter-btn"
                       onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                     >
-                      <img src={filterIcon} alt="Filter" style={{width: '20px', height: '20px'}} />
+                      <img src={filterIcon} alt="Filter" style={{ width: '20px', height: '20px' }} />
                     </button>
                     {showFilterDropdown && (
                       <div className="kb-filter-dropdown">
@@ -357,10 +363,10 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         </span>
                         <div className="kb-riwayat-actions">
                           <button className="kb-btn-edit" onClick={() => handleEdit(item.id)}>
-                            <img src={editIcon} alt="Edit" style={{width: '18px', height: '18px'}} />
+                            <img src={editIcon} alt="Edit" style={{ width: '18px', height: '18px' }} />
                           </button>
                           <button className="kb-btn-delete" onClick={() => handleDelete(item.id)}>
-                            <img src={trashIcon} alt="Delete" style={{width: '18px', height: '18px'}} />
+                            <img src={trashIcon} alt="Delete" style={{ width: '18px', height: '18px' }} />
                           </button>
                         </div>
                       </div>
@@ -378,7 +384,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                 {/* Informasi Layanan */}
                 <div className="kb-form-section">
                   <h3 className="kb-form-section-title">Informasi Layanan</h3>
-                  
+
                   <div className="kb-form-row">
                     <div className="kb-form-group">
                       <label>Jenis Layanan</label>
@@ -390,7 +396,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         placeholder="Pilih Jenis Layanan"
                       />
                     </div>
-                    
+
                     <div className="kb-form-group">
                       <label>Tanggal</label>
                       <input
@@ -415,7 +421,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         placeholder="Masukkan data"
                       />
                     </div>
-                    
+
                     <div className="kb-form-group">
                       <label>Nomor Registrasi Baru</label>
                       <input
@@ -426,7 +432,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         placeholder="Masukkan data"
                       />
                     </div>
-                    
+
                     <div className="kb-form-group">
                       <label>Metode</label>
                       <select
@@ -451,7 +457,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                 {/* Data Ibu */}
                 <div className="kb-form-section">
                   <h3 className="kb-form-section-title">Data Ibu</h3>
-                  
+
                   <div className="kb-form-row">
                     <div className="kb-form-group full-width">
                       <label>Nama Istri</label>
@@ -479,7 +485,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         required
                       />
                     </div>
-                    
+
                     <div className="kb-form-group small">
                       <label>Umur (Th)</label>
                       <input
@@ -491,7 +497,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         required
                       />
                     </div>
-                    
+
                     <div className="kb-form-group small">
                       <label>TD</label>
                       <input
@@ -502,7 +508,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         placeholder="Masukkan"
                       />
                     </div>
-                    
+
                     <div className="kb-form-group small">
                       <label>BB</label>
                       <input
@@ -519,7 +525,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                 {/* Data Ayah */}
                 <div className="kb-form-section">
                   <h3 className="kb-form-section-title">Data Ayah</h3>
-                  
+
                   <div className="kb-form-row">
                     <div className="kb-form-group full-width">
                       <label>Nama Suami</label>
@@ -547,7 +553,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         required
                       />
                     </div>
-                    
+
                     <div className="kb-form-group small">
                       <label>Umur (Th)</label>
                       <input
@@ -558,7 +564,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         placeholder="Masukkan data"
                       />
                     </div>
-                    
+
                     <div className="kb-form-group small">
                       <label>TD</label>
                       <input
@@ -569,7 +575,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         placeholder="Masukkan"
                       />
                     </div>
-                    
+
                     <div className="kb-form-group small">
                       <label>BB</label>
                       <input
@@ -586,7 +592,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                 {/* Informasi Tambahan */}
                 <div className="kb-form-section">
                   <h3 className="kb-form-section-title">Informasi Tambahan</h3>
-                  
+
                   <div className="kb-form-row">
                     <div className="kb-form-group">
                       <label>Alamat</label>
@@ -599,7 +605,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         required
                       />
                     </div>
-                    
+
                     <div className="kb-form-group">
                       <label>Nomor HP</label>
                       <input
@@ -611,7 +617,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         required
                       />
                     </div>
-                    
+
                     <div className="kb-form-group">
                       <label>Kunjungan Ulang</label>
                       <input
@@ -620,6 +626,28 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                         value={formData.kunjungan_ulang}
                         onChange={handleInputChange}
                         placeholder="DD/MM/YY"
+                      />
+                    </div>
+
+                    <div className="kb-form-group">
+                      <label>Jam Kunjungan Ulang</label>
+                      <input
+                        type="time"
+                        name="jam_kunjungan_ulang"
+                        value={formData.jam_kunjungan_ulang}
+                        onChange={handleInputChange}
+                        placeholder="HH:MM"
+                      />
+                    </div>
+
+                    <div className="kb-form-group">
+                      <label>Jam Kunjungan Ulang Selesai</label>
+                      <input
+                        type="time"
+                        name="jam_kunjungan_ulang_selesai"
+                        value={formData.jam_kunjungan_ulang_selesai}
+                        onChange={handleInputChange}
+                        placeholder="HH:MM"
                       />
                     </div>
                   </div>
@@ -652,7 +680,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
           )}
         </main>
       </div>
-      
+
       {/* Komponen Notifikasi */}
       <Notifikasi
         show={notifikasi.show}

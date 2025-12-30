@@ -2,7 +2,7 @@
 -- Aplikasi Bidan Pintar - Database Initialization Script
 -- Version: 1.0.0
 -- Database: MySQL 8.0+
--- Last Updated: December 14, 2025
+-- Last Updated: December 30, 2025
 -- =============================================================================
 
 -- Create database if not exists
@@ -149,6 +149,8 @@ CREATE TABLE layanan_kb (
     td_ayah VARCHAR(20),
     bb_ayah DECIMAL(5,2),
     kunjungan_ulang VARCHAR(100),
+    jam_kunjungan_ulang TIME DEFAULT '08:00:00',
+    jam_kunjungan_ulang_selesai TIME DEFAULT NULL COMMENT 'Jam selesai kunjungan ulang (opsional)',
     catatan TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -173,6 +175,8 @@ CREATE TABLE layanan_anc (
     umur_suami INT,
     hpht DATE COMMENT 'Hari Pertama Haid Terakhir',
     hpl DATE COMMENT 'Hari Perkiraan Lahir',
+    jam_hpl TIME DEFAULT '08:00:00',
+    jam_hpl_selesai TIME DEFAULT NULL COMMENT 'Jam selesai HPL (opsional)',
     hasil_pemeriksaan TEXT,
     tindakan TEXT,
     keterangan TEXT,
@@ -198,6 +202,8 @@ CREATE TABLE layanan_imunisasi (
     jenis_imunisasi VARCHAR(100) NOT NULL,
     pengobatan TEXT,
     jadwal_selanjutnya VARCHAR(100),
+    jam_jadwal_selanjutnya TIME DEFAULT '09:00:00',
+    jam_jadwal_selanjutnya_selesai TIME DEFAULT NULL COMMENT 'Jam selesai jadwal selanjutnya (opsional)',
     no_hp_kontak VARCHAR(15),
     nama_ibu VARCHAR(100),
     nik_ibu VARCHAR(20),
@@ -573,6 +579,38 @@ INSERT INTO laporan (id_laporan, jenis_layanan, periode, tanggal_dibuat, jumlah_
 ('110e8400-e29b-41d4-a716-446655440008', 'Semua', '05/2025', '2025-05-31', 180, 450, 'Laporan Lengkap Mei 2025'),
 ('110e8400-e29b-41d4-a716-446655440009', 'ANC', '11/2025', '2025-11-30', 48, 125, 'Laporan ANC November 2025'),
 ('110e8400-e29b-41d4-a716-446655440010', 'Imunisasi', '12/2025', '2025-12-17', 28, 56, 'Laporan Imunisasi Desember 2025 (In Progress)');
+
+-- =============================================================================
+-- STORED PROCEDURES
+-- =============================================================================
+DELIMITER $$
+
+CREATE PROCEDURE IF NOT EXISTS sp_generate_laporan_summary(
+    IN p_jenis_layanan VARCHAR(50),
+    IN p_bulan INT,
+    IN p_tahun INT
+)
+BEGIN
+    DECLARE v_jumlah_pasien INT;
+    DECLARE v_jumlah_kunjungan INT;
+    
+    -- Count unique patients and total visits
+    SELECT 
+        COUNT(DISTINCT p.id_pasien),
+        COUNT(pe.id_pemeriksaan)
+    INTO v_jumlah_pasien, v_jumlah_kunjungan
+    FROM pemeriksaan pe
+    JOIN pasien p ON pe.id_pasien = p.id_pasien
+    WHERE 
+        (p_jenis_layanan = 'Semua' OR pe.jenis_layanan = p_jenis_layanan)
+        AND MONTH(pe.tanggal_pemeriksaan) = p_bulan
+        AND YEAR(pe.tanggal_pemeriksaan) = p_tahun;
+    
+    -- Return result
+    SELECT v_jumlah_pasien AS jumlah_pasien, v_jumlah_kunjungan AS jumlah_kunjungan;
+END$$
+
+DELIMITER ;
 
 -- =============================================================================
 -- VERIFICATION QUERIES

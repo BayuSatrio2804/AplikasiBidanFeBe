@@ -18,7 +18,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
   const [error, setError] = useState('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
-  
+
   const [formData, setFormData] = useState({
     jenis_layanan: 'Imunisasi',
     tanggal: '',
@@ -36,6 +36,8 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
     tb: '',
     bb: '',
     jadwal_selanjutnya: '',
+    jam_jadwal_selanjutnya: '09:00',
+    jam_jadwal_selanjutnya_selesai: '',
     nomor_hp: '',
     pengobatan: ''
   });
@@ -86,11 +88,11 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     console.log('=== SUBMIT DATA ===');
     console.log('editingId:', editingId);
     console.log('formData being sent:', JSON.stringify(formData, null, 2));
-    
+
     try {
       let response;
       if (editingId) {
@@ -99,7 +101,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
       } else {
         response = await layananService.createImunisasi(formData);
       }
-      
+
       if (response.success) {
         showNotifikasi({
           type: 'success',
@@ -152,6 +154,8 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
       tb: '',
       bb: '',
       jadwal_selanjutnya: '',
+      jam_jadwal_selanjutnya: '09:00',
+      jam_jadwal_selanjutnya_selesai: '',
       nomor_hp: '',
       pengobatan: ''
     });
@@ -183,6 +187,8 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
           tb: data.tb_bayi || '',
           bb: data.bb_bayi || '',
           jadwal_selanjutnya: data.jadwal_selanjutnya || '',
+          jam_jadwal_selanjutnya: data.jam_jadwal_selanjutnya || '09:00',
+          jam_jadwal_selanjutnya_selesai: data.jam_jadwal_selanjutnya_selesai || '',
           nomor_hp: data.no_hp || '',
           pengobatan: data.pengobatan || ''
         });
@@ -253,7 +259,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
       {/* Main Content */}
       <div className="imunisasi-content">
         {/* Sidebar */}
-        <Sidebar 
+        <Sidebar
           activePage="imunisasi"
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
@@ -274,23 +280,23 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
               {/* Welcome Message & Action Buttons */}
               <div className="imunisasi-welcome-section">
                 <p className="imunisasi-welcome-text">Selamat datang, {userData?.username || 'username'}!</p>
-                
+
                 <div className="imunisasi-action-buttons">
                   <button className="imunisasi-action-btn" onClick={() => setShowForm(true)}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                      <path d="M20 10C20 14.866 15.866 18 11 18C6.134 18 2 14.866 2 10C2 5.134 6.134 2 11 2C15.866 2 20 5.134 20 10Z"/>
-                      <path d="M11 19C4.582 19 0 23.582 0 29V35H22V29C22 23.582 17.418 19 11 19Z"/>
+                      <path d="M20 10C20 14.866 15.866 18 11 18C6.134 18 2 14.866 2 10C2 5.134 6.134 2 11 2C15.866 2 20 5.134 20 10Z" />
+                      <path d="M11 19C4.582 19 0 23.582 0 29V35H22V29C22 23.582 17.418 19 11 19Z" />
                     </svg>
                     <span>Tambah Pasien</span>
                   </button>
-                  
+
                   <button className="imunisasi-action-btn" onClick={onToJadwal}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                      <rect x="8" y="8" width="24" height="24" rx="2" stroke="white" strokeWidth="2" fill="none"/>
-                      <line x1="8" y1="15" x2="32" y2="15" stroke="white" strokeWidth="2"/>
-                      <circle cx="14" cy="11.5" r="1" fill="white"/>
-                      <circle cx="18" cy="11.5" r="1" fill="white"/>
-                      <circle cx="22" cy="11.5" r="1" fill="white"/>
+                      <rect x="8" y="8" width="24" height="24" rx="2" stroke="white" strokeWidth="2" fill="none" />
+                      <line x1="8" y1="15" x2="32" y2="15" stroke="white" strokeWidth="2" />
+                      <circle cx="14" cy="11.5" r="1" fill="white" />
+                      <circle cx="18" cy="11.5" r="1" fill="white" />
+                      <circle cx="22" cy="11.5" r="1" fill="white" />
                     </svg>
                     <span>Buat Jadwal</span>
                   </button>
@@ -300,7 +306,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
               {/* Riwayat Pelayanan */}
               <div className="imunisasi-riwayat-section">
                 <h2 className="imunisasi-section-title">Riwayat Pelayanan</h2>
-                
+
                 <div className="imunisasi-search-bar">
                   <input
                     type="text"
@@ -310,11 +316,11 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                     className="imunisasi-search-input"
                   />
                   <div className="imunisasi-filter-wrapper">
-                    <button 
+                    <button
                       className="imunisasi-filter-btn"
                       onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                     >
-                      <img src={filterIcon} alt="Filter" style={{width: '20px', height: '20px'}} />
+                      <img src={filterIcon} alt="Filter" style={{ width: '20px', height: '20px' }} />
                     </button>
                     {showFilterDropdown && (
                       <div className="imunisasi-filter-dropdown">
@@ -338,10 +344,10 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         </span>
                         <div className="imunisasi-riwayat-actions">
                           <button className="imunisasi-btn-edit" onClick={() => handleEdit(item.id)}>
-                            <img src={editIcon} alt="Edit" style={{width: '18px', height: '18px'}} />
+                            <img src={editIcon} alt="Edit" style={{ width: '18px', height: '18px' }} />
                           </button>
                           <button className="imunisasi-btn-delete" onClick={() => handleDelete(item.id)}>
-                            <img src={trashIcon} alt="Delete" style={{width: '18px', height: '18px'}} />
+                            <img src={trashIcon} alt="Delete" style={{ width: '18px', height: '18px' }} />
                           </button>
                         </div>
                       </div>
@@ -359,7 +365,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                 {/* Informasi Layanan */}
                 <div className="imunisasi-form-section">
                   <h3 className="imunisasi-form-section-title">Informasi Layanan</h3>
-                  
+
                   <div className="imunisasi-form-row">
                     <div className="imunisasi-form-group">
                       <label>Jenis Layanan</label>
@@ -373,7 +379,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         style={{ backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
                       />
                     </div>
-                    
+
                     <div className="imunisasi-form-group">
                       <label>Tanggal</label>
                       <input
@@ -398,7 +404,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         placeholder="Masukkan data"
                       />
                     </div>
-                    
+
                     <div className="imunisasi-form-group">
                       <label>Jenis Imunisasi</label>
                       <select
@@ -424,7 +430,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                 {/* Data Ibu */}
                 <div className="imunisasi-form-section">
                   <h3 className="imunisasi-form-section-title">Data Ibu</h3>
-                  
+
                   <div className="imunisasi-form-row">
                     <div className="imunisasi-form-group">
                       <label>Nama Istri</label>
@@ -437,7 +443,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         required
                       />
                     </div>
-                    
+
                     <div className="imunisasi-form-group">
                       <label>NIK</label>
                       <input
@@ -450,7 +456,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         required
                       />
                     </div>
-                    
+
                     <div className="imunisasi-form-group">
                       <label>Umur (Th)</label>
                       <input
@@ -462,7 +468,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         required
                       />
                     </div>
-                    
+
                     <div className="imunisasi-form-group">
                       <label>Alamat</label>
                       <input
@@ -480,7 +486,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                 {/* Data Ayah */}
                 <div className="imunisasi-form-section">
                   <h3 className="imunisasi-form-section-title">Data Ayah</h3>
-                  
+
                   <div className="imunisasi-form-row">
                     <div className="imunisasi-form-group">
                       <label>Nama Suami</label>
@@ -493,7 +499,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         required
                       />
                     </div>
-                    
+
                     <div className="imunisasi-form-group">
                       <label>NIK</label>
                       <input
@@ -506,7 +512,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         required
                       />
                     </div>
-                    
+
                     <div className="imunisasi-form-group">
                       <label>Umur (Th)</label>
                       <input
@@ -523,7 +529,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                 {/* Data Bayi/Balita */}
                 <div className="imunisasi-form-section">
                   <h3 className="imunisasi-form-section-title">Data Bayi/Balita</h3>
-                  
+
                   <div className="imunisasi-form-row">
                     <div className="imunisasi-form-group">
                       <label>Nama Bayi/Balita</label>
@@ -536,7 +542,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         required
                       />
                     </div>
-                    
+
                     <div className="imunisasi-form-group">
                       <label>Tanggal Lahir</label>
                       <input
@@ -548,7 +554,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         required
                       />
                     </div>
-                    
+
                     <div className="imunisasi-form-group">
                       <label>TB (cm)</label>
                       <input
@@ -560,7 +566,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         step="0.1"
                       />
                     </div>
-                    
+
                     <div className="imunisasi-form-group">
                       <label>BB (kg)</label>
                       <input
@@ -578,7 +584,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                 {/* Informasi Tambahan */}
                 <div className="imunisasi-form-section">
                   <h3 className="imunisasi-form-section-title">Informasi Tambahan</h3>
-                  
+
                   <div className="imunisasi-form-row">
                     <div className="imunisasi-form-group">
                       <label>Jadwal Selanjutnya</label>
@@ -590,7 +596,29 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                         placeholder="DD/MM/YY"
                       />
                     </div>
-                    
+
+                    <div className="imunisasi-form-group">
+                      <label>Jam Jadwal Selanjutnya</label>
+                      <input
+                        type="time"
+                        name="jam_jadwal_selanjutnya"
+                        value={formData.jam_jadwal_selanjutnya}
+                        onChange={handleInputChange}
+                        placeholder="HH:MM"
+                      />
+                    </div>
+
+                    <div className="imunisasi-form-group">
+                      <label>Jam Jadwal Selanjutnya Selesai</label>
+                      <input
+                        type="time"
+                        name="jam_jadwal_selanjutnya_selesai"
+                        value={formData.jam_jadwal_selanjutnya_selesai}
+                        onChange={handleInputChange}
+                        placeholder="HH:MM"
+                      />
+                    </div>
+
                     <div className="imunisasi-form-group">
                       <label>Nomor HP</label>
                       <input
@@ -619,7 +647,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
           )}
         </main>
       </div>
-      
+
       {/* Komponen Notifikasi */}
       <Notifikasi
         show={notifikasi.show}

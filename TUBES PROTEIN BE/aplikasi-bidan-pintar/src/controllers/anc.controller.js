@@ -30,11 +30,11 @@ const getANCById = async (req, res) => {
   try {
     const { id } = req.params;
     const ancRecord = await ancService.getANCById(id);
-    
+
     if (!ancRecord) {
       return notFound(res, 'Data ANC tidak ditemukan');
     }
-    
+
     return success(res, 'Data ANC berhasil diambil', ancRecord);
   } catch (error) {
     return serverError(res, 'Gagal mengambil data ANC', error);
@@ -49,7 +49,7 @@ const updateANCRegistrasi = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    
+
     const updatedRecord = await ancService.updateANCRegistrasi(id, req.body, userId);
     return success(res, 'Data ANC berhasil diperbarui', updatedRecord);
   } catch (error) {
@@ -65,7 +65,7 @@ const deleteANCRegistrasi = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    
+
     await ancService.deleteANCRegistrasi(id, userId);
     return success(res, 'Data ANC berhasil dihapus');
   } catch (error) {
@@ -73,9 +73,24 @@ const deleteANCRegistrasi = async (req, res) => {
   }
 };
 
+/**
+ * Get all ANC records
+ * GET /api/anc
+ */
+const getAllANC = async (req, res) => {
+  try {
+    const { search = '' } = req.query;
+    const records = await ancService.getAllANC(search);
+    return success(res, 'Data ANC berhasil diambil', records);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil data ANC', error);
+  }
+};
+
 module.exports = {
   createRegistrasiANC,
   getANCById,
   updateANCRegistrasi,
-  deleteANCRegistrasi
+  deleteANCRegistrasi,
+  getAllANC
 };

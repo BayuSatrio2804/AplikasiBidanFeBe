@@ -34,6 +34,8 @@ const RegistrasiANCSchema = Joi.object({
   // Pregnancy information (optional)
   hpht: Joi.string().allow('').optional(),
   hpl: Joi.string().allow('').optional(),
+  jam_hpl: Joi.string().pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).allow('').optional(),
+  jam_hpl_selesai: Joi.string().pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).allow('').optional(),
 
   // Examination findings (required)
   hasil_pemeriksaan: Joi.string().allow('').optional(),

@@ -32,7 +32,7 @@ const getAllPemeriksaan = async (jenisLayanan = null, search = null) => {
   } else if (jenisLayanan === 'Persalinan') {
     query += `, per.id_persalinan, per.no_reg`;
   } else if (jenisLayanan === 'Kunjungan Pasien') {
-    query += `, kp.id_kunjungan_pasien`;
+    query += `, kp.id_kunjungan`;
   }
 
   query += `

@@ -23,14 +23,14 @@ const getImunisasiById = async (req, res) => {
   try {
     const { id } = req.params;
     const imunisasiRecord = await imunisasiService.getImunisasiById(id);
-    
+
     if (!imunisasiRecord) {
       return res.status(404).json({
         success: false,
         message: 'Data Imunisasi tidak ditemukan'
       });
     }
-    
+
     return success(res, 'Data Imunisasi berhasil diambil', imunisasiRecord);
   } catch (error) {
     return serverError(res, 'Gagal mengambil data Imunisasi', error);
@@ -59,7 +59,7 @@ const updateRegistrasiImunisasi = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    
+
     const updatedRecord = await imunisasiService.updateRegistrasiImunisasi(id, req.body, userId);
     return success(res, 'Data Imunisasi berhasil diperbarui', updatedRecord);
   } catch (error) {
@@ -75,11 +75,42 @@ const deleteRegistrasiImunisasi = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    
+
     await imunisasiService.deleteRegistrasiImunisasi(id, userId);
     return success(res, 'Data Imunisasi berhasil dihapus');
   } catch (error) {
     return serverError(res, 'Gagal menghapus data Imunisasi', error);
+  }
+};
+
+/**
+ * Get mother's data by NIK for auto-linking
+ * GET /api/imunisasi/ibu/:nik
+ */
+const getDataIbuByNIK = async (req, res) => {
+  try {
+    const { nik } = req.params;
+
+    // Validate NIK format
+    if (!/^\d{16}$/.test(nik)) {
+      return res.status(400).json({
+        success: false,
+        message: 'NIK harus 16 digit angka'
+      });
+    }
+
+    const dataIbu = await imunisasiService.getDataIbuByNIK(nik);
+
+    if (!dataIbu) {
+      return res.status(404).json({
+        success: false,
+        message: 'Data ibu tidak ditemukan. Silakan input manual.'
+      });
+    }
+
+    return success(res, 'Data ibu berhasil ditemukan', dataIbu);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil data ibu', error);
   }
 };
 
@@ -88,5 +119,6 @@ module.exports = {
   getImunisasiById,
   getAllImunisasi,
   updateRegistrasiImunisasi,
-  deleteRegistrasiImunisasi
+  deleteRegistrasiImunisasi,
+  getDataIbuByNIK
 };

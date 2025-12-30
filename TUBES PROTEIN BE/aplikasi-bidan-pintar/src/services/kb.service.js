@@ -7,6 +7,7 @@
 const db = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const auditService = require('./audit.service');
+const pasienService = require('./pasien.service');
 
 /**
  * Buat registrasi KB baru dengan record terkait
@@ -24,7 +25,7 @@ const createRegistrasiKB = async (data, userId) => {
     // Informasi Layanan
     jenis_layanan, tanggal, metode,
     // Registrasi dan tindak lanjut
-    nomor_registrasi_lama, nomor_registrasi_baru, kunjungan_ulang, catatan
+    nomor_registrasi_lama, nomor_registrasi_baru, kunjungan_ulang, jam_kunjungan_ulang, jam_kunjungan_ulang_selesai, catatan
   } = data;
 
   const connection = await db.getConnection();
@@ -33,30 +34,13 @@ const createRegistrasiKB = async (data, userId) => {
     await connection.beginTransaction();
 
     // 1. Cari atau buat pasien (ibu)
-    let id_pasien;
-    let existingPasien = [];
-
-    // Hanya cek NIK jika ada dan valid
-    if (nik_ibu && nik_ibu.trim().length > 0) {
-      [existingPasien] = await connection.query(
-        'SELECT id_pasien FROM pasien WHERE nik = ?',
-        [nik_ibu]
-      );
-    }
-
-    if (existingPasien.length > 0) {
-      id_pasien = existingPasien[0].id_pasien;
-      await connection.query(
-        'UPDATE pasien SET nama = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
-        [nama_ibu, umur_ibu, alamat, nomor_hp || null, id_pasien]
-      );
-    } else {
-      id_pasien = uuidv4();
-      await connection.query(
-        'INSERT INTO pasien (id_pasien, nama, nik, umur, alamat, no_hp) VALUES (?, ?, ?, ?, ?, ?)',
-        [id_pasien, nama_ibu, nik_ibu || null, umur_ibu, alamat, nomor_hp || null]
-      );
-    }
+    const id_pasien = await pasienService.findOrCreatePasien({
+      nama: nama_ibu,
+      nik: nik_ibu,
+      umur: umur_ibu,
+      alamat: alamat,
+      no_hp: nomor_hp
+    }, connection);
 
     // 2. Buat record pemeriksaan dengan format SOAP
     const id_pemeriksaan = uuidv4();
@@ -79,8 +63,8 @@ const createRegistrasiKB = async (data, userId) => {
       `INSERT INTO layanan_kb (
         id_kb, id_pemeriksaan, nomor_registrasi_lama, nomor_registrasi_baru,
         metode, td_ibu, bb_ibu, nama_ayah, nik_ayah, umur_ayah, td_ayah, bb_ayah,
-        kunjungan_ulang, catatan
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        kunjungan_ulang, jam_kunjungan_ulang, jam_kunjungan_ulang_selesai, catatan
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id_kb, id_pemeriksaan,
         nomor_registrasi_lama || null, nomor_registrasi_baru || null,
@@ -88,7 +72,7 @@ const createRegistrasiKB = async (data, userId) => {
         td_ibu || null, bb_ibu || null,
         nama_ayah || null, nik_ayah || null, umur_ayah || null,
         td_ayah || null, bb_ayah || null,
-        kunjungan_ulang || null, catatan || null
+        kunjungan_ulang || null, jam_kunjungan_ulang || '08:00:00', jam_kunjungan_ulang_selesai || null, catatan || null
       ]
     );
 
@@ -139,6 +123,7 @@ const getKBById = async (id_pemeriksaan) => {
       kb.td_ayah, 
       kb.bb_ayah,
       DATE_FORMAT(kb.kunjungan_ulang, '%Y-%m-%d') as kunjungan_ulang,
+      kb.jam_kunjungan_ulang,
       kb.catatan
     FROM pemeriksaan p
     LEFT JOIN pasien pas ON p.id_pasien = pas.id_pasien
@@ -160,7 +145,7 @@ const updateRegistrasiKB = async (id_pemeriksaan, data, userId) => {
   const {
     nama_ibu, nik_ibu, umur_ibu, td_ibu, bb_ibu, alamat, nomor_hp,
     nama_ayah, nik_ayah, umur_ayah, td_ayah, bb_ayah,
-    tanggal, metode, nomor_registrasi_lama, nomor_registrasi_baru, kunjungan_ulang, catatan
+    tanggal, metode, nomor_registrasi_lama, nomor_registrasi_baru, kunjungan_ulang, jam_kunjungan_ulang, jam_kunjungan_ulang_selesai, catatan
   } = data;
 
   const connection = await db.getConnection();
@@ -204,13 +189,13 @@ const updateRegistrasiKB = async (id_pemeriksaan, data, userId) => {
         nomor_registrasi_lama = ?, nomor_registrasi_baru = ?,
         metode = ?, td_ibu = ?, bb_ibu = ?,
         nama_ayah = ?, nik_ayah = ?, umur_ayah = ?, td_ayah = ?, bb_ayah = ?,
-        kunjungan_ulang = ?, catatan = ?
+        kunjungan_ulang = ?, jam_kunjungan_ulang = ?, jam_kunjungan_ulang_selesai = ?, catatan = ?
        WHERE id_pemeriksaan = ?`,
       [
         nomor_registrasi_lama || null, nomor_registrasi_baru || null,
         metode, td_ibu || null, bb_ibu || null,
         nama_ayah || null, nik_ayah || null, umur_ayah || null, td_ayah || null, bb_ayah || null,
-        kunjungan_ulang || null, catatan || null,
+        kunjungan_ulang || null, jam_kunjungan_ulang || '08:00:00', jam_kunjungan_ulang_selesai || null, catatan || null,
         id_pemeriksaan
       ]
     );
@@ -264,9 +249,15 @@ const getAllKB = async (search = '') => {
     let query = `
       SELECT 
         pm.id_pemeriksaan, 
+        pm.id_pasien,
         p.nama as nama_pasien, 
+        p.nik,
         pm.tanggal_pemeriksaan, 
-        pm.jenis_layanan
+        pm.jenis_layanan,
+        kb.id_kb,
+        kb.nomor_registrasi_lama,
+        kb.nomor_registrasi_baru,
+        COALESCE(kb.nomor_registrasi_baru, kb.nomor_registrasi_lama) as nomor_registrasi
       FROM pemeriksaan pm
       LEFT JOIN layanan_kb kb ON pm.id_pemeriksaan = kb.id_pemeriksaan
       LEFT JOIN pasien p ON pm.id_pasien = p.id_pasien

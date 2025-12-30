@@ -10,6 +10,12 @@ const { verifyToken } = require('../middleware/auth');
 const validate = require('../middleware/validator.middleware');
 const { JadwalSchema } = require('../validators/jadwal.validator');
 
+// Debug Logger
+router.use((req, res, next) => {
+    console.log(`[DEBUG-ROUTE] ${req.method} ${req.url}`);
+    next();
+});
+
 // All routes require authentication
 router.use(verifyToken);
 

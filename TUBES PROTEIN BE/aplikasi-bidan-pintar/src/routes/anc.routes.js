@@ -14,6 +14,7 @@ const { RegistrasiANCSchema } = require('../validators/anc.validator');
 router.use(verifyToken);
 
 // ANC endpoints
+router.get('/', ancController.getAllANC);
 router.post('/', validate(RegistrasiANCSchema), ancController.createRegistrasiANC);
 router.get('/:id', ancController.getANCById);
 router.put('/:id', validate(RegistrasiANCSchema), ancController.updateANCRegistrasi);

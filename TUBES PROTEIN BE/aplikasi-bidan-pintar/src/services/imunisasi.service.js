@@ -6,6 +6,7 @@
 const db = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const auditService = require('./audit.service');
+const pasienService = require('./pasien.service');
 
 /**
  * Helper: Konversi format tanggal
@@ -45,7 +46,7 @@ const createRegistrasiImunisasi = async (data, userId) => {
     tanggal, no_reg, jenis_imunisasi, pengobatan,
     nama_suami, nik_suami, umur_suami,
     nama_bayi_balita, tanggal_lahir_bayi, tb_bayi, bb_bayi,
-    jadwal_selanjutnya
+    jadwal_selanjutnya, jam_jadwal_selanjutnya, jam_jadwal_selanjutnya_selesai
   } = data;
 
   const tanggalConverted = convertDate(tanggal);
@@ -57,30 +58,13 @@ const createRegistrasiImunisasi = async (data, userId) => {
     await connection.beginTransaction();
 
     // 1. Cek pasien (ibu), buat baru atau update
-    let id_pasien;
-    let existingPasien = [];
-
-    // Hanya cek NIK jika ada dan valid
-    if (nik_istri && nik_istri.trim().length > 0) {
-      [existingPasien] = await connection.query(
-        'SELECT id_pasien FROM pasien WHERE nik = ?',
-        [nik_istri]
-      );
-    }
-
-    if (existingPasien.length > 0) {
-      id_pasien = existingPasien[0].id_pasien;
-      await connection.query(
-        'UPDATE pasien SET nama = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
-        [nama_istri, umur_istri, alamat, no_hp || null, id_pasien]
-      );
-    } else {
-      id_pasien = uuidv4();
-      await connection.query(
-        'INSERT INTO pasien (id_pasien, nama, nik, umur, alamat, no_hp) VALUES (?, ?, ?, ?, ?, ?)',
-        [id_pasien, nama_istri, nik_istri || null, umur_istri, alamat, no_hp || null]
-      );
-    }
+    const id_pasien = await pasienService.findOrCreatePasien({
+      nama: nama_istri,
+      nik: nik_istri,
+      umur: umur_istri,
+      alamat: alamat,
+      no_hp: no_hp
+    }, connection);
 
     // 2. Buat record pemeriksaan
     const id_pemeriksaan = uuidv4();
@@ -101,14 +85,14 @@ const createRegistrasiImunisasi = async (data, userId) => {
     await connection.query(
       `INSERT INTO layanan_imunisasi (
         id_imunisasi, id_pemeriksaan, no_reg, nama_bayi_balita, tanggal_lahir_bayi,
-        tb_bayi, bb_bayi, jenis_imunisasi, pengobatan, jadwal_selanjutnya, no_hp_kontak,
+        tb_bayi, bb_bayi, jenis_imunisasi, pengobatan, jadwal_selanjutnya, jam_jadwal_selanjutnya, jam_jadwal_selanjutnya_selesai, no_hp_kontak,
         nama_ibu, nik_ibu, umur_ibu, nama_ayah, nik_ayah, umur_ayah
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id_imunisasi, id_pemeriksaan, no_reg || null,
         nama_bayi_balita || null, tanggalLahirConverted || null,
         tb_bayi || null, bb_bayi || null,
-        jenis_imunisasi, pengobatan || null, jadwal_selanjutnya || null, no_hp || null,
+        jenis_imunisasi, pengobatan || null, jadwal_selanjutnya || null, jam_jadwal_selanjutnya || '09:00:00', jam_jadwal_selanjutnya_selesai || null, no_hp || null,
         nama_istri, nik_istri, umur_istri,
         nama_suami || null, nik_suami || null, umur_suami || null
       ]
@@ -157,6 +141,7 @@ const getImunisasiById = async (id_pemeriksaan) => {
       im.bb_bayi,
       im.pengobatan,
       im.jadwal_selanjutnya,
+      im.jam_jadwal_selanjutnya,
       im.no_hp_kontak as no_hp,
       pas.alamat
     FROM pemeriksaan p
@@ -177,13 +162,15 @@ const getAllImunisasi = async (search = '') => {
   let query = `
     SELECT 
       p.id_pemeriksaan,
+      p.id_pasien,
       DATE_FORMAT(p.tanggal_pemeriksaan, '%d/%m/%Y') as tanggal,
       p.jenis_layanan,
       pas.nama,
       pas.nik,
       im.nama_bayi_balita,
       im.jenis_imunisasi,
-      im.no_reg
+      im.no_reg,
+      im.no_reg as nomor_registrasi
     FROM pemeriksaan p
     LEFT JOIN pasien pas ON p.id_pasien = pas.id_pasien
     LEFT JOIN layanan_imunisasi im ON p.id_pemeriksaan = im.id_pemeriksaan
@@ -216,7 +203,7 @@ const updateRegistrasiImunisasi = async (id_pemeriksaan, data, userId) => {
     tanggal, no_reg, jenis_imunisasi, pengobatan,
     nama_suami, nik_suami, umur_suami,
     nama_bayi_balita, tanggal_lahir_bayi, tb_bayi, bb_bayi,
-    jadwal_selanjutnya
+    jadwal_selanjutnya, jam_jadwal_selanjutnya, jam_jadwal_selanjutnya_selesai
   } = data;
 
   const tanggalConverted = convertDate(tanggal);
@@ -268,6 +255,8 @@ const updateRegistrasiImunisasi = async (id_pemeriksaan, data, userId) => {
         jenis_imunisasi = ?, 
         pengobatan = ?, 
         jadwal_selanjutnya = ?, 
+        jam_jadwal_selanjutnya = ?,
+        jam_jadwal_selanjutnya_selesai = ?,
         no_hp_kontak = ?,
         nama_ibu = ?, 
         nik_ibu = ?, 
@@ -285,6 +274,8 @@ const updateRegistrasiImunisasi = async (id_pemeriksaan, data, userId) => {
         jenis_imunisasi,
         pengobatan || null,
         jadwal_selanjutnya || null,
+        jam_jadwal_selanjutnya || '09:00:00',
+        jam_jadwal_selanjutnya_selesai || null,
         no_hp || null,
         nama_istri,
         nik_istri,
@@ -350,10 +341,33 @@ const deleteRegistrasiImunisasi = async (id_pemeriksaan, userId) => {
   }
 };
 
+/**
+ * Mendapatkan data ibu berdasarkan NIK
+ * @param {string} nik - NIK ibu
+ * @returns {Object|null} Data ibu
+ */
+const getDataIbuByNIK = async (nik) => {
+  const query = `
+    SELECT 
+      id_pasien,
+      nama,
+      nik,
+      umur,
+      alamat,
+      no_hp
+    FROM pasien 
+    WHERE nik = ?
+  `;
+
+  const [rows] = await db.query(query, [nik]);
+  return rows[0] || null;
+};
+
 module.exports = {
   createRegistrasiImunisasi,
   getImunisasiById,
   getAllImunisasi,
   updateRegistrasiImunisasi,
-  deleteRegistrasiImunisasi
+  deleteRegistrasiImunisasi,
+  getDataIbuByNIK
 };

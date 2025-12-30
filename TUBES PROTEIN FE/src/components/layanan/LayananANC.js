@@ -18,7 +18,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
   const [error, setError] = useState('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
-  
+
   const [formData, setFormData] = useState({
     jenis_layanan: 'ANC',
     tanggal: '',
@@ -35,6 +35,8 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
     no_hp: '',
     hpht: '',
     hpl: '',
+    jam_hpl: '08:00',
+    jam_hpl_selesai: '',
     hasil_pemeriksaan: '',
     keterangan: ''
   });
@@ -74,12 +76,12 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     let finalValue = value;
-    
+
     // Convert number fields to integer
     if (['umur_istri', 'umur_suami'].includes(name)) {
       finalValue = value ? parseInt(value, 10) : '';
     }
-    
+
     setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
@@ -87,7 +89,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
       let response;
       if (editingId) {
@@ -95,7 +97,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
       } else {
         response = await layananService.createANC(formData);
       }
-      
+
       if (response.success) {
         showNotifikasi({
           type: 'success',
@@ -147,6 +149,8 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
       no_hp: '',
       hpht: '',
       hpl: '',
+      jam_hpl: '08:00',
+      jam_hpl_selesai: '',
       hasil_pemeriksaan: '',
       keterangan: ''
     });
@@ -173,6 +177,8 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
           no_hp: data.no_hp || '',
           hpht: data.hpht || '',
           hpl: data.hpl || '',
+          jam_hpl: data.jam_hpl || '08:00',
+          jam_hpl_selesai: data.jam_hpl_selesai || '',
           hasil_pemeriksaan: data.hasil_pemeriksaan || '',
           keterangan: data.keterangan || '',
           jam_mulai: data.jam_mulai || '',
@@ -258,7 +264,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
       {/* Main Content */}
       <div className="anc-content">
         {/* Sidebar */}
-        <Sidebar 
+        <Sidebar
           activePage="anc"
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
@@ -279,23 +285,23 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
               {/* Welcome Message & Action Buttons */}
               <div className="anc-welcome-section">
                 <p className="anc-welcome-text">Selamat datang, {userData?.username || 'username'}!</p>
-                
+
                 <div className="anc-action-buttons">
                   <button className="anc-action-btn" onClick={() => setShowForm(true)}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                      <path d="M20 10C20 14.866 15.866 18 11 18C6.134 18 2 14.866 2 10C2 5.134 6.134 2 11 2C15.866 2 20 5.134 20 10Z"/>
-                      <path d="M11 19C4.582 19 0 23.582 0 29V35H22V29C22 23.582 17.418 19 11 19Z"/>
+                      <path d="M20 10C20 14.866 15.866 18 11 18C6.134 18 2 14.866 2 10C2 5.134 6.134 2 11 2C15.866 2 20 5.134 20 10Z" />
+                      <path d="M11 19C4.582 19 0 23.582 0 29V35H22V29C22 23.582 17.418 19 11 19Z" />
                     </svg>
                     <span>Tambah Pasien</span>
                   </button>
-                  
+
                   <button className="anc-action-btn" onClick={onToJadwal}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                      <rect x="8" y="8" width="24" height="24" rx="2" stroke="white" strokeWidth="2" fill="none"/>
-                      <line x1="8" y1="15" x2="32" y2="15" stroke="white" strokeWidth="2"/>
-                      <circle cx="14" cy="11.5" r="1" fill="white"/>
-                      <circle cx="18" cy="11.5" r="1" fill="white"/>
-                      <circle cx="22" cy="11.5" r="1" fill="white"/>
+                      <rect x="8" y="8" width="24" height="24" rx="2" stroke="white" strokeWidth="2" fill="none" />
+                      <line x1="8" y1="15" x2="32" y2="15" stroke="white" strokeWidth="2" />
+                      <circle cx="14" cy="11.5" r="1" fill="white" />
+                      <circle cx="18" cy="11.5" r="1" fill="white" />
+                      <circle cx="22" cy="11.5" r="1" fill="white" />
                     </svg>
                     <span>Buat Jadwal</span>
                   </button>
@@ -305,7 +311,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
               {/* Riwayat Pelayanan */}
               <div className="anc-riwayat-section">
                 <h2 className="anc-section-title">Riwayat Pelayanan</h2>
-                
+
                 <div className="anc-search-bar">
                   <input
                     type="text"
@@ -315,11 +321,11 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                     className="anc-search-input"
                   />
                   <div className="anc-filter-wrapper">
-                    <button 
+                    <button
                       className="anc-filter-btn"
                       onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                     >
-                      <img src={filterIcon} alt="Filter" style={{width: '20px', height: '20px'}} />
+                      <img src={filterIcon} alt="Filter" style={{ width: '20px', height: '20px' }} />
                     </button>
                     {showFilterDropdown && (
                       <div className="anc-filter-dropdown">
@@ -343,10 +349,10 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         </span>
                         <div className="anc-riwayat-actions">
                           <button className="anc-btn-edit" onClick={() => handleEdit(item.id)}>
-                            <img src={editIcon} alt="Edit" style={{width: '18px', height: '18px'}} />
+                            <img src={editIcon} alt="Edit" style={{ width: '18px', height: '18px' }} />
                           </button>
                           <button className="anc-btn-delete" onClick={() => handleDelete(item.id)}>
-                            <img src={trashIcon} alt="Delete" style={{width: '18px', height: '18px'}} />
+                            <img src={trashIcon} alt="Delete" style={{ width: '18px', height: '18px' }} />
                           </button>
                         </div>
                       </div>
@@ -364,7 +370,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                 {/* Informasi Layanan */}
                 <div className="anc-form-section">
                   <h3 className="anc-form-section-title">Informasi Layanan</h3>
-                  
+
                   <div className="anc-form-row">
                     <div className="anc-form-group">
                       <label>Jenis Layanan</label>
@@ -377,7 +383,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         placeholder="ANC"
                       />
                     </div>
-                    
+
                     <div className="anc-form-group">
                       <label>Tanggal</label>
                       <input
@@ -402,7 +408,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         placeholder="Masukkan data"
                       />
                     </div>
-                    
+
                     <div className="anc-form-group">
                       <label>Nomor Registrasi Baru</label>
                       <input
@@ -413,7 +419,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         placeholder="Masukkan data"
                       />
                     </div>
-                    
+
                     <div className="anc-form-group">
                       <label>Tindakan</label>
                       <input
@@ -430,7 +436,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                 {/* Data Ibu */}
                 <div className="anc-form-section">
                   <h3 className="anc-form-section-title">Data Ibu</h3>
-                  
+
                   <div className="anc-form-row">
                     <div className="anc-form-group">
                       <label>Nama Istri</label>
@@ -443,7 +449,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         required
                       />
                     </div>
-                    
+
                     <div className="anc-form-group">
                       <label>NIK</label>
                       <input
@@ -456,7 +462,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         required
                       />
                     </div>
-                    
+
                     <div className="anc-form-group">
                       <label>Umur (Th)</label>
                       <input
@@ -474,7 +480,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                 {/* Data Ayah */}
                 <div className="anc-form-section">
                   <h3 className="anc-form-section-title">Data Ayah</h3>
-                  
+
                   <div className="anc-form-row">
                     <div className="anc-form-group">
                       <label>Nama Suami</label>
@@ -487,7 +493,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         required
                       />
                     </div>
-                    
+
                     <div className="anc-form-group">
                       <label>NIK</label>
                       <input
@@ -499,7 +505,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         maxLength="16"
                       />
                     </div>
-                    
+
                     <div className="anc-form-group">
                       <label>Umur (Th)</label>
                       <input
@@ -516,7 +522,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                 {/* Informasi Tambahan */}
                 <div className="anc-form-section">
                   <h3 className="anc-form-section-title">Informasi Tambahan</h3>
-                  
+
                   <div className="anc-form-row">
                     <div className="anc-form-group">
                       <label>Alamat</label>
@@ -529,7 +535,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         required
                       />
                     </div>
-                    
+
                     <div className="anc-form-group">
                       <label>HPHT</label>
                       <input
@@ -540,7 +546,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         placeholder="DD/MM/YY"
                       />
                     </div>
-                    
+
                     <div className="anc-form-group">
                       <label>HPL</label>
                       <input
@@ -549,6 +555,28 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         value={formData.hpl}
                         onChange={handleInputChange}
                         placeholder="DD/MM/YY"
+                      />
+                    </div>
+
+                    <div className="anc-form-group">
+                      <label>Jam HPL</label>
+                      <input
+                        type="time"
+                        name="jam_hpl"
+                        value={formData.jam_hpl}
+                        onChange={handleInputChange}
+                        placeholder="HH:MM"
+                      />
+                    </div>
+
+                    <div className="anc-form-group">
+                      <label>Jam HPL Selesai</label>
+                      <input
+                        type="time"
+                        name="jam_hpl_selesai"
+                        value={formData.jam_hpl_selesai}
+                        onChange={handleInputChange}
+                        placeholder="HH:MM"
                       />
                     </div>
                   </div>
@@ -564,7 +592,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                         rows="3"
                       />
                     </div>
-                    
+
                     <div className="anc-form-group">
                       <label>Keterangan</label>
                       <textarea
@@ -592,7 +620,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
           )}
         </main>
       </div>
-      
+
       {/* Komponen Notifikasi */}
       <Notifikasi
         show={notifikasi.show}

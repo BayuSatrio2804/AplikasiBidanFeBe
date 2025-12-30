@@ -6,6 +6,7 @@
 const db = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const auditService = require('./audit.service');
+const pasienService = require('./pasien.service');
 
 /**
  * Ambil daftar kunjungan pasien dengan pencarian opsional
@@ -20,8 +21,11 @@ const getAllKunjunganPasien = async (search = '') => {
       SELECT 
         k.id_kunjungan as id,
         k.tanggal,
+        k.no_reg,
+        k.no_reg as nomor_registrasi,
         k.nama_pasien,
         'Kunjungan Pasien' as jenis_layanan,
+        p.id_pasien,
         p.tanggal_pemeriksaan
       FROM layanan_kunjungan_pasien k
       LEFT JOIN pemeriksaan p ON k.id_pemeriksaan = p.id_pemeriksaan
@@ -91,35 +95,14 @@ const createRegistrasiKunjunganPasien = async (data, userId) => {
   try {
     await connection.beginTransaction();
 
-    // 1. Cari atau buat pasien (menggunakan wali sebagai master pasien untuk keperluan administratif)
-    let id_pasien;
-    let existingPasien = [];
-    const nikToCheck = nik_wali || nik_pasien;
-
-    // Hanya cek NIK jika ada dan valid
-    if (nikToCheck && nikToCheck.trim().length > 0) {
-      [existingPasien] = await connection.query(
-        'SELECT id_pasien FROM pasien WHERE nik = ?',
-        [nikToCheck]
-      );
-    }
-
-    if (existingPasien.length > 0) {
-      id_pasien = existingPasien[0].id_pasien;
-      await connection.query(
-        'UPDATE pasien SET nama = ?, umur = ? WHERE id_pasien = ?',
-        [nama_wali || nama_pasien, umur_wali || umur_pasien, id_pasien]
-      );
-    } else {
-      id_pasien = uuidv4();
-      // Gunakan NIK jika ada, jika tidak generate random (untuk keperluan internal)
-      const finalNik = (nikToCheck && nikToCheck.trim().length > 0) ? nikToCheck : null;
-
-      await connection.query(
-        'INSERT INTO pasien (id_pasien, nama, nik, umur) VALUES (?, ?, ?, ?)',
-        [id_pasien, nama_wali || nama_pasien, finalNik, umur_wali || umur_pasien]
-      );
-    }
+    // 1. Cari atau buat pasien (menggunakan data pasien sebagai prioritas)
+    const id_pasien = await pasienService.findOrCreatePasien({
+      nama: nama_pasien,
+      nik: nik_pasien,
+      umur: umur_pasien,
+      alamat: null,
+      no_hp: null
+    }, connection);
 
     // 2. Buat record pemeriksaan dengan data SOAP
     const id_pemeriksaan = uuidv4();

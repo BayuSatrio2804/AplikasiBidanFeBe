@@ -6,6 +6,7 @@
 const db = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const auditService = require('./audit.service');
+const pasienService = require('./pasien.service');
 
 /**
  * Helper: Konversi format tanggal
@@ -56,30 +57,13 @@ const createRegistrasiPersalinan = async (data, userId) => {
     await connection.beginTransaction();
 
     // 1. Cek pasien (ibu), buat baru atau update
-    let id_pasien;
-    let existingPasien = [];
-
-    // Hanya cek NIK jika ada dan valid
-    if (nik_istri && nik_istri.trim().length > 0) {
-      [existingPasien] = await connection.query(
-        'SELECT id_pasien FROM pasien WHERE nik = ?',
-        [nik_istri]
-      );
-    }
-
-    if (existingPasien.length > 0) {
-      id_pasien = existingPasien[0].id_pasien;
-      await connection.query(
-        'UPDATE pasien SET nama = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
-        [nama_istri, umur_istri, alamat, no_hp || null, id_pasien]
-      );
-    } else {
-      id_pasien = uuidv4();
-      await connection.query(
-        'INSERT INTO pasien (id_pasien, nama, nik, umur, alamat, no_hp) VALUES (?, ?, ?, ?, ?, ?)',
-        [id_pasien, nama_istri, nik_istri || null, umur_istri, alamat, no_hp || null]
-      );
-    }
+    const id_pasien = await pasienService.findOrCreatePasien({
+      nama: nama_istri,
+      nik: nik_istri,
+      umur: umur_istri,
+      alamat: alamat,
+      no_hp: no_hp
+    }, connection);
 
     // 2. Buat record pemeriksaan
     const id_pemeriksaan = uuidv4();
@@ -204,6 +188,7 @@ const getAllPersalinan = async (search = '') => {
   let query = `
     SELECT 
       p.id_pemeriksaan,
+      p.id_pasien,
       DATE_FORMAT(p.tanggal_pemeriksaan, '%d/%m/%Y') as tanggal,
       p.jenis_layanan,
       pas.nama as nama_pasien,
@@ -212,7 +197,8 @@ const getAllPersalinan = async (search = '') => {
       pers.jenis_partus,
       pers.penolong,
       pers.no_reg_lama,
-      pers.no_reg_baru
+      pers.no_reg_baru,
+      COALESCE(pers.no_reg_baru, pers.no_reg_lama) as nomor_registrasi
     FROM pemeriksaan p
     LEFT JOIN pasien pas ON p.id_pasien = pas.id_pasien
     LEFT JOIN layanan_persalinan pers ON p.id_pemeriksaan = pers.id_pemeriksaan

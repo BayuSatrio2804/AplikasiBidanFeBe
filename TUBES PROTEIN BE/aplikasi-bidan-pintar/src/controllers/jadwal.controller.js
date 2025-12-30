@@ -5,6 +5,8 @@
 
 const jadwalService = require('../services/jadwal.service');
 const { success, created, notFound, serverError } = require('../utils/response');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Get all schedules with optional filters
@@ -13,7 +15,13 @@ const { success, created, notFound, serverError } = require('../utils/response')
 const listJadwal = async (req, res) => {
   try {
     const { bulan, tahun, layanan } = req.query;
+    const logMsg = `[${new Date().toISOString()}] Jadwal Filter: bulan=${bulan}, tahun=${tahun}, layanan=${layanan}\n`;
+    try {
+      fs.appendFileSync(path.join(__dirname, '../../debug_log.txt'), logMsg);
+    } catch (e) { console.error('Log error', e); }
+
     const data = await jadwalService.listJadwal(bulan, tahun, layanan);
+    console.log('[DEBUG-JADWAL-CONTROLLER] Result Count:', data.length);
     return success(res, 'Berhasil mengambil data jadwal', data);
   } catch (error) {
     return serverError(res, 'Gagal mengambil data jadwal', error);
@@ -99,6 +107,12 @@ const deleteJadwal = async (req, res) => {
 
     return success(res, 'Jadwal berhasil dihapus', { id_jadwal: id });
   } catch (error) {
+    if (error.message.includes('tergenerate secara otomatis')) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
     return serverError(res, 'Gagal menghapus jadwal', error);
   }
 };

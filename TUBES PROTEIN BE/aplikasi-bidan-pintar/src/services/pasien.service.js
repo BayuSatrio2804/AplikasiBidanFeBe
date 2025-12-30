@@ -112,11 +112,51 @@ const getRiwayatPasien = async (id) => {
   return rows;
 };
 
+/**
+ * Temukan atau buat pasien baru (Upsert)
+ * Digunakan oleh service lain dalam satu transaksi
+ * @param {Object} data - Data pasien {nama, nik, umur, alamat, no_hp}
+ * @param {Object} connection - Koneksi database (transaksi)
+ * @returns {string} ID Pasien
+ */
+const findOrCreatePasien = async (data, connection) => {
+  const { nama, nik, umur, alamat, no_hp } = data;
+  let id_pasien;
+  let existingPasien = [];
+
+  // Hanya cek NIK jika ada dan valid
+  if (nik && nik.trim().length > 0) {
+    [existingPasien] = await connection.query(
+      'SELECT id_pasien FROM pasien WHERE nik = ?',
+      [nik]
+    );
+  }
+
+  if (existingPasien.length > 0) {
+    id_pasien = existingPasien[0].id_pasien;
+    // Update data pasien yang ada
+    await connection.query(
+      'UPDATE pasien SET nama = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
+      [nama, umur, alamat, no_hp || null, id_pasien]
+    );
+  } else {
+    // Buat pasien baru
+    id_pasien = uuidv4();
+    await connection.query(
+      'INSERT INTO pasien (id_pasien, nama, nik, umur, alamat, no_hp) VALUES (?, ?, ?, ?, ?, ?)',
+      [id_pasien, nama, nik || null, umur, alamat, no_hp || null]
+    );
+  }
+
+  return id_pasien;
+};
+
 module.exports = {
   getAllPasien,
   getPasienById,
   createPasien,
   updatePasien,
   deletePasien,
-  getRiwayatPasien
+  getRiwayatPasien,
+  findOrCreatePasien
 };

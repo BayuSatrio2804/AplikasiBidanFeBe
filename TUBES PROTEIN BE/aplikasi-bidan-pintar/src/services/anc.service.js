@@ -7,6 +7,7 @@ const db = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const auditService = require('./audit.service');
 const jadwalService = require('./jadwal.service');
+const pasienService = require('./pasien.service');
 
 /**
  * Membuat registrasi ANC baru dengan data terkait
@@ -27,7 +28,8 @@ const createRegistrasiANC = async (data, userId) => {
     nama_istri, nik_istri, umur_istri, alamat, no_hp,
     jenis_layanan, tanggal, tindakan, no_reg_lama, no_reg_baru,
     nama_suami, nik_suami, umur_suami,
-    hpht, hpl, hasil_pemeriksaan, keterangan
+
+    hpht, hpl, jam_hpl, jam_hpl_selesai, hasil_pemeriksaan, keterangan
   } = data;
 
   const connection = await db.getConnection();
@@ -36,31 +38,13 @@ const createRegistrasiANC = async (data, userId) => {
     await connection.beginTransaction();
 
     // 1. Cari atau buat data pasien (ibu)
-    // Jika pasien sudah ada berdasarkan NIK, update datanya
-    let id_pasien;
-    let existingPasien = [];
-
-    // Hanya cek NIK jika ada dan valid
-    if (nik_istri && nik_istri.trim().length > 0) {
-      [existingPasien] = await connection.query(
-        'SELECT id_pasien FROM pasien WHERE nik = ?',
-        [nik_istri]
-      );
-    }
-
-    if (existingPasien.length > 0) {
-      id_pasien = existingPasien[0].id_pasien;
-      await connection.query(
-        'UPDATE pasien SET nama = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
-        [nama_istri, umur_istri, alamat, no_hp, id_pasien]
-      );
-    } else {
-      id_pasien = uuidv4();
-      await connection.query(
-        'INSERT INTO pasien (id_pasien, nama, nik, umur, alamat, no_hp) VALUES (?, ?, ?, ?, ?, ?)',
-        [id_pasien, nama_istri, nik_istri || null, umur_istri, alamat, no_hp]
-      );
-    }
+    const id_pasien = await pasienService.findOrCreatePasien({
+      nama: nama_istri,
+      nik: nik_istri,
+      umur: umur_istri,
+      alamat: alamat,
+      no_hp: no_hp
+    }, connection);
 
     // 2. Buat record pemeriksaan dengan format SOAP
     const id_pemeriksaan = uuidv4();
@@ -80,9 +64,9 @@ const createRegistrasiANC = async (data, userId) => {
     // 3. Buat record spesifik layanan ANC
     const id_anc = uuidv4();
     await connection.query(
-      `INSERT INTO layanan_anc (id_anc, id_pemeriksaan, no_reg_lama, no_reg_baru, nama_suami, nik_suami, umur_suami, hpht, hpl, hasil_pemeriksaan, tindakan, keterangan)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id_anc, id_pemeriksaan, no_reg_lama || null, no_reg_baru || null, nama_suami || null, nik_suami || null, umur_suami || null, hpht || null, hpl || null, hasil_pemeriksaan, tindakan || null, keterangan || null]
+      `INSERT INTO layanan_anc (id_anc, id_pemeriksaan, no_reg_lama, no_reg_baru, nama_suami, nik_suami, umur_suami, hpht, hpl, jam_hpl, jam_hpl_selesai, hasil_pemeriksaan, tindakan, keterangan)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id_anc, id_pemeriksaan, no_reg_lama || null, no_reg_baru || null, nama_suami || null, nik_suami || null, umur_suami || null, hpht || null, hpl || null, jam_hpl || '08:00:00', jam_hpl_selesai || null, hasil_pemeriksaan, tindakan || null, keterangan || null]
     );
 
     await connection.commit();
@@ -118,6 +102,7 @@ const getANCById = async (id_pemeriksaan) => {
       anc.id_anc, anc.no_reg_lama, anc.no_reg_baru, anc.nama_suami, anc.nik_suami, anc.umur_suami,
       DATE_FORMAT(anc.hpht, '%Y-%m-%d') as hpht,
       DATE_FORMAT(anc.hpl, '%Y-%m-%d') as hpl,
+      anc.jam_hpl,
       anc.hasil_pemeriksaan, anc.tindakan, anc.keterangan,
       j.jam_mulai, j.jam_selesai
     FROM pemeriksaan p
@@ -142,7 +127,8 @@ const updateANCRegistrasi = async (id_pemeriksaan, data, userId) => {
     nama_istri, nik_istri, umur_istri, alamat, no_hp,
     tanggal, tindakan, no_reg_lama, no_reg_baru,
     nama_suami, nik_suami, umur_suami,
-    hpht, hpl, hasil_pemeriksaan, keterangan
+
+    hpht, hpl, jam_hpl, jam_hpl_selesai, hasil_pemeriksaan, keterangan
   } = data;
 
   const connection = await db.getConnection();
@@ -183,9 +169,9 @@ const updateANCRegistrasi = async (id_pemeriksaan, data, userId) => {
     // Update layanan_anc
     await connection.query(
       `UPDATE layanan_anc SET no_reg_lama = ?, no_reg_baru = ?, nama_suami = ?, nik_suami = ?, umur_suami = ?,
-       hpht = ?, hpl = ?, hasil_pemeriksaan = ?, tindakan = ?, keterangan = ?
+       hpht = ?, hpl = ?, jam_hpl = ?, jam_hpl_selesai = ?, hasil_pemeriksaan = ?, tindakan = ?, keterangan = ?
        WHERE id_pemeriksaan = ?`,
-      [no_reg_lama || null, no_reg_baru || null, nama_suami || null, nik_suami || null, umur_suami || null, hpht || null, hpl || null, hasil_pemeriksaan, tindakan || null, keterangan || null, id_pemeriksaan]
+      [no_reg_lama || null, no_reg_baru || null, nama_suami || null, nik_suami || null, umur_suami || null, hpht || null, hpl || null, jam_hpl || '08:00:00', jam_hpl_selesai || null, hasil_pemeriksaan, tindakan || null, keterangan || null, id_pemeriksaan]
     );
 
     await connection.commit();
@@ -227,9 +213,53 @@ const deleteANCRegistrasi = async (id_pemeriksaan, userId) => {
   }
 };
 
+/**
+ * Ambil semua data ANC (opsional filter pencarian)
+ * @param {string} search - Kata kunci pencarian
+ * @returns {Array} Daftar ANC
+ */
+const getAllANC = async (search = '') => {
+  try {
+    let query = `
+      SELECT 
+        pm.id_pemeriksaan, 
+        pm.id_pasien,
+        p.nama as nama_pasien, 
+        p.nik,
+        pm.tanggal_pemeriksaan, 
+        pm.jenis_layanan,
+        anc.id_anc,
+        anc.no_reg_lama,
+        anc.no_reg_baru,
+        COALESCE(anc.no_reg_baru, anc.no_reg_lama) as nomor_registrasi
+      FROM pemeriksaan pm
+      LEFT JOIN layanan_anc anc ON pm.id_pemeriksaan = anc.id_pemeriksaan
+      LEFT JOIN pasien p ON pm.id_pasien = p.id_pasien
+      WHERE pm.jenis_layanan = 'ANC'
+    `;
+
+    const params = [];
+
+    if (search && search.trim()) {
+      query += ` AND (p.nama LIKE ? OR p.nik LIKE ?)`;
+      const searchTerm = `%${search}%`;
+      params.push(searchTerm, searchTerm);
+    }
+
+    query += ' ORDER BY pm.tanggal_pemeriksaan DESC';
+
+    const [results] = await db.query(query, params);
+    return results;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   createRegistrasiANC,
   getANCById,
   updateANCRegistrasi,
-  deleteANCRegistrasi
+  deleteANCRegistrasi,
+  getAllANC
 };
+
