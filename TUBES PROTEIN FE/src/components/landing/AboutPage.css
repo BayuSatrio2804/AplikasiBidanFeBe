@@ -1,0 +1,246 @@
+/* Reuse variables or base styles from LandingPage if they were separate, 
+   but for now we can import LandingPage.css in the JS or copy needed styles. 
+   Assuming LandingPage.css handles the header/footer and we just need specific about styles. */
+
+.about-page-content {
+    padding: 5rem 2rem;
+    background-color: #fdf5f9;
+    min-height: calc(100vh - 80px - 100px);
+    /* rough calc for header/footer */
+}
+
+/* Ensure these are available if not inheriting from LandingPage.css globally (which is not how Create React App usually works without global import)
+   However, since we imported LandingPage.css in AboutPage.js, we have the header/footer styles.
+   We just need to ensure the specific About styles are here or there.
+   I'll copy the About-specific styles here to be safe and clean.
+*/
+
+.about-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.about-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.about-title {
+    font-size: 2rem;
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.about-subtitle {
+    color: #666;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Visi Misi Grid */
+.visi-misi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 5rem;
+}
+
+.visi-card,
+.misi-card {
+    background-color: white;
+    padding: 3rem 2rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.visi-icon-wrapper,
+.misi-icon-wrapper {
+    background-color: #d94c89;
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.visi-icon,
+.misi-icon {
+    font-size: 1.8rem;
+    color: white;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.card-description {
+    color: #666;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+/* Services Section */
+.services-section {
+    background-color: white;
+    padding: 3rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    margin-bottom: 5rem;
+}
+
+.services-title {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 3rem;
+    color: #333;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3rem 4rem;
+}
+
+.service-item {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.service-icon-bg {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pink-light {
+    background-color: #fce4ec;
+}
+
+.service-icon {
+    font-size: 1.5rem;
+    color: #d94c89;
+}
+
+.service-content h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.service-content p {
+    margin: 0;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+/* Schedule Section */
+.schedule-section {
+    background: #d94c89;
+    border-radius: 24px;
+    padding: 4rem 3rem;
+    color: white;
+}
+
+.schedule-title {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 3rem;
+    font-weight: 700;
+}
+
+.schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.schedule-card {
+    background-color: white;
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    color: #333;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.schedule-card h3 {
+    color: #d94c89;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.schedule-card .days {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: #d94c89;
+}
+
+.schedule-card p {
+    margin: 0.2rem 0;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.schedule-card .xx-large {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.schedule-card .note {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .services-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .schedule-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .visi-misi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .schedule-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .services-section {
+        padding: 2rem;
+    }
+
+    .schedule-section {
+        padding: 2rem 1.5rem;
+    }
+}
