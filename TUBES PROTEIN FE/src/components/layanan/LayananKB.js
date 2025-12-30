@@ -83,51 +83,86 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    try {
-      let response;
-      if (editingId) {
-        response = await layananService.updateKB(editingId, formData);
-      } else {
-        response = await layananService.createKB(formData);
-      }
-
-      if (response.success) {
-        showNotifikasi({
-          type: 'success',
-          message: editingId ? 'Data berhasil diupdate!' : 'Data registrasi KB berhasil disimpan!',
-          autoClose: true,
-          autoCloseDuration: 2000,
-          onConfirm: hideNotifikasi
-        });
-        setShowForm(false);
-        resetForm();
-        fetchRiwayatPelayanan();
-      } else {
-        setError(response.message || 'Gagal menyimpan data');
-      }
-    } catch (error) {
-      console.error('Error saving KB registration:', error);
-
-      // Log detailed error information for debugging
-      if (error.data && error.data.errors) {
-        console.error('Validation errors:', error.data.errors);
-        const errorDetails = error.data.errors.map(e => `${e.field}: ${e.message}`).join('\n');
-        console.error('Error details:\n' + errorDetails);
-      }
-
-      setError(error.message || 'Gagal menyimpan data registrasi KB');
+    // Validate required fields
+    if (!formData.tanggal || !formData.metode || !formData.nama_ibu || !formData.nik_ibu || !formData.umur_ibu || !formData.nama_ayah || !formData.nik_ayah || !formData.alamat || !formData.nomor_hp) {
       showNotifikasi({
         type: 'error',
-        message: error.message || 'Gagal menyimpan data registrasi KB',
         onConfirm: hideNotifikasi,
         onCancel: hideNotifikasi
       });
-    } finally {
-      setIsLoading(false);
+      return;
     }
+
+    // Validasi NIK
+    if (formData.nik_ibu && formData.nik_ibu.length !== 16) {
+      showNotifikasi({
+        type: 'error',
+        message: 'NIK Ibu harus 16 digit!',
+        onConfirm: hideNotifikasi
+      });
+      return;
+    }
+
+    if (formData.nik_ayah && formData.nik_ayah.length !== 16) {
+      showNotifikasi({
+        type: 'error',
+        message: 'NIK Ayah harus 16 digit!',
+        onConfirm: hideNotifikasi
+      });
+      return;
+    }
+
+    showNotifikasi({
+      type: editingId ? 'confirm-edit' : 'confirm-save',
+      onConfirm: async () => {
+        hideNotifikasi();
+        setIsLoading(true);
+
+        try {
+          let response;
+          if (editingId) {
+            response = await layananService.updateKB(editingId, formData);
+          } else {
+            response = await layananService.createKB(formData);
+          }
+
+          if (response.success) {
+            showNotifikasi({
+              type: 'success',
+              message: editingId ? 'Data berhasil diupdate!' : 'Data registrasi KB berhasil disimpan!',
+              autoClose: true,
+              autoCloseDuration: 2000,
+              onConfirm: hideNotifikasi
+            });
+            setShowForm(false);
+            resetForm();
+            fetchRiwayatPelayanan();
+          } else {
+            setError(response.message || 'Gagal menyimpan data');
+          }
+        } catch (error) {
+          console.error('Error saving KB registration:', error);
+
+          // Log detailed error information for debugging
+          if (error.data && error.data.errors) {
+            console.error('Validation errors:', error.data.errors);
+            const errorDetails = error.data.errors.map(e => `${e.field}: ${e.message}`).join('\n');
+            console.error('Error details:\n' + errorDetails);
+          }
+
+          setError(error.message || 'Gagal menyimpan data registrasi KB');
+          showNotifikasi({
+            type: 'error',
+            message: error.message || 'Gagal menyimpan data registrasi KB',
+            onConfirm: hideNotifikasi,
+            onCancel: hideNotifikasi
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      onCancel: hideNotifikasi
+    });
   };
 
   const handleBatal = () => {
@@ -310,20 +345,20 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
 
                 <div className="kb-action-buttons">
                   <button className="kb-action-btn" onClick={() => setShowForm(true)}>
-                    <svg width="30" height="30" viewBox="0 0 30 30" fill="white">
-                      <path d="M15 8C15 11.866 11.866 15 8 15C4.134 15 1 11.866 1 8C1 4.134 4.134 1 8 1C11.866 1 15 4.134 15 8Z" />
-                      <path d="M8 16C3.582 16 0 19.582 0 24V28H16V24C16 19.582 12.418 16 8 16Z" />
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
+                      <path d="M20 10C20 14.866 15.866 18 11 18C6.134 18 2 14.866 2 10C2 5.134 6.134 2 11 2C15.866 2 20 5.134 20 10Z" />
+                      <path d="M11 19C4.582 19 0 23.582 0 29V35H22V29C22 23.582 17.418 19 11 19Z" />
                     </svg>
                     <span>Tambah Pasien</span>
                   </button>
 
                   <button className="kb-action-btn" onClick={onToJadwal}>
-                    <svg width="30" height="30" viewBox="0 0 30 30" fill="white">
-                      <rect x="5" y="5" width="20" height="20" rx="2" stroke="white" strokeWidth="2" fill="none" />
-                      <line x1="5" y1="11" x2="25" y2="11" stroke="white" strokeWidth="2" />
-                      <circle cx="10" cy="8" r="1" fill="white" />
-                      <circle cx="14" cy="8" r="1" fill="white" />
-                      <circle cx="18" cy="8" r="1" fill="white" />
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
+                      <rect x="8" y="8" width="24" height="24" rx="2" stroke="white" strokeWidth="2" fill="none" />
+                      <line x1="8" y1="15" x2="32" y2="15" stroke="white" strokeWidth="2" />
+                      <circle cx="14" cy="11.5" r="1" fill="white" />
+                      <circle cx="18" cy="11.5" r="1" fill="white" />
+                      <circle cx="22" cy="11.5" r="1" fill="white" />
                     </svg>
                     <span>Buat Jadwal</span>
                   </button>
@@ -388,7 +423,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
           ) : (
             /* Form Registrasi */
             <div className="kb-form-container">
-              <form onSubmit={handleSubmit} className="kb-form">
+              <form onSubmit={handleSubmit} className="kb-form" noValidate>
                 {/* Informasi Layanan */}
                 <div className="kb-form-section">
                   <h3 className="kb-form-section-title">Informasi Layanan</h3>

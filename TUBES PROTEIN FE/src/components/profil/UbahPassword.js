@@ -75,41 +75,48 @@ function UbahPassword({ onBack }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const response = await authService.updateProfile({
-        password: passwordBaru,
-        passwordLama: passwordLama
-      });
+    showNotifikasi({
+      type: 'confirm-edit',
+      onConfirm: async () => {
+        hideNotifikasi();
+        setIsLoading(true);
+        try {
+          const response = await authService.updateProfile({
+            password: passwordBaru,
+            passwordLama: passwordLama
+          });
 
-      if (response.success) {
-        showNotifikasi({
-          type: 'success',
-          message: 'Password berhasil diubah!',
-          autoClose: true,
-          autoCloseDuration: 2000,
-          onConfirm: () => {
-            hideNotifikasi();
-            resetForm();
-            if (onBack) onBack();
+          if (response.success) {
+            showNotifikasi({
+              type: 'success',
+              message: 'Password berhasil diubah!',
+              autoClose: true,
+              autoCloseDuration: 2000,
+              onConfirm: () => {
+                hideNotifikasi();
+                resetForm();
+                if (onBack) onBack();
+              }
+            });
           }
-        });
-      }
-    } catch (error) {
-      console.error('Error changing password:', error);
-      showNotifikasi({
-        type: 'error',
-        message: error.message || 'Gagal mengubah password',
-        onConfirm: hideNotifikasi
-      });
-    } finally {
-      setIsLoading(false);
-    }
+        } catch (error) {
+          console.error('Error changing password:', error);
+          showNotifikasi({
+            type: 'error',
+            message: error.message || 'Gagal mengubah password',
+            onConfirm: hideNotifikasi
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      onCancel: hideNotifikasi
+    });
   };
 
   const resetForm = () => {

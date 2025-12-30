@@ -106,8 +106,16 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
+
+    // Validate required fields
+    if (!formData.tanggal || !formData.no_reg || !formData.jenis_kunjungan || !formData.nama_pasien || !formData.umur_pasien || !formData.bb_pasien || !formData.td_pasien || !formData.keluhan || !formData.diagnosa || !formData.terapi_obat) {
+      showNotifikasi({
+        type: 'error',
+        onConfirm: hideNotifikasi,
+        onCancel: hideNotifikasi
+      });
+      return;
+    }
 
     // Validasi NIK sebelum submit
     if (formData.nik_pasien && formData.nik_pasien.length !== 16) {
@@ -116,7 +124,6 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
         message: 'NIK Pasien harus 16 digit!',
         onConfirm: hideNotifikasi
       });
-      setIsLoading(false);
       return;
     }
 
@@ -126,43 +133,52 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
         message: 'NIK Wali harus 16 digit!',
         onConfirm: hideNotifikasi
       });
-      setIsLoading(false);
       return;
     }
 
-    try {
-      let response;
-      if (editingId) {
-        response = await layananService.updateKunjunganPasien(editingId, formData);
-      } else {
-        response = await layananService.createKunjunganPasien(formData);
-      }
-      if (response.success) {
-        showNotifikasi({
-          type: 'success',
-          message: editingId ? 'Data kunjungan pasien berhasil diupdate!' : 'Data kunjungan pasien berhasil disimpan!',
-          autoClose: true,
-          autoCloseDuration: 2000,
-          onConfirm: hideNotifikasi
-        });
-        resetForm();
-        fetchRiwayatPelayanan();
-      } else {
-        throw new Error(response.message || 'Gagal menyimpan data');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Terjadi kesalahan saat menyimpan data';
-      setError(errorMessage);
-      showNotifikasi({
-        type: 'error',
-        message: errorMessage,
-        onConfirm: hideNotifikasi,
-        onCancel: hideNotifikasi
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    showNotifikasi({
+      type: editingId ? 'confirm-edit' : 'confirm-save',
+      onConfirm: async () => {
+        hideNotifikasi();
+        setIsLoading(true);
+        setError('');
+
+        try {
+          let response;
+          if (editingId) {
+            response = await layananService.updateKunjunganPasien(editingId, formData);
+          } else {
+            response = await layananService.createKunjunganPasien(formData);
+          }
+          if (response.success) {
+            showNotifikasi({
+              type: 'success',
+              message: editingId ? 'Data kunjungan pasien berhasil diupdate!' : 'Data kunjungan pasien berhasil disimpan!',
+              autoClose: true,
+              autoCloseDuration: 2000,
+              onConfirm: hideNotifikasi
+            });
+            resetForm();
+            fetchRiwayatPelayanan();
+          } else {
+            throw new Error(response.message || 'Gagal menyimpan data');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          const errorMessage = error.response?.data?.message || error.message || 'Terjadi kesalahan saat menyimpan data';
+          setError(errorMessage);
+          showNotifikasi({
+            type: 'error',
+            message: errorMessage,
+            onConfirm: hideNotifikasi,
+            onCancel: hideNotifikasi
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      onCancel: hideNotifikasi
+    });
   };
 
   const handleBatal = () => {
@@ -417,7 +433,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
           ) : (
             /* Form Registrasi */
             <div className="kunjungan-form-container">
-              <form className="kunjungan-form" onSubmit={handleSubmit}>
+              <form className="kunjungan-form" onSubmit={handleSubmit} noValidate>
                 {/* Informasi Layanan */}
                 <div className="kunjungan-form-section">
                   <h3 className="kunjungan-form-section-title">Informasi Layanan</h3>

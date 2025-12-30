@@ -76,9 +76,7 @@ function App() {
       type: 'confirm-logout',
       onConfirm: () => {
         clearAuth(); // Clear token and user from localStorage
-        setIsLoggedIn(false);
-        setUserData(null);
-        navigate('/masuk');
+        window.location.href = '/';
         hideNotifikasi();
       },
       onCancel: hideNotifikasi,
@@ -303,7 +301,7 @@ function App() {
           <Route path="/edit-pasien" element={
             <ProtectedRoute>
               <EditPasien
-                onBack={handleBackToDashboard}
+                onBack={handleToDataPasien}
                 onToRiwayatDataMasuk={handleToRiwayatDataMasuk}
                 onToRiwayatMasukAkun={handleToRiwayatMasukAkun}
                 onToProfil={handleToProfil}

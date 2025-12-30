@@ -331,8 +331,8 @@
 
 .jadwal-btn-edit,
 .jadwal-btn-delete {
-  background: white;
-  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   width: 35px;
   height: 35px;
   border-radius: 50%;

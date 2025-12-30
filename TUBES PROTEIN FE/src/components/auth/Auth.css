@@ -197,3 +197,17 @@
     padding: 35px 25px;
   }
 }
+/* Slash effect for hidden password */
+.eye-icon.eye-slash::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #000;
+  transform: translateY(-50%) rotate(45deg);
+  pointer-events: none;
+  z-index: 10;
+}
+

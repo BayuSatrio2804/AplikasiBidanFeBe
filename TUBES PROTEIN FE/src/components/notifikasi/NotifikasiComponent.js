@@ -15,11 +15,11 @@ import pinkLogo from '../../assets/images/pink-logo.png';
  * - 'cek-email': Notifikasi Cek Email
  */
 
-function Notifikasi({ 
-  type = 'success', 
-  message, 
+function Notifikasi({
+  type = 'success',
+  message,
   detail,
-  onConfirm, 
+  onConfirm,
   onCancel,
   show = false,
   confirmText = 'Ya',
@@ -27,11 +27,11 @@ function Notifikasi({
   autoClose = false,
   autoCloseDuration = 3000
 }) {
-  
+
   React.useEffect(() => {
     console.log('Notifikasi render - show:', show, 'type:', type, 'message:', message);
   }, [show, type, message]);
-  
+
   React.useEffect(() => {
     if (show && autoClose && (type === 'success' || type === 'success-login')) {
       const timer = setTimeout(() => {
@@ -61,6 +61,10 @@ function Notifikasi({
         return 'Selamat!';
       case 'cek-email':
         return 'Cek Email Anda!';
+      case 'register-success':
+        return 'Berhasil!';
+      case 'otp-sent':
+        return 'Perhatian!';
       default:
         return message;
     }
@@ -68,7 +72,7 @@ function Notifikasi({
 
   const getMessage = () => {
     if (message) return message;
-    
+
     switch (type) {
       case 'confirm-save':
         return 'Apakah Anda yakin untuk menyimpan data berikut?';
@@ -79,20 +83,22 @@ function Notifikasi({
       case 'success':
         return 'Data berhasil tersimpan dengan aman di sistem.';
       case 'error':
-        return 'Terjadi kendala saat menyimpan data. Silakan periksa kembali!';
+        return 'Mohon lengkapi data yang kosong atau perbaiki data yang salah';
       case 'confirm-logout':
         return 'Apakah Anda yakin ingin keluar dari sistem? Pastikan semua pekerjaan telah tersimpan.';
       case 'success-login':
         return 'Anda telah berhasil masuk.';
       case 'cek-email':
         return 'Link verifikasi telah dikirim ke email Anda. Silakan cek inbox atau folder spam Anda.';
+      case 'register-success':
+        return 'Akun Anda telah berhasil dibuat.';
       default:
         return '';
     }
   };
 
   const isConfirmDialog = ['confirm-save', 'confirm-edit', 'confirm-delete', 'confirm-logout'].includes(type);
-  const isSuccessNotif = ['success', 'success-login', 'cek-email'].includes(type);
+  const isSuccessNotif = ['success', 'success-login', 'cek-email', 'register-success', 'otp-sent'].includes(type);
 
   return (
     <div className="notifikasi-overlay" onClick={isConfirmDialog ? null : onCancel}>
@@ -100,17 +106,17 @@ function Notifikasi({
         <div className="notifikasi-icon-wrapper">
           <img src={pinkLogo} alt="Icon" className="notifikasi-icon" />
         </div>
-        
+
         <div className="notifikasi-content">
           <h3 className="notifikasi-title">{getTitle()}</h3>
           <p className="notifikasi-message">{getMessage()}</p>
           {detail && <p className="notifikasi-detail">{detail}</p>}
-          
+
           <div className="notifikasi-actions">
             {isConfirmDialog ? (
               <>
-                <button 
-                  className="notifikasi-btn notifikasi-btn-cancel" 
+                <button
+                  className="notifikasi-btn notifikasi-btn-cancel"
                   onClick={() => {
                     console.log('Cancel button clicked');
                     if (onCancel) onCancel();
@@ -118,8 +124,8 @@ function Notifikasi({
                 >
                   {cancelText}
                 </button>
-                <button 
-                  className="notifikasi-btn notifikasi-btn-confirm" 
+                <button
+                  className="notifikasi-btn notifikasi-btn-confirm"
                   onClick={() => {
                     console.log('Confirm button clicked');
                     if (onConfirm) onConfirm();
@@ -130,7 +136,7 @@ function Notifikasi({
               </>
             ) : isSuccessNotif ? (
               !autoClose && (
-                <button 
+                <button
                   className="notifikasi-btn-close"
                   onClick={onConfirm || onCancel}
                 >
@@ -139,8 +145,8 @@ function Notifikasi({
               )
             ) : (
               <>
-                <button 
-                  className="notifikasi-btn notifikasi-btn-cancel" 
+                <button
+                  className="notifikasi-btn notifikasi-btn-cancel"
                   onClick={() => {
                     console.log('Tutup button clicked');
                     if (onCancel) {
@@ -152,8 +158,8 @@ function Notifikasi({
                 >
                   {cancelText === 'Tidak' ? 'Tutup' : cancelText}
                 </button>
-                <button 
-                  className="notifikasi-btn notifikasi-btn-confirm" 
+                <button
+                  className="notifikasi-btn notifikasi-btn-confirm"
                   onClick={() => {
                     console.log('Periksa button clicked');
                     if (onConfirm) onConfirm();

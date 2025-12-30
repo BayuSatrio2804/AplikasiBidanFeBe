@@ -7,10 +7,10 @@ import pasienService from '../../services/pasien.service';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
 
-function BuatJadwal({ 
-  onBack, 
-  onToRiwayatDataMasuk, 
-  onToRiwayatMasukAkun, 
+function BuatJadwal({
+  onBack,
+  onToRiwayatDataMasuk,
+  onToRiwayatMasukAkun,
   onToProfil,
   onToTambahPasien,
   onToTambahPengunjung,
@@ -74,60 +74,68 @@ function BuatJadwal({
   };
 
   const handleSubmit = async () => {
-    try {
-      // Validate
-      if (!formData.id_pasien || !formData.jenis_layanan || !formData.tanggal || !formData.jam_mulai) {
-        showNotifikasi({
-          type: 'error',
-          message: 'Mohon lengkapi: Pasien, Layanan, Tanggal, Jam Mulai',
-          onConfirm: hideNotifikasi
-        });
-        return;
-      }
-
-      const payload = {
-        id_pasien: formData.id_pasien,
-        jenis_layanan: formData.jenis_layanan,
-        tanggal: formData.tanggal,
-        jam_mulai: formData.jam_mulai,
-        jam_selesai: formData.jam_selesai || null
-      };
-
-      console.log('📤 Submit payload:', payload);
-
-      let response;
-      if (editData) {
-        response = await jadwalService.updateJadwal(editData.id_jadwal, payload);
-      } else {
-        response = await jadwalService.createJadwal(payload);
-      }
-
-      if (response.success) {
-        showNotifikasi({
-          type: 'success',
-          message: editData ? 'Jadwal berhasil diupdate!' : 'Jadwal berhasil dibuat!',
-          autoClose: true,
-          autoCloseDuration: 2000,
-          onConfirm: () => {
-            hideNotifikasi();
-            onBack();
-          }
-        });
-      } else {
-        showNotifikasi({
-          type: 'error',
-          message: response.message || 'Gagal menyimpan jadwal',
-          onConfirm: hideNotifikasi
-        });
-      }
-    } catch (error) {
-      console.error('Error saving jadwal:', error);
+    // Validate
+    if (!formData.id_pasien || !formData.jenis_layanan || !formData.tanggal || !formData.jam_mulai) {
       showNotifikasi({
         type: 'error',
-        message: error.message || 'Terjadi kesalahan saat menyimpan jadwal',
-        onConfirm: hideNotifikasi
+        onConfirm: hideNotifikasi,
+        onCancel: hideNotifikasi
       });
+      return;
     }
+
+    showNotifikasi({
+      type: 'confirm-save',
+      onConfirm: async () => {
+        hideNotifikasi();
+
+        try {
+          const payload = {
+            id_pasien: formData.id_pasien,
+            jenis_layanan: formData.jenis_layanan,
+            tanggal: formData.tanggal,
+            jam_mulai: formData.jam_mulai,
+            jam_selesai: formData.jam_selesai || null
+          };
+
+          console.log('📤 Submit payload:', payload);
+
+          let response;
+          if (editData) {
+            response = await jadwalService.updateJadwal(editData.id_jadwal, payload);
+          } else {
+            response = await jadwalService.createJadwal(payload);
+          }
+
+          if (response.success) {
+            showNotifikasi({
+              type: 'success',
+              message: editData ? 'Jadwal berhasil diupdate!' : 'Jadwal berhasil dibuat!',
+              autoClose: true,
+              autoCloseDuration: 2000,
+              onConfirm: () => {
+                hideNotifikasi();
+                onBack();
+              }
+            });
+          } else {
+            showNotifikasi({
+              type: 'error',
+              message: response.message || 'Gagal menyimpan jadwal',
+              onConfirm: hideNotifikasi
+            });
+          }
+        } catch (error) {
+          console.error('Error saving jadwal:', error);
+          showNotifikasi({
+            type: 'error',
+            message: error.message || 'Terjadi kesalahan saat menyimpan jadwal',
+            onConfirm: hideNotifikasi
+          });
+        }
+      },
+      onCancel: hideNotifikasi
+    });
   };
 
   const handleCancel = () => {
@@ -143,7 +151,7 @@ function BuatJadwal({
             <img src={pinkLogo} alt="Pink Logo" className="buat-jadwal-header-logo-img" />
           </div>
           <h1 className="buat-jadwal-header-title">
-            {editData ? 'Edit Jadwal' : 'Buat/Edit Jadwal'}
+            {editData ? 'Edit Jadwal' : 'Jadwal'}
           </h1>
         </div>
         <button className="btn-kembali-jadwal" onClick={onBack}>Kembali</button>
@@ -152,7 +160,7 @@ function BuatJadwal({
       {/* Main Content */}
       <div className="buat-jadwal-content">
         {/* Sidebar */}
-        <Sidebar 
+        <Sidebar
           activePage="jadwal"
           onRiwayatDataMasuk={onToRiwayatDataMasuk}
           onRiwayatMasukAkun={onToRiwayatMasukAkun}
@@ -171,7 +179,7 @@ function BuatJadwal({
           <div className="jadwal-form-container">
             <div className="jadwal-form-section">
               <h2 className="jadwal-form-section-title">Jadwal</h2>
-              
+
               <div className="jadwal-form-content">
                 {/* Jenis Layanan */}
                 <div className="jadwal-form-group full-width">
@@ -245,22 +253,22 @@ function BuatJadwal({
 
               {/* Form Actions */}
               <div className="jadwal-form-actions">
-                <button 
-                  className="btn-jadwal-submit" 
+                <button
+                  className="btn-jadwal-submit"
                   onClick={handleSubmit}
                   title="Simpan"
                 >
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
-                    <path d="M7 10L9 12L13 8M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="white" strokeWidth="2" fill="none"/>
+                    <path d="M7 10L9 12L13 8M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="white" strokeWidth="2" fill="none" />
                   </svg>
                 </button>
-                <button 
-                  className="btn-jadwal-cancel" 
+                <button
+                  className="btn-jadwal-cancel"
                   onClick={handleCancel}
                   title="Batal"
                 >
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
-                    <path d="M6 6L14 14M6 14L14 6M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="white" strokeWidth="2" fill="none"/>
+                    <path d="M6 6L14 14M6 14L14 6M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="white" strokeWidth="2" fill="none" />
                   </svg>
                 </button>
               </div>
@@ -268,7 +276,7 @@ function BuatJadwal({
           </div>
         </main>
       </div>
-      
+
       {/* Komponen Notifikasi */}
       <Notifikasi
         show={notifikasi.show}

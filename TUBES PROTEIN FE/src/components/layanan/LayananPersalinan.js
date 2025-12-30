@@ -87,43 +87,78 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    try {
-      let response;
-      if (editingId) {
-        response = await layananService.updatePersalinan(editingId, formData);
-      } else {
-        response = await layananService.createPersalinan(formData);
-      }
-
-      if (response.success) {
-        showNotifikasi({
-          type: 'success',
-          message: editingId ? 'Data berhasil diupdate!' : 'Data registrasi persalinan berhasil disimpan!',
-          autoClose: true,
-          autoCloseDuration: 2000,
-          onConfirm: hideNotifikasi
-        });
-        setShowForm(false);
-        resetForm();
-        fetchRiwayatPelayanan();
-      } else {
-        setError(response.message || 'Gagal menyimpan data');
-      }
-    } catch (error) {
-      console.error('Error saving registration:', error);
-      setError(error.message || 'Gagal menyimpan data registrasi');
+    // Validate required fields
+    if (!formData.tanggal || !formData.jenis_partus || !formData.nama_istri || !formData.nik_istri || !formData.umur_istri) {
       showNotifikasi({
         type: 'error',
-        message: error.message || 'Gagal menyimpan data registrasi',
         onConfirm: hideNotifikasi,
         onCancel: hideNotifikasi
       });
-    } finally {
-      setIsLoading(false);
+      return;
     }
+
+    // Validasi NIK
+    if (formData.nik_istri && formData.nik_istri.length !== 16) {
+      showNotifikasi({
+        type: 'error',
+        message: 'NIK Istri harus 16 digit!',
+        onConfirm: hideNotifikasi
+      });
+      return;
+    }
+
+    if (formData.nik_suami && formData.nik_suami.length > 0 && formData.nik_suami.length !== 16) {
+      showNotifikasi({
+        type: 'error',
+        message: 'NIK Suami harus 16 digit!',
+        onConfirm: hideNotifikasi
+      });
+      return;
+    }
+
+    showNotifikasi({
+      type: editingId ? 'confirm-edit' : 'confirm-save',
+      onConfirm: async () => {
+        hideNotifikasi();
+        setIsLoading(true);
+
+        try {
+          let response;
+          if (editingId) {
+            response = await layananService.updatePersalinan(editingId, formData);
+          } else {
+            response = await layananService.createPersalinan(formData);
+          }
+
+          if (response.success) {
+            showNotifikasi({
+              type: 'success',
+              message: editingId ? 'Data berhasil diupdate!' : 'Data registrasi persalinan berhasil disimpan!',
+              autoClose: true,
+              autoCloseDuration: 2000,
+              onConfirm: hideNotifikasi
+            });
+            setShowForm(false);
+            resetForm();
+            fetchRiwayatPelayanan();
+          } else {
+            setError(response.message || 'Gagal menyimpan data');
+          }
+        } catch (error) {
+          console.error('Error saving registration:', error);
+          setError(error.message || 'Gagal menyimpan data registrasi');
+          showNotifikasi({
+            type: 'error',
+            message: error.message || 'Gagal menyimpan data registrasi',
+            onConfirm: hideNotifikasi,
+            onCancel: hideNotifikasi
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      onCancel: hideNotifikasi
+    });
   };
 
   const handleBatal = () => {
@@ -373,7 +408,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
           ) : (
             /* Form Registrasi */
             <div className="persalinan-form-container">
-              <form onSubmit={handleSubmit} className="persalinan-form">
+              <form onSubmit={handleSubmit} className="persalinan-form" noValidate>
                 {/* Informasi Layanan */}
                 <div className="persalinan-form-section">
                   <h3 className="persalinan-form-section-title">Informasi Layanan</h3>

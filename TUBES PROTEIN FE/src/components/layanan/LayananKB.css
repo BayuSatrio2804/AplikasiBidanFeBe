@@ -223,8 +223,8 @@
 }
 
 .kb-action-btn svg {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
 }
 
 /* Riwayat Section */
@@ -306,6 +306,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -552,28 +553,28 @@
   .kb-content {
     flex-direction: column;
   }
-  
+
   .kb-sidebar {
     width: 100%;
     flex-direction: row;
     justify-content: space-between;
     padding: 20px;
   }
-  
+
   .kb-sidebar-profile {
     flex-direction: row;
   }
-  
+
   .kb-profile-avatar {
     width: 60px;
     height: 60px;
   }
-  
+
   .kb-sidebar-menu {
     flex-direction: row;
     gap: 15px;
   }
-  
+
   .btn-profil-kb {
     width: auto;
     padding: 8px 16px;
@@ -584,7 +585,7 @@
   .kb-header {
     padding: 15px 20px;
   }
-  
+
   .kb-header-title {
     font-size: 16px;
   }
@@ -597,12 +598,12 @@
     width: 100%;
     padding: 20px;
   }
-  
+
   .kb-main-area {
     padding: 20px;
     width: 100%;
   }
-  
+
   .kb-action-buttons {
     flex-direction: column;
     gap: 10px;
@@ -611,11 +612,11 @@
   .kb-action-btn {
     width: 100%;
   }
-  
+
   .kb-form-row {
     flex-direction: column;
   }
-  
+
   .kb-form-group.small {
     flex: 1;
   }
@@ -634,7 +635,7 @@
   .kb-header-title {
     font-size: 14px;
   }
-  
+
   .btn-kembali-kb {
     padding: 8px 16px;
     font-size: 12px;
@@ -643,11 +644,11 @@
   .kb-content {
     flex-direction: column;
   }
-  
+
   .kb-form-container {
     padding: 15px;
   }
-  
+
   .kb-form-section {
     padding: 12px;
   }

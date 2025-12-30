@@ -86,48 +86,83 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    console.log('=== SUBMIT DATA ===');
-    console.log('editingId:', editingId);
-    console.log('formData being sent:', JSON.stringify(formData, null, 2));
-
-    try {
-      let response;
-      if (editingId) {
-        console.log('Calling updateImunisasi with:', editingId, formData);
-        response = await layananService.updateImunisasi(editingId, formData);
-      } else {
-        response = await layananService.createImunisasi(formData);
-      }
-
-      if (response.success) {
-        showNotifikasi({
-          type: 'success',
-          message: editingId ? 'Data berhasil diupdate!' : 'Data registrasi imunisasi berhasil disimpan!',
-          autoClose: true,
-          autoCloseDuration: 2000,
-          onConfirm: hideNotifikasi
-        });
-        setShowForm(false);
-        resetForm();
-        fetchRiwayatPelayanan();
-      } else {
-        setError(response.message || 'Gagal menyimpan data');
-      }
-    } catch (error) {
-      console.error('Error saving registration:', error);
-      setError(error.message || 'Gagal menyimpan data registrasi');
+    // Validate required fields
+    if (!formData.tanggal || !formData.jenis_imunisasi || !formData.nama_ibu || !formData.nik_ibu || !formData.umur_ibu || !formData.alamat_ibu || !formData.nama_ayah || !formData.nik_ayah || !formData.nama_bayi || !formData.tanggal_lahir || !formData.nomor_hp) {
       showNotifikasi({
         type: 'error',
-        message: error.message || 'Gagal menyimpan data registrasi',
         onConfirm: hideNotifikasi,
         onCancel: hideNotifikasi
       });
-    } finally {
-      setIsLoading(false);
+      return;
     }
+
+    // Validasi NIK
+    if (formData.nik_ibu && formData.nik_ibu.length !== 16) {
+      showNotifikasi({
+        type: 'error',
+        message: 'NIK Ibu harus 16 digit!',
+        onConfirm: hideNotifikasi
+      });
+      return;
+    }
+
+    if (formData.nik_ayah && formData.nik_ayah.length !== 16) {
+      showNotifikasi({
+        type: 'error',
+        message: 'NIK Ayah harus 16 digit!',
+        onConfirm: hideNotifikasi
+      });
+      return;
+    }
+
+    showNotifikasi({
+      type: editingId ? 'confirm-edit' : 'confirm-save',
+      onConfirm: async () => {
+        hideNotifikasi();
+        setIsLoading(true);
+
+        console.log('=== SUBMIT DATA ===');
+        console.log('editingId:', editingId);
+        console.log('formData being sent:', JSON.stringify(formData, null, 2));
+
+        try {
+          let response;
+          if (editingId) {
+            console.log('Calling updateImunisasi with:', editingId, formData);
+            response = await layananService.updateImunisasi(editingId, formData);
+          } else {
+            response = await layananService.createImunisasi(formData);
+          }
+
+          if (response.success) {
+            showNotifikasi({
+              type: 'success',
+              message: editingId ? 'Data berhasil diupdate!' : 'Data registrasi imunisasi berhasil disimpan!',
+              autoClose: true,
+              autoCloseDuration: 2000,
+              onConfirm: hideNotifikasi
+            });
+            setShowForm(false);
+            resetForm();
+            fetchRiwayatPelayanan();
+          } else {
+            setError(response.message || 'Gagal menyimpan data');
+          }
+        } catch (error) {
+          console.error('Error saving registration:', error);
+          setError(error.message || 'Gagal menyimpan data registrasi');
+          showNotifikasi({
+            type: 'error',
+            message: error.message || 'Gagal menyimpan data registrasi',
+            onConfirm: hideNotifikasi,
+            onCancel: hideNotifikasi
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      onCancel: hideNotifikasi
+    });
   };
 
   const handleBatal = () => {
@@ -369,7 +404,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
           ) : (
             /* Form Registrasi */
             <div className="imunisasi-form-container">
-              <form onSubmit={handleSubmit} className="imunisasi-form">
+              <form onSubmit={handleSubmit} className="imunisasi-form" noValidate>
                 {/* Informasi Layanan */}
                 <div className="imunisasi-form-section">
                   <h3 className="imunisasi-form-section-title">Informasi Layanan</h3>

@@ -3,6 +3,8 @@ import './Auth.css';
 import eyeIcon from '../../assets/images/icons/icons8-eye-100.png';
 import pinkLogo from '../../assets/images/pink-logo.png';
 import authService from '../../services/auth.service';
+import Notifikasi from '../notifikasi/NotifikasiComponent';
+import { useNotifikasi } from '../notifikasi/useNotifikasi';
 
 function BuatAkun({ onNavigate }) {
   const [namaLengkap, setNamaLengkap] = useState('');
@@ -12,6 +14,7 @@ function BuatAkun({ onNavigate }) {
   const [ingatSaya, setIngatSaya] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +30,17 @@ function BuatAkun({ onNavigate }) {
       });
 
       if (response.success) {
-        alert('Akun berhasil dibuat! Silakan login menggunakan akun Anda.');
-        onNavigate('masuk');
+        showNotifikasi({
+          type: 'register-success',
+          onConfirm: () => {
+            hideNotifikasi();
+            onNavigate('masuk');
+          },
+          onCancel: () => {
+            hideNotifikasi();
+            onNavigate('masuk');
+          }
+        });
       } else {
         setError(response.message || 'Gagal membuat akun');
       }
@@ -129,6 +141,15 @@ function BuatAkun({ onNavigate }) {
             </div>
           </div>
         </form>
+
+        <Notifikasi
+          show={notifikasi.show}
+          type={notifikasi.type}
+          message={notifikasi.message}
+          detail={notifikasi.detail}
+          onConfirm={notifikasi.onConfirm}
+          onCancel={notifikasi.onCancel}
+        />
       </div>
     </div>
   );

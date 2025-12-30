@@ -1,12 +1,25 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import './Auth.css';
 import authService from '../../services/auth.service';
+import Notifikasi from '../notifikasi/NotifikasiComponent';
+import { useNotifikasi } from '../notifikasi/useNotifikasi';
+import pinkLogo from '../../assets/images/pink-logo.png';
 
 function VerifikasiOTP({ onBack, onVerified, email, usernameOrEmail }) {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const inputRefs = useRef([]);
+  const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
+
+  useEffect(() => {
+    showNotifikasi({
+      type: 'otp-sent',
+      message: 'Kode verifikasi telah dikirim ke email Anda. Silakan periksa kotak masuk.',
+      onConfirm: hideNotifikasi,
+      onCancel: hideNotifikasi
+    });
+  }, []);
 
   const handleChange = (index, value) => {
     // Hanya terima angka
@@ -52,21 +65,21 @@ function VerifikasiOTP({ onBack, onVerified, email, usernameOrEmail }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const otpCode = otp.join('');
-    
+
     if (otpCode.length !== 6) {
       setError('Masukkan kode OTP lengkap 6 digit');
       return;
     }
-    
+
     setError('');
     setIsLoading(true);
-    
+
     try {
       const response = await authService.verifyOTP({
         usernameOrEmail,
         otp_code: otpCode,
       });
-      
+
       if (response.success) {
         onVerified(response.data.user);
       } else {
@@ -83,7 +96,7 @@ function VerifikasiOTP({ onBack, onVerified, email, usernameOrEmail }) {
   const handleResendOTP = async () => {
     try {
       const response = await authService.resendOTP({ usernameOrEmail });
-      
+
       if (response.success) {
         alert('Kode OTP telah dikirim ulang ke ' + email);
         setOtp(['', '', '', '', '', '']);
@@ -101,24 +114,11 @@ function VerifikasiOTP({ onBack, onVerified, email, usernameOrEmail }) {
   return (
     <div className="auth-page">
       <div className="auth-container">
-        
+
         <div className="form-card">
           <div className="logo-container">
             <div className="logo">
-              <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-                <circle cx="30" cy="30" r="22" stroke="#E89AC7" strokeWidth="2" fill="none"/>
-                <circle cx="30" cy="30" r="18" stroke="#E89AC7" strokeWidth="2" fill="none"/>
-                {/* Lock icon */}
-                <rect x="24" y="28" width="12" height="10" rx="1" fill="#E89AC7"/>
-                <path 
-                  d="M26 28V25C26 22.8 27.8 21 30 21C32.2 21 34 22.8 34 25V28" 
-                  stroke="#E89AC7" 
-                  strokeWidth="2" 
-                  fill="none"
-                  strokeLinecap="round"
-                />
-                <circle cx="30" cy="33" r="1.5" fill="white"/>
-              </svg>
+              <img src={pinkLogo} alt="Pink Logo" className="auth-logo-img" />
             </div>
           </div>
 
@@ -132,7 +132,7 @@ function VerifikasiOTP({ onBack, onVerified, email, usernameOrEmail }) {
             }}>
               Masukkan Kode OTP
             </h3>
-            
+
             <p style={{
               color: 'white',
               fontSize: '13px',
@@ -191,8 +191,8 @@ function VerifikasiOTP({ onBack, onVerified, email, usernameOrEmail }) {
               marginBottom: '25px',
               opacity: '0.8'
             }}>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 onClick={(e) => { e.preventDefault(); handleResendOTP(); }}
                 style={{
                   color: 'white',
@@ -204,8 +204,8 @@ function VerifikasiOTP({ onBack, onVerified, email, usernameOrEmail }) {
               </a>
             </p>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn-submit"
               disabled={otp.join('').length !== 6}
               style={{
@@ -224,6 +224,14 @@ function VerifikasiOTP({ onBack, onVerified, email, usernameOrEmail }) {
           </form>
         </div>
       </div>
+      <Notifikasi
+        show={notifikasi.show}
+        type={notifikasi.type}
+        message={notifikasi.message}
+        detail={notifikasi.detail}
+        onConfirm={notifikasi.onConfirm}
+        onCancel={notifikasi.onCancel}
+      />
     </div>
   );
 }
