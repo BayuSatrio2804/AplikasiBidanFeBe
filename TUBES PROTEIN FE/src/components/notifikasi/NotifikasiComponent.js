@@ -52,6 +52,7 @@ function Notifikasi({
       case 'confirm-delete':
         return 'Peringatan';
       case 'success':
+      case 'delete-success':
         return 'Berhasil!';
       case 'error':
         return 'Oops! Penyimpanan Gagal';
@@ -79,9 +80,11 @@ function Notifikasi({
       case 'confirm-edit':
         return 'Perubahan yang Anda buat akan disimpan. Lanjutkan?';
       case 'confirm-delete':
-        return 'Apakah Anda yakin untuk menghapus data berikut? Data yang sudah dihapus tidak dapat dipulihkan.';
+        return 'Apakah Anda yakin untuk menghapus data berikut?';
       case 'success':
         return 'Data berhasil tersimpan dengan aman di sistem.';
+      case 'delete-success':
+        return 'Data Anda telah berhasil dihapus.';
       case 'error':
         return 'Mohon lengkapi data yang kosong atau perbaiki data yang salah';
       case 'confirm-logout':
@@ -98,7 +101,7 @@ function Notifikasi({
   };
 
   const isConfirmDialog = ['confirm-save', 'confirm-edit', 'confirm-delete', 'confirm-logout'].includes(type);
-  const isSuccessNotif = ['success', 'success-login', 'cek-email', 'register-success', 'otp-sent'].includes(type);
+  const isSuccessNotif = ['success', 'success-login', 'cek-email', 'register-success', 'otp-sent', 'delete-success'].includes(type);
 
   return (
     <div className="notifikasi-overlay" onClick={isConfirmDialog ? null : onCancel}>
@@ -135,14 +138,12 @@ function Notifikasi({
                 </button>
               </>
             ) : isSuccessNotif ? (
-              !autoClose && (
-                <button
-                  className="notifikasi-btn-close"
-                  onClick={onConfirm || onCancel}
-                >
-                  ✕
-                </button>
-              )
+              <button
+                className="notifikasi-btn-close"
+                onClick={onConfirm || onCancel}
+              >
+                ✕
+              </button>
             ) : (
               <>
                 <button

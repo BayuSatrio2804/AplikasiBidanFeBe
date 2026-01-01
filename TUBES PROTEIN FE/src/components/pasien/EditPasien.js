@@ -393,23 +393,17 @@ function EditPasien({
                 {/* Form Actions */}
                 <div className="pasien-form-actions">
                   <button
+                    className="btn-pasien-cancel"
+                    onClick={handleCancel}
+                  >
+                    Batal
+                  </button>
+                  <button
                     className="btn-pasien-submit"
                     onClick={handleSubmit}
                     disabled={isLoading}
-                    title="Simpan"
                   >
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
-                      <path d="M7 10L9 12L13 8M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="white" strokeWidth="2" fill="none" />
-                    </svg>
-                  </button>
-                  <button
-                    className="btn-pasien-cancel"
-                    onClick={handleCancel}
-                    title="Batal"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
-                      <path d="M6 6L14 14M6 14L14 6M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="white" strokeWidth="2" fill="none" />
-                    </svg>
+                    {isLoading ? 'Menyimpan...' : 'Simpan'}
                   </button>
                 </div>
               </div>

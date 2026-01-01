@@ -99,7 +99,7 @@ function TambahPasien({
                     <div className="edit-pasien-header-logo">
                         <img src={pinkLogo} alt="Pink Logo" className="edit-pasien-header-logo-img" />
                     </div>
-                    <h1 className="edit-pasien-header-title">Tambah Pasien Baru</h1>
+                    <h1 className="edit-pasien-header-title">Formulir Informasi Pasien</h1>
                 </div>
                 <button className="btn-kembali-edit-pasien" onClick={onBack}>Kembali</button>
             </div>
@@ -192,19 +192,19 @@ function TambahPasien({
                                 {/* Form Actions */}
                                 <div className="pasien-form-actions">
                                     <button
+                                        className="btn-pasien-cancel"
+                                        onClick={onBack}
+                                        title="Batal"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
                                         className="btn-pasien-submit"
                                         onClick={handleSubmit}
                                         disabled={isLoading}
                                         title="Simpan"
                                     >
                                         Simpan
-                                    </button>
-                                    <button
-                                        className="btn-pasien-cancel"
-                                        onClick={onBack}
-                                        title="Batal"
-                                    >
-                                        Batal
                                     </button>
                                 </div>
                             </div>

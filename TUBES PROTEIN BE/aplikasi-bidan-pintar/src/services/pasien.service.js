@@ -122,7 +122,12 @@ const createPasien = async (data, userId) => {
   `;
 
   await db.query(query, [id_pasien, nama, NIK, umur, alamat, no_hp]);
-  await auditService.recordDataLog(userId, 'CREATE', 'pasien', id_pasien);
+
+  try {
+    await auditService.recordDataLog(userId, 'CREATE', 'pasien', id_pasien);
+  } catch (auditError) {
+    console.error('Audit log failed (ignoring):', auditError.message);
+  }
 
   return { id_pasien, nama, NIK, umur, alamat, no_hp };
 };
@@ -144,7 +149,12 @@ const updatePasien = async (id, userId, data) => {
   `;
 
   await db.query(query, [nama, NIK, umur, alamat, no_hp, id]);
-  await auditService.recordDataLog(userId, 'UPDATE', 'pasien', id);
+
+  try {
+    await auditService.recordDataLog(userId, 'UPDATE', 'pasien', id);
+  } catch (auditError) {
+    console.error('Audit log failed (ignoring):', auditError.message);
+  }
 
   return { id_pasien: id, nama, NIK, umur, alamat, no_hp };
 };
@@ -159,7 +169,11 @@ const deletePasien = async (id, userId) => {
   const [result] = await db.query('UPDATE pasien SET deleted_at = NOW() WHERE id_pasien = ?', [id]);
 
   if (result.affectedRows > 0) {
-    await auditService.recordDataLog(userId, 'DELETE', 'pasien', id);
+    try {
+      await auditService.recordDataLog(userId, 'DELETE', 'pasien', id);
+    } catch (auditError) {
+      console.error('Audit log failed (ignoring):', auditError.message);
+    }
   }
 
   return result;
@@ -176,7 +190,11 @@ const restorePasien = async (id, userId) => {
   const [result] = await db.query('UPDATE pasien SET deleted_at = NULL WHERE id_pasien = ?', [id]);
 
   if (result.affectedRows > 0) {
-    await auditService.recordDataLog(userId, 'RESTORE', 'pasien', id);
+    try {
+      await auditService.recordDataLog(userId, 'RESTORE', 'pasien', id);
+    } catch (auditError) {
+      console.error('Audit log failed (ignoring):', auditError.message);
+    }
   }
 
   return result;
