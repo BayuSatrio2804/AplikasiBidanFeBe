@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import './LayananKunjunganPasien.css';
+import '../jadwal/Jadwal.css';
 import Sidebar from '../shared/Sidebar';
 import pinkLogo from '../../assets/images/pink-logo.png';
 import filterIcon from '../../assets/images/icons/icons8-filter-100.png';
 import editIcon from '../../assets/images/icons/icons8-edit-pencil-100.png';
 import trashIcon from '../../assets/images/icons/icons8-trash-100.png';
 import layananService from '../../services/layanan.service';
+import jadwalService from '../../services/jadwal.service';
+import pasienService from '../../services/pasien.service';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
 import PilihPasienModal from '../shared/PilihPasienModal';
@@ -16,6 +19,17 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   const [showPasienModal, setShowPasienModal] = useState(false);
+
+  // State untuk popup jadwal
+  const [showJadwalModal, setShowJadwalModal] = useState(false);
+  const [pasienListForJadwal, setPasienListForJadwal] = useState([]);
+  const [jadwalFormData, setJadwalFormData] = useState({
+    id_pasien: '',
+    jenis_layanan: 'Kunjungan Pasien',
+    tanggal: '',
+    jam_mulai: '',
+    jam_selesai: ''
+  });
 
   const [formData, setFormData] = useState({
     jenis_layanan: 'Kunjungan Pasien',
@@ -122,6 +136,83 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
       autoCloseDuration: 1500,
       onConfirm: hideNotifikasi
     });
+  };
+
+  // Fungsi untuk popup jadwal
+  const fetchPasienForJadwal = async () => {
+    try {
+      const response = await pasienService.getAllPasien();
+      if (response.success) {
+        setPasienListForJadwal(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching pasien:', error);
+    }
+  };
+
+  const handleOpenJadwalModal = () => {
+    fetchPasienForJadwal();
+    setJadwalFormData({
+      id_pasien: '',
+      jenis_layanan: 'Kunjungan Pasien',
+      tanggal: '',
+      jam_mulai: '',
+      jam_selesai: ''
+    });
+    setShowJadwalModal(true);
+  };
+
+  const handleJadwalInputChange = (e) => {
+    const { name, value } = e.target;
+    setJadwalFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleJadwalSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!jadwalFormData.id_pasien || !jadwalFormData.tanggal || !jadwalFormData.jam_mulai) {
+      showNotifikasi({
+        type: 'error',
+        message: 'Mohon lengkapi: Pasien, Tanggal, Jam Mulai',
+        onConfirm: hideNotifikasi
+      });
+      return;
+    }
+
+    try {
+      const payload = {
+        id_pasien: jadwalFormData.id_pasien,
+        jenis_layanan: jadwalFormData.jenis_layanan,
+        tanggal: jadwalFormData.tanggal,
+        jam_mulai: jadwalFormData.jam_mulai,
+        jam_selesai: jadwalFormData.jam_selesai || null
+      };
+
+      await jadwalService.createJadwal(payload);
+      showNotifikasi({
+        type: 'success',
+        message: 'Jadwal berhasil ditambahkan!',
+        autoClose: true,
+        autoCloseDuration: 2000,
+        onConfirm: hideNotifikasi
+      });
+
+      setShowJadwalModal(false);
+      setJadwalFormData({
+        id_pasien: '',
+        jenis_layanan: 'Kunjungan Pasien',
+        tanggal: '',
+        jam_mulai: '',
+        jam_selesai: ''
+      });
+    } catch (error) {
+      console.error('Error saving jadwal:', error);
+      showNotifikasi({
+        type: 'error',
+        message: 'Gagal menyimpan jadwal',
+        onConfirm: hideNotifikasi
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -375,7 +466,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                     </svg>
                     <span>Tambah Pasien</span>
                   </button>
-                  <button className="kunjungan-action-btn" onClick={onToJadwal}>
+                  <button className="kunjungan-action-btn" onClick={handleOpenJadwalModal}>
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
                       <circle cx="20" cy="20" r="20" fill="white" opacity="0.3" />
                       <rect x="12" y="12" width="16" height="16" rx="2" stroke="white" strokeWidth="2" />
@@ -720,6 +811,100 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
         onClose={() => setShowPasienModal(false)}
         onSelect={handlePasienSelect}
       />
+
+      {/* Modal Popup Jadwal */}
+      {showJadwalModal && (
+        <div className="jadwal-modal-overlay" onClick={() => setShowJadwalModal(false)}>
+          <div className="jadwal-modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2 className="jadwal-modal-title">Buat Jadwal Kunjungan Pasien</h2>
+            <form onSubmit={handleJadwalSubmit}>
+              <div className="jadwal-modal-grid">
+                <div className="jadwal-modal-form-group full-width">
+                  <label>Jenis Layanan *</label>
+                  <input
+                    type="text"
+                    value={jadwalFormData.jenis_layanan}
+                    disabled
+                    style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                  />
+                </div>
+
+                <div className="jadwal-modal-form-group full-width">
+                  <label>Tanggal *</label>
+                  <input
+                    type="date"
+                    name="tanggal"
+                    value={jadwalFormData.tanggal}
+                    onChange={handleJadwalInputChange}
+                    required
+                  />
+                </div>
+
+                <div className="jadwal-modal-form-group">
+                  <label>Jam Mulai *</label>
+                  <input
+                    type="time"
+                    name="jam_mulai"
+                    value={jadwalFormData.jam_mulai}
+                    onChange={handleJadwalInputChange}
+                    required
+                  />
+                </div>
+
+                <div className="jadwal-modal-form-group">
+                  <label>Jam Selesai</label>
+                  <input
+                    type="time"
+                    name="jam_selesai"
+                    value={jadwalFormData.jam_selesai}
+                    onChange={handleJadwalInputChange}
+                  />
+                </div>
+
+                <div className="jadwal-modal-form-group full-width">
+                  <label>Nama Pasien *</label>
+                  <select
+                    name="id_pasien"
+                    value={jadwalFormData.id_pasien}
+                    onChange={handleJadwalInputChange}
+                    required
+                  >
+                    <option value="">Pilih Pasien</option>
+                    {pasienListForJadwal.map(pasien => (
+                      <option key={pasien.id_pasien} value={pasien.id_pasien}>
+                        {pasien.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="jadwal-modal-form-group full-width">
+                  <label>Penanggung Jawab</label>
+                  <input
+                    type="text"
+                    value={userData?.nama_lengkap || 'Tidak diketahui'}
+                    disabled
+                    style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                  />
+                </div>
+              </div>
+
+              <div className="jadwal-modal-actions">
+                <button
+                  type="button"
+                  className="jadwal-btn-modal-batal"
+                  onClick={() => setShowJadwalModal(false)}
+                >
+                  ✕
+                </button>
+                <button type="submit" className="jadwal-btn-modal-simpan">
+                  ✓
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
