@@ -4,21 +4,47 @@
  */
 
 const nodemailer = require('nodemailer');
-const { EMAIL_USER, EMAIL_PASS, OTP_EXPIRY_MINUTES } = require('./constant');
+const {
+  EMAIL_USER,
+  EMAIL_PASS,
+  EMAIL_CLIENT_ID,
+  EMAIL_CLIENT_SECRET,
+  EMAIL_REFRESH_TOKEN,
+  OTP_EXPIRY_MINUTES
+} = require('./constant');
 
-// Membuat transporter (menggunakan Gmail secara default)
+// Membuat transporter (menggunakan Gmail)
 const createTransporter = () => {
-  if (!EMAIL_USER || !EMAIL_PASS) {
+  if (!EMAIL_USER) {
     return null;
   }
 
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASS
-    }
-  });
+  // Opsi 1: Menggunakan OAuth2 (Lebih Aman/Direkomendasikan)
+  if (EMAIL_CLIENT_ID && EMAIL_CLIENT_SECRET && EMAIL_REFRESH_TOKEN) {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: EMAIL_USER,
+        clientId: EMAIL_CLIENT_ID,
+        clientSecret: EMAIL_CLIENT_SECRET,
+        refreshToken: EMAIL_REFRESH_TOKEN
+      }
+    });
+  }
+
+  // Opsi 2: Menggunakan App Password (Legacy)
+  if (EMAIL_PASS) {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: EMAIL_USER,
+        pass: EMAIL_PASS
+      }
+    });
+  }
+
+  return null;
 };
 
 /**

@@ -16,7 +16,12 @@ module.exports = {
 
   // Konfigurasi Email
   EMAIL_USER: process.env.EMAIL_USER,
+  // Password app (Legacy)
   EMAIL_PASS: process.env.EMAIL_PASS,
+  // OAuth2 (Recommended)
+  EMAIL_CLIENT_ID: process.env.EMAIL_CLIENT_ID,
+  EMAIL_CLIENT_SECRET: process.env.EMAIL_CLIENT_SECRET,
+  EMAIL_REFRESH_TOKEN: process.env.EMAIL_REFRESH_TOKEN,
 
   // Jenis Layanan Valid (harus sesuai dengan ENUM database)
   VALID_LAYANAN: [
