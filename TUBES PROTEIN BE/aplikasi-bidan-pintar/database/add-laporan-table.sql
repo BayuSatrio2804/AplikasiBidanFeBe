@@ -6,7 +6,7 @@
 -- Description: Menambahkan tabel laporan untuk menyimpan summary laporan
 -- =============================================================================
 
-USE aplikasi_bidan;
+USE bidanku;
 
 -- =============================================================================
 -- TABLE: laporan

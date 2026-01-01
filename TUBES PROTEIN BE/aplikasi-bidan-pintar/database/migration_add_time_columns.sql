@@ -1,4 +1,5 @@
 -- Migration: Add time columns for automatic schedules
+USE bidanku;
 
 ALTER TABLE layanan_anc
 ADD COLUMN jam_hpl TIME DEFAULT '08:00:00';
