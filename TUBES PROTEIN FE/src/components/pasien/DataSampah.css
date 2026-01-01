@@ -1,0 +1,186 @@
+/* Data Sampah Page */
+.data-sampah-page {
+    min-height: 100vh;
+    background: #F5F5F5;
+    padding: 0;
+    margin: 0;
+}
+
+/* Header */
+.ds-header {
+    background: white;
+    border: 1px solid #E89AC7;
+    margin: 20px;
+    border-radius: 15px;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(232, 154, 199, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.ds-header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.ds-header-logo {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    overflow: hidden;
+    background: white;
+}
+
+.ds-header-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ds-header-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 500;
+    color: #333;
+}
+
+.btn-kembali-ds {
+    background: #C94C8B;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-kembali-ds:hover {
+    background: #B8417A;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(201, 76, 139, 0.3);
+}
+
+/* Content Layout */
+.ds-content {
+    display: flex;
+    min-height: calc(100vh - 80px);
+    gap: 0;
+}
+
+/* Main Area */
+.ds-main-area {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+/* Container */
+.ds-container {
+    background: linear-gradient(135deg, #E89AC7 0%, #F4A3D2 50%, #FFB8D9 100%);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 30px;
+    max-width: 900px;
+    margin: 0 auto;
+    min-height: 500px;
+}
+
+.ds-section-title {
+    color: white;
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* Search Bar */
+.ds-search-bar {
+    margin-bottom: 25px;
+}
+
+.ds-search-input {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    background: white;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ds-search-input::placeholder {
+    color: #999;
+}
+
+/* List Items */
+.ds-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ds-item {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.ds-item:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(5px);
+}
+
+.ds-item-info h4 {
+    margin: 0 0 5px 0;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.ds-item-info p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+}
+
+/* Restore Button */
+.btn-restore {
+    width: 40px;
+    height: 40px;
+    background: #4CC966;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-restore:hover {
+    background: #3BB153;
+    transform: scale(1.1) rotate(-15deg);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-restore svg {
+    width: 20px;
+    height: 20px;
+}
