@@ -3,6 +3,8 @@ import Sidebar from '../shared/Sidebar';
 import './DataPasien.css';
 import pinkLogo from '../../assets/images/pink-logo.png';
 import pasienService from '../../services/pasien.service';
+import Notifikasi from '../notifikasi/NotifikasiComponent';
+import { useNotifikasi } from '../notifikasi/useNotifikasi';
 
 function DataPasien({
   onBack,
@@ -24,6 +26,7 @@ function DataPasien({
   const [isLoading, setIsLoading] = useState(false);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('semua');
+  const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
 
   useEffect(() => {
     fetchPasienList();
@@ -55,19 +58,41 @@ function DataPasien({
     }
   };
 
-  const handleDelete = async (pasienId) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus data pasien ini?')) {
-      try {
-        const response = await pasienService.deletePasien(pasienId);
-        if (response.success) {
-          alert('Data pasien berhasil dihapus');
-          fetchPasienList(searchQuery);
+  const handleDelete = (pasienId) => {
+    showNotifikasi({
+      type: 'confirm-delete',
+      confirmText: 'Ya, hapus',
+      cancelText: 'Batal',
+      onConfirm: async () => {
+        hideNotifikasi();
+        try {
+          const response = await pasienService.deletePasien(pasienId);
+          if (response.success) {
+            fetchPasienList(searchQuery);
+            showNotifikasi({
+              type: 'delete-success',
+              autoClose: false,
+              onConfirm: hideNotifikasi,
+              onCancel: hideNotifikasi,
+            });
+          } else {
+            showNotifikasi({
+              type: 'error',
+              message: 'Gagal menghapus data pasien',
+              onConfirm: hideNotifikasi
+            });
+          }
+        } catch (error) {
+          console.error('Error deleting pasien:', error);
+          showNotifikasi({
+            type: 'error',
+            message: 'Terjadi kesalahan saat menghapus data',
+            onConfirm: hideNotifikasi
+          });
         }
-      } catch (error) {
-        console.error('Error deleting pasien:', error);
-        alert('Gagal menghapus data pasien');
-      }
-    }
+      },
+      onCancel: hideNotifikasi
+    });
   };
 
   const handleFilterSelect = (filterValue) => {
@@ -87,23 +112,7 @@ function DataPasien({
           <h1 className="dp-header-title">Data Pasien (Keseluruhan)</h1>
         </div>
         <div className="dp-header-right" style={{ display: 'flex', gap: '10px' }}>
-          <button
-            className="btn-tambah-pasien"
-            onClick={onToTambahPasien}
-            style={{ backgroundColor: '#2196f3', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Tambah Pasien
-          </button>
-          <button
-            className="btn-kembali-dp"
-            onClick={onToDataSampah}
-            style={{ backgroundColor: '#ff9800' }}
-          >
-            Sampah ({window.location.hash === '#deleted' ? 'Active' : 'Recovery'})
-          </button>
+
           <button className="btn-kembali-dp" onClick={onBack}>Kembali</button>
         </div>
       </div>
@@ -129,71 +138,89 @@ function DataPasien({
         <main className="dp-main-area">
           <div className="dp-card">
             <div className="dp-card-header">
-              <h2 className="dp-card-title">Data Pasien</h2>
+              <div className="dp-header-top">
+                <h2 className="dp-card-title">Data Pasien</h2>
+              </div>
+
+              <div className="dp-header-bottom">
+                <div className="dp-search-wrapper">
+                  <input
+                    type="text"
+                    className="dp-search-input-header"
+                    placeholder="Cari Data Pasien"
+                    value={searchQuery}
+                    onChange={handleSearch}
+                  />
+                  <div className="dp-filter-relative">
+                    <button
+                      className="dp-filter-btn-header"
+                      onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
+                        <path d="M2 4h16M5 9h10M8 14h4" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                    {showFilterDropdown && (
+                      <div className="dp-filter-dropdown">
+                        <div
+                          className={`dp-filter-option ${selectedFilter === 'semua' ? 'active' : ''}`}
+                          onClick={() => handleFilterSelect('semua')}
+                        >
+                          Semua Layanan
+                        </div>
+                        <div
+                          className={`dp-filter-option ${selectedFilter === 'kb' ? 'active' : ''}`}
+                          onClick={() => handleFilterSelect('kb')}
+                        >
+                          Layanan KB
+                        </div>
+                        <div
+                          className={`dp-filter-option ${selectedFilter === 'persalinan' ? 'active' : ''}`}
+                          onClick={() => handleFilterSelect('persalinan')}
+                        >
+                          Layanan Persalinan
+                        </div>
+                        <div
+                          className={`dp-filter-option ${selectedFilter === 'anc' ? 'active' : ''}`}
+                          onClick={() => handleFilterSelect('anc')}
+                        >
+                          Layanan ANC
+                        </div>
+                        <div
+                          className={`dp-filter-option ${selectedFilter === 'imunisasi' ? 'active' : ''}`}
+                          onClick={() => handleFilterSelect('imunisasi')}
+                        >
+                          Layanan Imunisasi
+                        </div>
+                        <div
+                          className={`dp-filter-option ${selectedFilter === 'kunjungan' ? 'active' : ''}`}
+                          onClick={() => handleFilterSelect('kunjungan')}
+                        >
+                          Kunjungan Pasien
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="dp-header-actions">
+                  <button className="dp-btn-action" onClick={onToTambahPasien}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="dp-btn-icon">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Tambah Data
+                  </button>
+                  <button className="dp-btn-action" onClick={onToDataSampah}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="dp-btn-icon">
+                      <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
+                    </svg>
+                    Pulihkan Data
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="dp-card-body">
-              {/* Kotak Pencarian */}
-              <div className="dp-search-container">
-                <input
-                  type="text"
-                  className="dp-search-input"
-                  placeholder="Cari Data Pasien"
-                  value={searchQuery}
-                  onChange={handleSearch}
-                />
-                <div className="dp-filter-wrapper">
-                  <button
-                    className="dp-filter-btn"
-                    onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
-                      <path d="M2 4h16M5 9h10M8 14h4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                  {showFilterDropdown && (
-                    <div className="dp-filter-dropdown">
-                      <div
-                        className={`dp-filter-option ${selectedFilter === 'semua' ? 'active' : ''}`}
-                        onClick={() => handleFilterSelect('semua')}
-                      >
-                        Semua Layanan
-                      </div>
-                      <div
-                        className={`dp-filter-option ${selectedFilter === 'kb' ? 'active' : ''}`}
-                        onClick={() => handleFilterSelect('kb')}
-                      >
-                        Layanan KB
-                      </div>
-                      <div
-                        className={`dp-filter-option ${selectedFilter === 'persalinan' ? 'active' : ''}`}
-                        onClick={() => handleFilterSelect('persalinan')}
-                      >
-                        Layanan Persalinan
-                      </div>
-                      <div
-                        className={`dp-filter-option ${selectedFilter === 'anc' ? 'active' : ''}`}
-                        onClick={() => handleFilterSelect('anc')}
-                      >
-                        Layanan ANC
-                      </div>
-                      <div
-                        className={`dp-filter-option ${selectedFilter === 'imunisasi' ? 'active' : ''}`}
-                        onClick={() => handleFilterSelect('imunisasi')}
-                      >
-                        Layanan Imunisasi
-                      </div>
-                      <div
-                        className={`dp-filter-option ${selectedFilter === 'kunjungan' ? 'active' : ''}`}
-                        onClick={() => handleFilterSelect('kunjungan')}
-                      >
-                        Kunjungan Pasien
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
               {/* Daftar Pasien */}
               <div className="dp-patient-list">
                 {isLoading ? (
@@ -229,10 +256,22 @@ function DataPasien({
                 )}
               </div>
             </div>
-          </div>
-        </main>
-      </div>
-    </div>
+          </div >
+        </main >
+      </div >
+      <Notifikasi
+        show={notifikasi.show}
+        type={notifikasi.type}
+        message={notifikasi.message}
+        detail={notifikasi.detail}
+        onConfirm={notifikasi.onConfirm}
+        onCancel={notifikasi.onCancel}
+        confirmText={notifikasi.confirmText}
+        cancelText={notifikasi.cancelText}
+        autoClose={notifikasi.autoClose}
+        autoCloseDuration={notifikasi.autoCloseDuration}
+      />
+    </div >
   );
 }
 
