@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../services/api';
 import './Laporan.css';
 import Sidebar from '../shared/Sidebar';
 import pinkLogo from '../../assets/images/pink-logo.png';
@@ -66,7 +67,7 @@ function Laporan({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfi
         jenis_layanan: selectedLayanan === 'Semua' ? '' : selectedLayanan
       });
 
-      const response = await fetch(`http://localhost:5000/api/laporan/summary?${queryParams}`, {
+      const response = await fetch(`${API_BASE_URL}/laporan/summary?${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -120,7 +121,12 @@ function Laporan({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfi
     const filename = `Laporan_${serviceName}_${selectedBulan}_${selectedTahun}.xlsx`;
 
     // Lakukan download
-    fetch(`http://localhost:5000/api/laporan/export?${queryParams}`, {
+    import { API_BASE_URL } from '../../services/api';
+    import { useState, useEffect } from 'react';
+    // ... (keep existing lines)
+
+    // Lakukan download
+    fetch(`${API_BASE_URL}/laporan/export?${queryParams}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
