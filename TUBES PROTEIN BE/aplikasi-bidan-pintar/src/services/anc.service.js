@@ -148,11 +148,12 @@ const updateANCRegistrasi = async (id_pemeriksaan, data, userId) => {
 
     const id_pasien = existingPemeriksaan[0].id_pasien;
 
-    // Update data pasien
-    await connection.query(
-      'UPDATE pasien SET nama = ?, nik = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
-      [nama_istri, nik_istri, umur_istri, alamat, no_hp || null, id_pasien]
-    );
+    // Fix Bug #2: Jangan update data master pasien saat edit layanan ANC
+    // Data pasien harusnya diedit lewat menu 'Edit Pasien' khusus
+    // await connection.query(
+    //   'UPDATE pasien SET nama = ?, nik = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
+    //   [nama_istri, nik_istri, umur_istri, alamat, no_hp || null, id_pasien]
+    // );
 
     // Update pemeriksaan dengan format SOAP
     const subjektif_final = `ANC Kunjungan${hpht ? `. HPHT: ${hpht}` : ''}${hpl ? `, HPL: ${hpl}` : ''}`;

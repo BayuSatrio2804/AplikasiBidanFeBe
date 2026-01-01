@@ -12,11 +12,12 @@ const RegistrasiKunjunganPasienSchema = Joi.object({
 
   // --- Data Pasien (Master) ---
   nama_pasien: Joi.string().required(), // Nama pasien yang sebenarnya berkunjung
-  nik_pasien: Joi.string().length(16).pattern(/^[0-9]+$/).allow('', null).optional()
+  nik_pasien: Joi.string().length(16).pattern(/^[0-9]+$/).required()
     .messages({
       'string.length': 'NIK Pasien harus 16 digit',
-      'string.pattern.base': 'NIK Pasien hanya boleh berisi angka'
-    }), // NIK Pasien harus 16 digit angka
+      'string.pattern.base': 'NIK Pasien hanya boleh berisi angka',
+      'any.required': 'NIK Pasien wajib diisi'
+    }),
   umur_pasien: Joi.alternatives().try(
     Joi.number().integer(),
     Joi.string()
@@ -33,7 +34,7 @@ const RegistrasiKunjunganPasienSchema = Joi.object({
     .messages({
       'string.length': 'NIK Wali harus 16 digit',
       'string.pattern.base': 'NIK Wali hanya boleh berisi angka'
-    }), // NIK Wali harus 16 digit angka
+    }),
   umur_wali: Joi.alternatives().try(
     Joi.number().integer(),
     Joi.string().allow('', null)
@@ -46,12 +47,11 @@ const RegistrasiKunjunganPasienSchema = Joi.object({
   keterangan: Joi.string().allow('', null).optional(),
 
   // Field SOAP (dibuat opsional/kosong, terintegrasi ke data di atas)
-  // Field SOAP (dibuat opsional/kosong, terintegrasi ke data di atas)
   subjektif: Joi.string().allow('', null).optional(),
   objektif: Joi.string().allow('', null).optional(),
   analisa: Joi.string().allow('', null).optional(),
-  tatalaksana: Joi.string().allow('', null).optional(),
-}).unknown(true).or('nik_pasien', 'nik_wali');
+  tatalaksana: Joi.string().allow('').optional(),
+}).unknown(true);
 
 module.exports = {
   RegistrasiKunjunganPasienSchema

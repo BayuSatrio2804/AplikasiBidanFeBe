@@ -165,11 +165,11 @@ const updateRegistrasiKB = async (id_pemeriksaan, data, userId) => {
 
     const id_pasien = existingPemeriksaan[0].id_pasien;
 
-    // Update data pasien
-    await connection.query(
-      'UPDATE pasien SET nama = ?, nik = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
-      [nama_ibu, nik_ibu, umur_ibu, alamat, nomor_hp || null, id_pasien]
-    );
+    // Fix Bug #2: Jangan update data master pasien saat edit layanan KB
+    // await connection.query(
+    //   'UPDATE pasien SET nama = ?, nik = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
+    //   [nama_ibu, nik_ibu, umur_ibu, alamat, nomor_hp || null, id_pasien]
+    // );
 
     // Update pemeriksaan dengan format SOAP
     const subjektif_final = `Kunjungan KB Metode: ${metode || '-'}`;
