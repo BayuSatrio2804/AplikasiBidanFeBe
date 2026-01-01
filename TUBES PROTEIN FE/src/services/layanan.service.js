@@ -411,6 +411,75 @@ export const deleteKunjunganPasien = async (id) => {
 };
 
 // =====================
+// Trash/Recovery Functions
+// =====================
+
+// KB Trash
+export const getDeletedKB = async (search = '') => {
+  return apiRequest(`/kb/deleted${search ? `?search=${encodeURIComponent(search)}` : ''}`);
+};
+
+export const restoreKB = async (id) => {
+  return apiRequest(`/kb/restore/${id}`, { method: 'PUT' });
+};
+
+export const deletePermanentKB = async (id) => {
+  return apiRequest(`/kb/permanent/${id}`, { method: 'DELETE' });
+};
+
+// ANC Trash
+export const getDeletedANC = async (search = '') => {
+  return apiRequest(`/anc/deleted${search ? `?search=${encodeURIComponent(search)}` : ''}`);
+};
+
+export const restoreANC = async (id) => {
+  return apiRequest(`/anc/restore/${id}`, { method: 'PUT' });
+};
+
+export const deletePermanentANC = async (id) => {
+  return apiRequest(`/anc/permanent/${id}`, { method: 'DELETE' });
+};
+
+// Imunisasi Trash
+export const getDeletedImunisasi = async (search = '') => {
+  return apiRequest(`/imunisasi/deleted${search ? `?search=${encodeURIComponent(search)}` : ''}`);
+};
+
+export const restoreImunisasi = async (id) => {
+  return apiRequest(`/imunisasi/restore/${id}`, { method: 'PUT' });
+};
+
+export const deletePermanentImunisasi = async (id) => {
+  return apiRequest(`/imunisasi/permanent/${id}`, { method: 'DELETE' });
+};
+
+// Persalinan Trash
+export const getDeletedPersalinan = async (search = '') => {
+  return apiRequest(`/persalinan/deleted${search ? `?search=${encodeURIComponent(search)}` : ''}`);
+};
+
+export const restorePersalinan = async (id) => {
+  return apiRequest(`/persalinan/restore/${id}`, { method: 'PUT' });
+};
+
+export const deletePermanentPersalinan = async (id) => {
+  return apiRequest(`/persalinan/permanent/${id}`, { method: 'DELETE' });
+};
+
+// Kunjungan Pasien Trash
+export const getDeletedKunjunganPasien = async (search = '') => {
+  return apiRequest(`/kunjungan-pasien/deleted${search ? `?search=${encodeURIComponent(search)}` : ''}`);
+};
+
+export const restoreKunjunganPasien = async (id) => {
+  return apiRequest(`/kunjungan-pasien/restore/${id}`, { method: 'PUT' });
+};
+
+export const deletePermanentKunjunganPasien = async (id) => {
+  return apiRequest(`/kunjungan-pasien/permanent/${id}`, { method: 'DELETE' });
+};
+
+// =====================
 // Pemeriksaan (Medical Examination)
 // =====================
 
@@ -465,33 +534,49 @@ export default {
   getKBById,
   updateKB,
   deleteKB,
+  getDeletedKB,
+  restoreKB,
+  deletePermanentKB,
   // ANC
   getAllANC,
   createANC,
   updateANC,
   deleteANC,
   getANCById,
+  getDeletedANC,
+  restoreANC,
+  deletePermanentANC,
   // Imunisasi
   getAllImunisasi,
   createImunisasi,
   getImunisasiById,
   updateImunisasi,
   deleteImunisasi,
+  getDeletedImunisasi,
+  restoreImunisasi,
+  deletePermanentImunisasi,
   // Persalinan
   getAllPersalinan,
   getPersalinanById,
   createPersalinan,
   updatePersalinan,
   deletePersalinan,
+  getDeletedPersalinan,
+  restorePersalinan,
+  deletePermanentPersalinan,
   // Kunjungan Pasien
   getAllKunjunganPasien,
   getKunjunganPasienById,
   createKunjunganPasien,
   updateKunjunganPasien,
   deleteKunjunganPasien,
+  getDeletedKunjunganPasien,
+  restoreKunjunganPasien,
+  deletePermanentKunjunganPasien,
   // Pemeriksaan
   getAllPemeriksaan,
   getPemeriksaanById,
   createPemeriksaan,
   updatePemeriksaan,
 };
+

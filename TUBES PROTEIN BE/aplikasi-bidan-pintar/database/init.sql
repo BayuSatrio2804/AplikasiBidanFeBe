@@ -125,7 +125,7 @@ CREATE TABLE pemeriksaan (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL DEFAULT NULL,
-    
+    is_permanent_deleted TINYINT(1) DEFAULT 0,
     CONSTRAINT fk_pemeriksaan_pasien FOREIGN KEY (id_pasien) 
         REFERENCES pasien(id_pasien) ON DELETE CASCADE,
     

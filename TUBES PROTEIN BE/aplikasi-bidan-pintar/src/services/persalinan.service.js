@@ -202,7 +202,7 @@ const getAllPersalinan = async (search = '') => {
     FROM pemeriksaan p
     LEFT JOIN pasien pas ON p.id_pasien = pas.id_pasien
     LEFT JOIN layanan_persalinan pers ON p.id_pemeriksaan = pers.id_pemeriksaan
-    WHERE p.jenis_layanan = 'Persalinan' AND p.deleted_at IS NULL AND pas.deleted_at IS NULL
+    WHERE p.jenis_layanan = 'Persalinan' AND p.deleted_at IS NULL AND p.is_permanent_deleted = 0 AND pas.deleted_at IS NULL
   `;
 
   const params = [];
@@ -344,10 +344,62 @@ const deleteRegistrasiPersalinan = async (id_pemeriksaan, userId) => {
   }
 };
 
+/**
+ * Get deleted Persalinan records
+ */
+const getDeletedPersalinan = async (search = '') => {
+  try {
+    let query = `
+      SELECT 
+        pm.id_pemeriksaan, 
+        pm.id_pasien,
+        p.nama as nama_pasien, 
+        p.nik,
+        pm.tanggal_pemeriksaan, 
+        pm.jenis_layanan,
+        pm.deleted_at,
+        pers.id_persalinan,
+        pers.no_reg_lama,
+        pers.no_reg_baru,
+        COALESCE(pers.no_reg_baru, pers.no_reg_lama) as nomor_registrasi
+      FROM pemeriksaan pm
+      LEFT JOIN layanan_persalinan pers ON pm.id_pemeriksaan = pers.id_pemeriksaan
+      LEFT JOIN pasien p ON pm.id_pasien = p.id_pasien
+      WHERE pm.jenis_layanan = 'Persalinan' AND pm.deleted_at IS NOT NULL AND pm.is_permanent_deleted = 0
+    `;
+
+    const params = [];
+    if (search && search.trim()) {
+      query += ` AND (p.nama LIKE ? OR p.nik LIKE ?)`;
+      const searchTerm = `%${search}%`;
+      params.push(searchTerm, searchTerm);
+    }
+
+    query += ' ORDER BY pm.deleted_at DESC';
+    const [results] = await db.query(query, params);
+    return results;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const pemeriksaanService = require('./pemeriksaan.service');
+
+const restorePersalinan = async (id_pemeriksaan, userId) => {
+  return await pemeriksaanService.restorePemeriksaan(id_pemeriksaan, userId);
+};
+
+const deletePermanentPersalinan = async (id_pemeriksaan, userId) => {
+  return await pemeriksaanService.deletePemeriksaanPermanent(id_pemeriksaan, userId);
+};
+
 module.exports = {
   createRegistrasiPersalinan,
   getPersalinanById,
   getAllPersalinan,
   updateRegistrasiPersalinan,
-  deleteRegistrasiPersalinan
+  deleteRegistrasiPersalinan,
+  getDeletedPersalinan,
+  restorePersalinan,
+  deletePermanentPersalinan
 };

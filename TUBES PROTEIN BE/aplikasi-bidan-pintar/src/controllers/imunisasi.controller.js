@@ -114,11 +114,52 @@ const getDataIbuByNIK = async (req, res) => {
   }
 };
 
+const getDeletedImunisasi = async (req, res) => {
+  try {
+    const { search = '' } = req.query;
+    const deletedData = await imunisasiService.getDeletedImunisasi(search);
+    return success(res, 'Data sampah Imunisasi berhasil diambil', deletedData);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil data sampah Imunisasi', error);
+  }
+};
+
+const restore = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await imunisasiService.restoreImunisasi(id, req.user.id);
+    if (result) {
+      return success(res, 'Data Imunisasi berhasil dipulihkan');
+    } else {
+      return notFound(res, 'Data Imunisasi tidak ditemukan');
+    }
+  } catch (error) {
+    return serverError(res, 'Gagal memulihkan Imunisasi', error);
+  }
+};
+
+const deletePermanent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await imunisasiService.deletePermanentImunisasi(id, req.user.id);
+    if (result) {
+      return success(res, 'Data Imunisasi berhasil dihapus secara permanen');
+    } else {
+      return notFound(res, 'Data Imunisasi tidak ditemukan');
+    }
+  } catch (error) {
+    return serverError(res, 'Gagal menghapus Imunisasi permanen', error);
+  }
+};
+
 module.exports = {
   createRegistrasiImunisasi,
   getImunisasiById,
   getAllImunisasi,
   updateRegistrasiImunisasi,
   deleteRegistrasiImunisasi,
-  getDataIbuByNIK
+  getDataIbuByNIK,
+  getDeletedImunisasi,
+  restore,
+  deletePermanent
 };

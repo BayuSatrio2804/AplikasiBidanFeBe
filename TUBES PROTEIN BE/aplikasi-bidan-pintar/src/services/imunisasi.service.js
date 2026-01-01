@@ -175,7 +175,7 @@ const getAllImunisasi = async (search = '') => {
     FROM pemeriksaan p
     LEFT JOIN pasien pas ON p.id_pasien = pas.id_pasien
     LEFT JOIN layanan_imunisasi im ON p.id_pemeriksaan = im.id_pemeriksaan
-    WHERE p.jenis_layanan = 'Imunisasi' AND p.deleted_at IS NULL AND pas.deleted_at IS NULL
+    WHERE p.jenis_layanan = 'Imunisasi' AND p.deleted_at IS NULL AND p.is_permanent_deleted = 0 AND pas.deleted_at IS NULL
   `;
 
   const params = [];
@@ -348,11 +348,64 @@ const getDataIbuByNIK = async (nik) => {
   return rows[0] || null;
 };
 
+/**
+ * Get deleted Imunisasi records
+ */
+const getDeletedImunisasi = async (search = '') => {
+  try {
+    let query = `
+      SELECT 
+        pm.id_pemeriksaan, 
+        pm.id_pasien,
+        p.nama as nama_pasien, 
+        p.nik,
+        pm.tanggal_pemeriksaan, 
+        pm.jenis_layanan,
+        pm.deleted_at,
+        im.id_imunisasi,
+        im.no_reg,
+        im.nama_bayi_balita,
+        im.jenis_imunisasi,
+        im.no_reg as nomor_registrasi
+      FROM pemeriksaan pm
+      LEFT JOIN layanan_imunisasi im ON pm.id_pemeriksaan = im.id_pemeriksaan
+      LEFT JOIN pasien p ON pm.id_pasien = p.id_pasien
+      WHERE pm.jenis_layanan = 'Imunisasi' AND pm.deleted_at IS NOT NULL AND pm.is_permanent_deleted = 0
+    `;
+
+    const params = [];
+    if (search && search.trim()) {
+      query += ` AND (p.nama LIKE ? OR p.nik LIKE ? OR im.nama_bayi_balita LIKE ?)`;
+      const searchTerm = `%${search}%`;
+      params.push(searchTerm, searchTerm, searchTerm);
+    }
+
+    query += ' ORDER BY pm.deleted_at DESC';
+    const [results] = await db.query(query, params);
+    return results;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const pemeriksaanService = require('./pemeriksaan.service');
+
+const restoreImunisasi = async (id_pemeriksaan, userId) => {
+  return await pemeriksaanService.restorePemeriksaan(id_pemeriksaan, userId);
+};
+
+const deletePermanentImunisasi = async (id_pemeriksaan, userId) => {
+  return await pemeriksaanService.deletePemeriksaanPermanent(id_pemeriksaan, userId);
+};
+
 module.exports = {
   createRegistrasiImunisasi,
   getImunisasiById,
   getAllImunisasi,
   updateRegistrasiImunisasi,
   deleteRegistrasiImunisasi,
-  getDataIbuByNIK
+  getDataIbuByNIK,
+  getDeletedImunisasi,
+  restoreImunisasi,
+  deletePermanentImunisasi
 };

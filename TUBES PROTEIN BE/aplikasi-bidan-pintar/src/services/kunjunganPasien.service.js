@@ -30,7 +30,7 @@ const getAllKunjunganPasien = async (search = '') => {
       FROM layanan_kunjungan_pasien k
       LEFT JOIN pemeriksaan p ON k.id_pemeriksaan = p.id_pemeriksaan
       LEFT JOIN pasien pas ON p.id_pasien = pas.id_pasien
-      WHERE p.deleted_at IS NULL AND pas.deleted_at IS NULL
+      WHERE p.deleted_at IS NULL AND p.is_permanent_deleted = 0 AND pas.deleted_at IS NULL
     `;
 
     let params = [];
@@ -250,10 +250,61 @@ const deleteKunjunganPasien = async (id, userId) => {
   }
 };
 
+/**
+ * Get deleted Kunjungan Pasien records
+ */
+const getDeletedKunjunganPasien = async (search = '') => {
+  const connection = await db.getConnection();
+  try {
+    let query = `
+      SELECT 
+        k.id_kunjungan as id,
+        p.id_pemeriksaan,
+        k.tanggal,
+        k.no_reg,
+        k.no_reg as nomor_registrasi,
+        k.nama_pasien,
+        'Kunjungan Pasien' as jenis_layanan,
+        pas.id_pasien,
+        p.tanggal_pemeriksaan,
+        p.deleted_at
+      FROM layanan_kunjungan_pasien k
+      LEFT JOIN pemeriksaan p ON k.id_pemeriksaan = p.id_pemeriksaan
+      LEFT JOIN pasien pas ON p.id_pasien = pas.id_pasien
+      WHERE p.deleted_at IS NOT NULL AND p.is_permanent_deleted = 0
+    `;
+
+    let params = [];
+    if (search && search.trim()) {
+      query += ' AND k.nama_pasien LIKE ?';
+      params.push(`%${search}%`);
+    }
+
+    query += ' ORDER BY p.deleted_at DESC';
+    const [rows] = await connection.query(query, params);
+    return rows;
+  } finally {
+    connection.release();
+  }
+};
+
+const pemeriksaanService = require('./pemeriksaan.service');
+
+const restoreKunjunganPasien = async (id_pemeriksaan, userId) => {
+  return await pemeriksaanService.restorePemeriksaan(id_pemeriksaan, userId);
+};
+
+const deletePermanentKunjunganPasien = async (id_pemeriksaan, userId) => {
+  return await pemeriksaanService.deletePemeriksaanPermanent(id_pemeriksaan, userId);
+};
+
 module.exports = {
   getAllKunjunganPasien,
   getKunjunganPasienById,
   createRegistrasiKunjunganPasien,
   updateKunjunganPasien,
-  deleteKunjunganPasien
+  deleteKunjunganPasien,
+  getDeletedKunjunganPasien,
+  restoreKunjunganPasien,
+  deletePermanentKunjunganPasien
 };

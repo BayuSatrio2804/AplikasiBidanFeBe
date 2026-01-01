@@ -85,10 +85,65 @@ const getAllKB = async (req, res) => {
   }
 };
 
+/**
+ * Get deleted KB records
+ * GET /api/kb/deleted
+ */
+const getDeletedKB = async (req, res) => {
+  try {
+    const { search = '' } = req.query;
+    const deletedKB = await kbService.getDeletedKB(search);
+    return success(res, 'Data sampah KB berhasil diambil', deletedKB);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil data sampah KB', error);
+  }
+};
+
+/**
+ * Restore KB record
+ * PUT /api/kb/restore/:id
+ */
+const restore = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await kbService.restoreKB(id, req.user.id);
+    
+    if (result) {
+      return success(res, 'Data KB berhasil dipulihkan');
+    } else {
+      return notFound(res, 'Data KB tidak ditemukan');
+    }
+  } catch (error) {
+    return serverError(res, 'Gagal memulihkan KB', error);
+  }
+};
+
+/**
+ * Permanently delete KB record
+ * DELETE /api/kb/permanent/:id
+ */
+const deletePermanent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await kbService.deletePermanentKB(id, req.user.id);
+    
+    if (result) {
+      return success(res, 'Data KB berhasil dihapus secara permanen');
+    } else {
+      return notFound(res, 'Data KB tidak ditemukan');
+    }
+  } catch (error) {
+    return serverError(res, 'Gagal menghapus KB permanen', error);
+  }
+};
+
 module.exports = {
   createRegistrasiKB,
   getKBById,
   updateRegistrasiKB,
   deleteRegistrasiKB,
-  getAllKB
+  getAllKB,
+  getDeletedKB,
+  restore,
+  deletePermanent
 };

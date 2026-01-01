@@ -142,14 +142,13 @@ const getDetailedDataLogs = async (filters = {}) => {
         a.created_at AS tanggal,
         u.username AS diubah_oleh,
         COALESCE(p.nama, p_anc.nama, p_kb.nama, p_pers.nama, p_imun.nama, p_kjung.nama, p_jadwal.nama, p_direct.nama) AS nama_pasien,
-        CASE 
-          WHEN a.description = 'layanan_anc' THEN anc.no_reg_baru
-          WHEN a.description = 'layanan_kb' THEN kb.nomor_registrasi_baru
-          WHEN a.description = 'layanan_persalinan' THEN pers.no_reg_baru
-          WHEN a.description = 'layanan_imunisasi' THEN imun.no_reg
-          WHEN a.description = 'layanan_kunjungan_pasien' THEN kjung.no_reg
-          ELSE NULL
-        END AS nomor_registrasi
+        COALESCE(
+          anc.no_reg_baru, anc.no_reg_lama, 
+          kb.nomor_registrasi_baru, kb.nomor_registrasi_lama, 
+          pers.no_reg_baru, pers.no_reg_lama, 
+          imun.no_reg, 
+          kjung.no_reg
+        ) AS nomor_registrasi
       FROM audit_logs a
       LEFT JOIN users u ON a.id_user = u.id_user
       
@@ -160,27 +159,27 @@ const getDetailedDataLogs = async (filters = {}) => {
       -- Join untuk kategori: 'layanan_anc' -> pemeriksaan -> pasien
       LEFT JOIN layanan_anc anc ON (a.id_data_terkait = anc.id_anc OR a.id_data_terkait = anc.id_pemeriksaan)
       LEFT JOIN pemeriksaan pem_anc ON anc.id_pemeriksaan = pem_anc.id_pemeriksaan
-      LEFT JOIN pasien p_anc ON pem_anc.id_pasien = p_anc.id_pasien
+      LEFT JOIN pasien p_anc ON (pem_anc.id_pasien = p_anc.id_pasien OR a.id_data_terkait = p_anc.id_pasien)
       
       -- Join untuk kategori: 'layanan_kb' -> pemeriksaan -> pasien
       LEFT JOIN layanan_kb kb ON (a.id_data_terkait = kb.id_kb OR a.id_data_terkait = kb.id_pemeriksaan)
       LEFT JOIN pemeriksaan pem_kb ON kb.id_pemeriksaan = pem_kb.id_pemeriksaan
-      LEFT JOIN pasien p_kb ON pem_kb.id_pasien = p_kb.id_pasien
+      LEFT JOIN pasien p_kb ON (pem_kb.id_pasien = p_kb.id_pasien OR a.id_data_terkait = p_kb.id_pasien)
       
       -- Join untuk kategori: 'layanan_persalinan' -> pemeriksaan -> pasien
       LEFT JOIN layanan_persalinan pers ON (a.id_data_terkait = pers.id_persalinan OR a.id_data_terkait = pers.id_pemeriksaan)
       LEFT JOIN pemeriksaan pem_pers ON pers.id_pemeriksaan = pem_pers.id_pemeriksaan
-      LEFT JOIN pasien p_pers ON pem_pers.id_pasien = p_pers.id_pasien
+      LEFT JOIN pasien p_pers ON (pem_pers.id_pasien = p_pers.id_pasien OR a.id_data_terkait = p_pers.id_pasien)
       
       -- Join untuk kategori: 'layanan_imunisasi' -> pemeriksaan -> pasien
       LEFT JOIN layanan_imunisasi imun ON (a.id_data_terkait = imun.id_imunisasi OR a.id_data_terkait = imun.id_pemeriksaan)
       LEFT JOIN pemeriksaan pem_imun ON imun.id_pemeriksaan = pem_imun.id_pemeriksaan
-      LEFT JOIN pasien p_imun ON pem_imun.id_pasien = p_imun.id_pasien
+      LEFT JOIN pasien p_imun ON (pem_imun.id_pasien = p_imun.id_pasien OR a.id_data_terkait = p_imun.id_pasien)
       
       -- Join untuk kategori: 'layanan_kunjungan_pasien' -> pemeriksaan -> pasien
       LEFT JOIN layanan_kunjungan_pasien kjung ON (a.id_data_terkait = kjung.id_kunjungan OR a.id_data_terkait = kjung.id_pemeriksaan)
       LEFT JOIN pemeriksaan pem_kjung ON kjung.id_pemeriksaan = pem_kjung.id_pemeriksaan
-      LEFT JOIN pasien p_kjung ON pem_kjung.id_pasien = p_kjung.id_pasien
+      LEFT JOIN pasien p_kjung ON (pem_kjung.id_pasien = p_kjung.id_pasien OR a.id_data_terkait = p_kjung.id_pasien)
 
       -- Join untuk kategori: 'jadwal' (langsung ke pasien)
       LEFT JOIN jadwal jad ON a.id_data_terkait = jad.id_jadwal

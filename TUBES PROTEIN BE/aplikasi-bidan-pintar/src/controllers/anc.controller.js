@@ -87,10 +87,51 @@ const getAllANC = async (req, res) => {
   }
 };
 
+const getDeletedANC = async (req, res) => {
+  try {
+    const { search = '' } = req.query;
+    const deletedData = await ancService.getDeletedANC(search);
+    return success(res, 'Data sampah ANC berhasil diambil', deletedData);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil data sampah ANC', error);
+  }
+};
+
+const restore = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await ancService.restoreANC(id, req.user.id);
+    if (result) {
+      return success(res, 'Data ANC berhasil dipulihkan');
+    } else {
+      return notFound(res, 'Data ANC tidak ditemukan');
+    }
+  } catch (error) {
+    return serverError(res, 'Gagal memulihkan ANC', error);
+  }
+};
+
+const deletePermanent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await ancService.deletePermanentANC(id, req.user.id);
+    if (result) {
+      return success(res, 'Data ANC berhasil dihapus secara permanen');
+    } else {
+      return notFound(res, 'Data ANC tidak ditemukan');
+    }
+  } catch (error) {
+    return serverError(res, 'Gagal menghapus ANC permanen', error);
+  }
+};
+
 module.exports = {
   createRegistrasiANC,
   getANCById,
   updateANCRegistrasi,
   deleteANCRegistrasi,
-  getAllANC
+  getAllANC,
+  getDeletedANC,
+  restore,
+  deletePermanent
 };

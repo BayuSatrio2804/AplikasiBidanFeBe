@@ -16,6 +16,12 @@ router.use(verifyToken);
 // ANC endpoints
 router.get('/', ancController.getAllANC);
 router.post('/', validate(RegistrasiANCSchema), ancController.createRegistrasiANC);
+
+// Trash/Recovery Routes (must be before :id)
+router.get('/deleted', ancController.getDeletedANC);
+router.put('/restore/:id', ancController.restore);
+router.delete('/permanent/:id', ancController.deletePermanent);
+
 router.get('/:id', ancController.getANCById);
 router.put('/:id', validate(RegistrasiANCSchema), ancController.updateANCRegistrasi);
 router.delete('/:id', ancController.deleteANCRegistrasi);

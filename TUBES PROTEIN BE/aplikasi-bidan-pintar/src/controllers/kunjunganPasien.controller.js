@@ -78,10 +78,53 @@ const deleteKunjunganPasien = async (req, res) => {
   }
 };
 
+const { notFound } = require('../utils/response');
+
+const getDeletedKunjunganPasien = async (req, res) => {
+  try {
+    const { search = '' } = req.query;
+    const deletedData = await kunjunganPasienService.getDeletedKunjunganPasien(search);
+    return success(res, 'Data sampah Kunjungan Pasien berhasil diambil', deletedData);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil data sampah Kunjungan Pasien', error);
+  }
+};
+
+const restore = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await kunjunganPasienService.restoreKunjunganPasien(id, req.user.id);
+    if (result) {
+      return success(res, 'Data Kunjungan Pasien berhasil dipulihkan');
+    } else {
+      return notFound(res, 'Data Kunjungan Pasien tidak ditemukan');
+    }
+  } catch (error) {
+    return serverError(res, 'Gagal memulihkan Kunjungan Pasien', error);
+  }
+};
+
+const deletePermanent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await kunjunganPasienService.deletePermanentKunjunganPasien(id, req.user.id);
+    if (result) {
+      return success(res, 'Data Kunjungan Pasien berhasil dihapus secara permanen');
+    } else {
+      return notFound(res, 'Data Kunjungan Pasien tidak ditemukan');
+    }
+  } catch (error) {
+    return serverError(res, 'Gagal menghapus Kunjungan Pasien permanen', error);
+  }
+};
+
 module.exports = {
   getAllKunjunganPasien,
   getKunjunganPasienById,
   createRegistrasiKunjunganPasien,
   updateKunjunganPasien,
-  deleteKunjunganPasien
+  deleteKunjunganPasien,
+  getDeletedKunjunganPasien,
+  restore,
+  deletePermanent
 };

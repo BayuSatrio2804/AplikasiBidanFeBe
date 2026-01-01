@@ -16,6 +16,12 @@ router.use(verifyToken);
 // Delivery endpoints
 router.get('/', persalinanController.getAllPersalinan);
 router.post('/', validate(RegistrasiPersalinanSchema), persalinanController.createRegistrasiPersalinan);
+
+// Trash/Recovery Routes (must be before :id)
+router.get('/deleted', persalinanController.getDeletedPersalinan);
+router.put('/restore/:id', persalinanController.restore);
+router.delete('/permanent/:id', persalinanController.deletePermanent);
+
 router.get('/:id', persalinanController.getPersalinanById);
 router.put('/:id', validate(RegistrasiPersalinanSchema), persalinanController.updateRegistrasiPersalinan);
 router.delete('/:id', persalinanController.deleteRegistrasiPersalinan);

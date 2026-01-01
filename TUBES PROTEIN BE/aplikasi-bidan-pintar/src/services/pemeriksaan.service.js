@@ -53,7 +53,7 @@ const getAllPemeriksaan = async (jenisLayanan = null, search = null) => {
     query += ` LEFT JOIN layanan_kunjungan_pasien kp ON p.id_pemeriksaan = kp.id_pemeriksaan`;
   }
 
-  query += ` WHERE 1=1 AND p.deleted_at IS NULL AND pas.deleted_at IS NULL`;
+  query += ` WHERE 1=1 AND p.deleted_at IS NULL AND p.is_permanent_deleted = 0 AND pas.deleted_at IS NULL`;
   const params = [];
 
   // Filter jenis_layanan jika ada
@@ -82,7 +82,7 @@ const getAllPemeriksaan = async (jenisLayanan = null, search = null) => {
     } else if (row.jenis_layanan === 'Imunisasi') {
       row.nomor_registrasi = row.no_reg;
     } else if (row.jenis_layanan === 'Persalinan') {
-      row.nomor_registrasi = row.no_reg;
+      row.nomor_registrasi = row.no_reg_baru || row.no_reg_lama;
     }
     return row;
   });
@@ -150,9 +150,72 @@ const updatePemeriksaan = async (id_pemeriksaan, userId, data) => {
   return { id_pemeriksaan, ...data };
 };
 
+/**
+ * Helper internal untuk mendapatkan kategori audit berdasarkan jenis layanan pemeriksaan
+ */
+const getAuditCategoryByPemeriksaanId = async (id_pemeriksaan) => {
+  const [rows] = await db.query('SELECT jenis_layanan FROM pemeriksaan WHERE id_pemeriksaan = ?', [id_pemeriksaan]);
+  if (!rows[0]) return 'pemeriksaan';
+  
+  const mapping = {
+    'ANC': 'layanan_anc',
+    'KB': 'layanan_kb',
+    'Imunisasi': 'layanan_imunisasi',
+    'Persalinan': 'layanan_persalinan',
+    'Kunjungan Pasien': 'layanan_kunjungan_pasien'
+  };
+  
+  return mapping[rows[0].jenis_layanan] || 'pemeriksaan';
+};
+
+/**
+ * Restore pemeriksaan yang terhapus
+ * @param {string} id_pemeriksaan - ID Pemeriksaan
+ * @param {string} userId - ID Pengguna
+ * @returns {boolean} Status keberhasilan
+ */
+const restorePemeriksaan = async (id_pemeriksaan, userId) => {
+  const category = await getAuditCategoryByPemeriksaanId(id_pemeriksaan);
+  
+  const [result] = await db.query(
+    'UPDATE pemeriksaan SET deleted_at = NULL WHERE id_pemeriksaan = ? AND is_permanent_deleted = 0',
+    [id_pemeriksaan]
+  );
+
+  if (result.affectedRows > 0) {
+    await auditService.recordDataLog(userId, 'RESTORE', category, id_pemeriksaan);
+    return true;
+  }
+  return false;
+};
+
+/**
+ * Hapus permanen pemeriksaan (Soft Hard Delete)
+ * @param {string} id_pemeriksaan - ID Pemeriksaan
+ * @param {string} userId - ID Pengguna
+ * @returns {boolean} Status keberhasilan
+ */
+const deletePemeriksaanPermanent = async (id_pemeriksaan, userId) => {
+  const category = await getAuditCategoryByPemeriksaanId(id_pemeriksaan);
+  
+  const [result] = await db.query(
+    'UPDATE pemeriksaan SET is_permanent_deleted = 1, deleted_at = NOW() WHERE id_pemeriksaan = ?',
+    [id_pemeriksaan]
+  );
+
+  if (result.affectedRows > 0) {
+    await auditService.recordDataLog(userId, 'DELETE_PERMANENT', category, id_pemeriksaan);
+    return true;
+  }
+  return false;
+};
+
 module.exports = {
   getAllPemeriksaan,
   getDetailPemeriksaan,
   createPemeriksaan,
-  updatePemeriksaan
+  updatePemeriksaan,
+  restorePemeriksaan,
+  deletePemeriksaanPermanent
 };
+

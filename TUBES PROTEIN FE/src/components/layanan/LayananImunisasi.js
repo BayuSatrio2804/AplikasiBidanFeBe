@@ -12,6 +12,7 @@ import pasienService from '../../services/pasien.service';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
 import PilihPasienModal from '../shared/PilihPasienModal';
+import DataSampahLayanan from './DataSampahLayanan';
 
 function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAkun, onToProfil, onToTambahPasien, onToTambahPengunjung, onToBuatLaporan, onToPersalinan, onToANC, onToKB, onToImunisasi, onToJadwal }) {
   const [showForm, setShowForm] = useState(false);
@@ -23,6 +24,7 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   const [showPasienModal, setShowPasienModal] = useState(false);
+  const [showTrash, setShowTrash] = useState(false);
 
   // State untuk popup jadwal
   const [showJadwalModal, setShowJadwalModal] = useState(false);
@@ -500,7 +502,16 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
 
         {/* Area Utama */}
         <main className="imunisasi-main-area">
-          {!showForm ? (
+          {showTrash ? (
+            <DataSampahLayanan
+              title="Imunisasi"
+              onBack={() => setShowTrash(false)}
+              fetchDeleted={layananService.getDeletedImunisasi}
+              restoreItem={layananService.restoreImunisasi}
+              deleteItemPermanent={layananService.deletePermanentImunisasi}
+              onDataChanged={() => fetchRiwayatPelayanan(searchQuery)}
+            />
+          ) : !showForm ? (
             <>
               {/* Pesan Selamat Datang & Tombol Aksi */}
               <div className="imunisasi-welcome-section">
@@ -556,6 +567,12 @@ function LayananImunisasi({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatM
                       </div>
                     )}
                   </div>
+                  <button className="imunisasi-btn-pulihkan" onClick={() => setShowTrash(true)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
+                    </svg>
+                    Pulihkan Data
+                  </button>
                 </div>
 
                 <div className="imunisasi-riwayat-list">

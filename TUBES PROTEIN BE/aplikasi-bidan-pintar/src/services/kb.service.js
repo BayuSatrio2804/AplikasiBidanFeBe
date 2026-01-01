@@ -258,7 +258,7 @@ const getAllKB = async (search = '') => {
       FROM pemeriksaan pm
       LEFT JOIN layanan_kb kb ON pm.id_pemeriksaan = kb.id_pemeriksaan
       LEFT JOIN pasien p ON pm.id_pasien = p.id_pasien
-      WHERE pm.jenis_layanan = 'KB' AND pm.deleted_at IS NULL AND p.deleted_at IS NULL
+      WHERE pm.jenis_layanan = 'KB' AND pm.deleted_at IS NULL AND pm.is_permanent_deleted = 0 AND p.deleted_at IS NULL
     `;
 
     const params = [];
@@ -278,10 +278,65 @@ const getAllKB = async (search = '') => {
   }
 };
 
+/**
+ * Ambil data KB yang terhapus
+ */
+const getDeletedKB = async (search = '') => {
+  try {
+    let query = `
+      SELECT 
+        pm.id_pemeriksaan, 
+        pm.id_pasien,
+        p.nama as nama_pasien, 
+        p.nik,
+        pm.tanggal_pemeriksaan, 
+        pm.jenis_layanan,
+        pm.deleted_at,
+        kb.id_kb,
+        kb.nomor_registrasi_lama,
+        kb.nomor_registrasi_baru,
+        COALESCE(kb.nomor_registrasi_baru, kb.nomor_registrasi_lama) as nomor_registrasi
+      FROM pemeriksaan pm
+      LEFT JOIN layanan_kb kb ON pm.id_pemeriksaan = kb.id_pemeriksaan
+      LEFT JOIN pasien p ON pm.id_pasien = p.id_pasien
+      WHERE pm.jenis_layanan = 'KB' AND pm.deleted_at IS NOT NULL AND pm.is_permanent_deleted = 0
+    `;
+
+    const params = [];
+
+    if (search && search.trim()) {
+      query += ` AND (p.nama LIKE ? OR p.nik LIKE ?)`;
+      const searchTerm = `%${search}%`;
+      params.push(searchTerm, searchTerm);
+    }
+
+    query += ' ORDER BY pm.deleted_at DESC';
+
+    const [results] = await db.query(query, params);
+    return results;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const pemeriksaanService = require('./pemeriksaan.service');
+
+const restoreKB = async (id_pemeriksaan, userId) => {
+  return await pemeriksaanService.restorePemeriksaan(id_pemeriksaan, userId);
+};
+
+const deletePermanentKB = async (id_pemeriksaan, userId) => {
+  return await pemeriksaanService.deletePemeriksaanPermanent(id_pemeriksaan, userId);
+};
+
 module.exports = {
   createRegistrasiKB,
   getKBById,
   updateRegistrasiKB,
   deleteRegistrasiKB,
-  getAllKB
+  getAllKB,
+  getDeletedKB,
+  restoreKB,
+  deletePermanentKB
 };
+

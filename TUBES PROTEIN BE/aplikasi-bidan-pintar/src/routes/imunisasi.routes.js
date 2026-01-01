@@ -19,6 +19,12 @@ router.use(verifyToken);
 // Immunization endpoints
 router.get('/', imunisasiController.getAllImunisasi);
 router.post('/', validate(RegistrasiImunisasiSchema), imunisasiController.createRegistrasiImunisasi);
+
+// Trash/Recovery Routes (must be before :id)
+router.get('/deleted', imunisasiController.getDeletedImunisasi);
+router.put('/restore/:id', imunisasiController.restore);
+router.delete('/permanent/:id', imunisasiController.deletePermanent);
+
 router.get('/:id', imunisasiController.getImunisasiById);
 router.put('/:id', validate(RegistrasiImunisasiSchema), imunisasiController.updateRegistrasiImunisasi);
 router.delete('/:id', imunisasiController.deleteRegistrasiImunisasi);

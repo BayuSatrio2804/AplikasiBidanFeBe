@@ -83,10 +83,53 @@ const deleteRegistrasiPersalinan = async (req, res) => {
   }
 };
 
+const { notFound } = require('../utils/response');
+
+const getDeletedPersalinan = async (req, res) => {
+  try {
+    const { search = '' } = req.query;
+    const deletedData = await persalinanService.getDeletedPersalinan(search);
+    return success(res, 'Data sampah Persalinan berhasil diambil', deletedData);
+  } catch (error) {
+    return serverError(res, 'Gagal mengambil data sampah Persalinan', error);
+  }
+};
+
+const restore = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await persalinanService.restorePersalinan(id, req.user.id);
+    if (result) {
+      return success(res, 'Data Persalinan berhasil dipulihkan');
+    } else {
+      return notFound(res, 'Data Persalinan tidak ditemukan');
+    }
+  } catch (error) {
+    return serverError(res, 'Gagal memulihkan Persalinan', error);
+  }
+};
+
+const deletePermanent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await persalinanService.deletePermanentPersalinan(id, req.user.id);
+    if (result) {
+      return success(res, 'Data Persalinan berhasil dihapus secara permanen');
+    } else {
+      return notFound(res, 'Data Persalinan tidak ditemukan');
+    }
+  } catch (error) {
+    return serverError(res, 'Gagal menghapus Persalinan permanen', error);
+  }
+};
+
 module.exports = {
   createRegistrasiPersalinan,
   getPersalinanById,
   getAllPersalinan,
   updateRegistrasiPersalinan,
-  deleteRegistrasiPersalinan
+  deleteRegistrasiPersalinan,
+  getDeletedPersalinan,
+  restore,
+  deletePermanent
 };
