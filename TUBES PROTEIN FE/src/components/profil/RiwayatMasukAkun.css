@@ -193,24 +193,6 @@
   border: 1px solid rgba(231, 76, 60, 0.5);
 }
 
-.rma-status {
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-  display: inline-block;
-}
-
-.status-berhasil {
-  background-color: rgba(232, 154, 199, 0.2);
-  color: #C94C8B;
-}
-
-.status-gagal {
-  background-color: rgba(201, 76, 139, 0.2);
-  color: #C94C8B;
-}
-
 /* Filter Panel Styles */
 .rma-filter-panel {
   background: white;
