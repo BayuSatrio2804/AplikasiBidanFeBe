@@ -113,8 +113,10 @@ const getPasienById = async (id) => {
  * @returns {Object} Data pasien yang dibuat
  */
 const createPasien = async (data, userId) => {
-  const { nama, NIK, umur, alamat, no_hp } = data;
+  let { nama, NIK, umur, alamat, no_hp } = data;
   const id_pasien = uuidv4();
+
+  if (no_hp === '') no_hp = null;
 
   const query = `
     INSERT INTO pasien (id_pasien, nama, nik, umur, alamat, no_hp) 

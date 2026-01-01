@@ -73,7 +73,7 @@ CREATE TABLE pasien (
     id_pasien CHAR(36) NOT NULL PRIMARY KEY,
     nama VARCHAR(100) NOT NULL,
     nik VARCHAR(20) NOT NULL,
-    umur INT NOT NULL,
+    umur VARCHAR(50) NOT NULL,
     alamat TEXT,
     no_hp VARCHAR(15),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
