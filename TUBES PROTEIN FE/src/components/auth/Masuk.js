@@ -41,6 +41,9 @@ function Masuk({ onNavigate, onLogin }) {
 
   return (
     <div className="auth-page">
+      <button className="auth-back-button" onClick={() => onNavigate('beranda')}>
+        Kembali
+      </button>
       <div className="auth-container">
         <form onSubmit={handleSubmit}>
           <div className="form-card">

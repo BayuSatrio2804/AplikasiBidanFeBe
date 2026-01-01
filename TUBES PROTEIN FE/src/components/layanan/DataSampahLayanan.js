@@ -2,43 +2,52 @@ import { useState, useEffect } from 'react';
 import './DataSampahLayanan.css';
 import Notifikasi from '../notifikasi/NotifikasiComponent';
 import { useNotifikasi } from '../notifikasi/useNotifikasi';
+import layananService from '../../services/layanan.service';
 
 /**
- * DataSampahLayanan - Reusable trash/recovery component for services
- * @param {Object} props
- * @param {string} props.title - Service name (e.g., "KB", "ANC", "Imunisasi")
- * @param {Function} props.onBack - Handler to go back to main view
- * @param {Function} props.fetchDeleted - API function to fetch deleted records
- * @param {Function} props.restoreItem - API function to restore an item
- * @param {Function} props.deleteItemPermanent - API function to permanently delete
- * @param {Function} props.onDataChanged - Callback after restore/delete to refresh parent
+ * DataSampahLayanan - Global recovery component for all services
  */
-function DataSampahLayanan({
-  title,
-  onBack,
-  fetchDeleted,
-  restoreItem,
-  deleteItemPermanent,
-  onDataChanged
-}) {
+function DataSampahLayanan({ onBack }) {
   const [deletedData, setDeletedData] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
 
   useEffect(() => {
-    loadDeletedData();
+    loadAllDeletedData();
   }, []);
 
-  const loadDeletedData = async (query = '') => {
+  const loadAllDeletedData = async (query = '') => {
     setIsLoading(true);
     try {
-      const response = await fetchDeleted(query);
-      if (response.success && response.data) {
-        setDeletedData(response.data);
-      } else {
-        setDeletedData([]);
-      }
+      // Fetch deleted data from all services concurrently
+      const [kb, anc, imunisasi, persalinan, kunjungan] = await Promise.all([
+        layananService.getDeletedKB(query),
+        layananService.getDeletedANC(query),
+        layananService.getDeletedImunisasi(query),
+        layananService.getDeletedPersalinan(query),
+        layananService.getDeletedKunjunganPasien(query)
+      ]);
+
+      const processData = (response, type) => {
+        if (response.success && Array.isArray(response.data)) {
+          return response.data.map(item => ({ ...item, jenis_layanan: type }));
+        }
+        return [];
+      };
+
+      const allData = [
+        ...processData(kb, 'KB'),
+        ...processData(anc, 'ANC'),
+        ...processData(imunisasi, 'Imunisasi'),
+        ...processData(persalinan, 'Persalinan'),
+        ...processData(kunjungan, 'Kunjungan Pasien')
+      ];
+
+      // Sort by deleted_at desc
+      allData.sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
+
+      setDeletedData(allData);
     } catch (error) {
       console.error('Error fetching deleted data:', error);
       setDeletedData([]);
@@ -50,17 +59,31 @@ function DataSampahLayanan({
   const handleSearch = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-    loadDeletedData(query);
+    loadAllDeletedData(query);
   };
 
-  const handleRestore = async (id, nama) => {
+  const getServiceFunctions = (type) => {
+    switch (type) {
+      case 'KB': return { restore: layananService.restoreKB, deletePerm: layananService.deletePermanentKB };
+      case 'ANC': return { restore: layananService.restoreANC, deletePerm: layananService.deletePermanentANC };
+      case 'Imunisasi': return { restore: layananService.restoreImunisasi, deletePerm: layananService.deletePermanentImunisasi };
+      case 'Persalinan': return { restore: layananService.restorePersalinan, deletePerm: layananService.deletePermanentPersalinan };
+      case 'Kunjungan Pasien': return { restore: layananService.restoreKunjunganPasien, deletePerm: layananService.deletePermanentKunjunganPasien };
+      default: return null;
+    }
+  };
+
+  const handleRestore = async (id, nama, type) => {
+    const service = getServiceFunctions(type);
+    if (!service) return;
+
     showNotifikasi({
       type: 'confirm-save',
-      message: `Pulihkan data ${nama || 'ini'}?`,
+      message: `Apakah Anda ingin melakukan pemulihan (restore) terhadap data "${nama || 'ini'}"?`,
       onConfirm: async () => {
         hideNotifikasi();
         try {
-          const response = await restoreItem(id);
+          const response = await service.restore(id);
           if (response.success) {
             showNotifikasi({
               type: 'success',
@@ -69,8 +92,7 @@ function DataSampahLayanan({
               autoCloseDuration: 2000,
               onConfirm: hideNotifikasi
             });
-            loadDeletedData(searchQuery);
-            if (onDataChanged) onDataChanged();
+            loadAllDeletedData(searchQuery);
           } else {
             showNotifikasi({
               type: 'error',
@@ -91,16 +113,19 @@ function DataSampahLayanan({
     });
   };
 
-  const handlePermanentDelete = async (id, nama) => {
+  const handlePermanentDelete = async (id, nama, type) => {
+    const service = getServiceFunctions(type);
+    if (!service) return;
+
     showNotifikasi({
       type: 'confirm-delete',
-      message: `PERINGATAN: Hapus permanen data ${nama || 'ini'}? Tindakan ini tidak dapat dibatalkan!`,
+      message: `PERINGATAN: Hapus permanen data ${nama || 'ini'} (${type})? Tindakan ini tidak dapat dibatalkan!`,
       confirmText: 'Ya, hapus permanen',
       cancelText: 'Batal',
       onConfirm: async () => {
         hideNotifikasi();
         try {
-          const response = await deleteItemPermanent(id);
+          const response = await service.deletePerm(id);
           if (response.success) {
             showNotifikasi({
               type: 'success',
@@ -109,8 +134,7 @@ function DataSampahLayanan({
               autoCloseDuration: 2000,
               onConfirm: hideNotifikasi
             });
-            loadDeletedData(searchQuery);
-            if (onDataChanged) onDataChanged();
+            loadAllDeletedData(searchQuery);
           } else {
             showNotifikasi({
               type: 'error',
@@ -146,66 +170,60 @@ function DataSampahLayanan({
 
   return (
     <div className="data-sampah-layanan">
-      <div className="dsl-header">
-        <button className="dsl-back-btn" onClick={onBack}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-          Kembali
-        </button>
-        <h2 className="dsl-title">Sampah Layanan {title}</h2>
+      <div className="dsl-card-header">
+        <div className="dsl-search-bar">
+          <input
+            type="text"
+            className="dsl-search-input"
+            placeholder="Cari Data Layanan Pasien"
+            value={searchQuery}
+            onChange={handleSearch}
+          />
+        </div>
       </div>
 
-      <div className="dsl-search-bar">
-        <input
-          type="text"
-          className="dsl-search-input"
-          placeholder="Cari Data Terhapus"
-          value={searchQuery}
-          onChange={handleSearch}
-        />
-      </div>
-
-      <div className="dsl-list">
-        {isLoading ? (
-          <div className="dsl-loading">Memuat data...</div>
-        ) : deletedData.length > 0 ? (
-          deletedData.map((item, index) => (
-            <div key={item.id_pemeriksaan || item.id || index} className="dsl-item">
-              <div className="dsl-item-info">
-                <h4>{item.nama_pasien || item.nama || 'Data Pasien'}</h4>
-                <p>Dihapus: {formatDate(item.deleted_at)}</p>
-                {item.jenis_layanan && <span className="dsl-badge">{item.jenis_layanan}</span>}
+      <div className="dsl-card-body">
+        <div className="dsl-list">
+          {isLoading ? (
+            <div className="dsl-empty">Memuat data...</div>
+          ) : deletedData.length > 0 ? (
+            deletedData.map((item, index) => (
+              <div key={item.id_pemeriksaan || item.id || index} className="dsl-item">
+                <div className="dsl-item-info">
+                  <h4>{item.nama_pasien || item.nama || 'Data Pasien'}</h4>
+                  <p className="dsl-service-type">Jenis Layanan: {item.jenis_layanan}</p>
+                  <p>Dihapus: {formatDate(item.deleted_at)}</p>
+                </div>
+                <div className="dsl-actions">
+                  <button
+                    className="dsl-btn-delete"
+                    onClick={() => handlePermanentDelete(item.id_pemeriksaan || item.id, item.nama_pasien || item.nama, item.jenis_layanan)}
+                    title="Hapus Permanen"
+                  >
+                    <img
+                      src="https://img.icons8.com/ios-filled/50/delete-trash.png"
+                      alt="Delete"
+                      style={{ width: '24px', height: '24px', filter: 'brightness(0) invert(1)' }}
+                    />
+                  </button>
+                  <button
+                    className="dsl-btn-restore"
+                    onClick={() => handleRestore(item.id_pemeriksaan || item.id, item.nama_pasien || item.nama, item.jenis_layanan)}
+                    title="Pulihkan Data"
+                  >
+                    <img
+                      src="https://img.icons8.com/windows/32/settings-backup-restore.png"
+                      alt="Restore"
+                      style={{ width: '24px', height: '24px', filter: 'brightness(0) invert(1)' }}
+                    />
+                  </button>
+                </div>
               </div>
-              <div className="dsl-actions">
-                <button
-                  className="dsl-btn-restore"
-                  onClick={() => handleRestore(item.id_pemeriksaan || item.id, item.nama_pasien || item.nama)}
-                  title="Pulihkan Data"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="1 4 1 10 7 10"></polyline>
-                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                  </svg>
-                </button>
-                <button
-                  className="dsl-btn-delete"
-                  onClick={() => handlePermanentDelete(item.id_pemeriksaan || item.id, item.nama_pasien || item.nama)}
-                  title="Hapus Permanen"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="dsl-empty">Tidak ada data terhapus</div>
-        )}
+            ))
+          ) : (
+            <div className="dsl-empty">Data tidak ditemukan.</div>
+          )}
+        </div>
       </div>
 
       <Notifikasi

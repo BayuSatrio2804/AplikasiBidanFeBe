@@ -11,6 +11,7 @@ function BuatAkun({ onNavigate }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [ingatSaya, setIngatSaya] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -54,6 +55,9 @@ function BuatAkun({ onNavigate }) {
 
   return (
     <div className="auth-page">
+      <button className="auth-back-button" onClick={() => onNavigate('beranda')}>
+        Kembali
+      </button>
       <div className="auth-container">
         <form onSubmit={handleSubmit}>
           <div className="form-card">
@@ -108,16 +112,38 @@ function BuatAkun({ onNavigate }) {
               />
             </div>
 
-            <div className="form-group password-group">
+            <div className="form-group password-group" style={{ position: 'relative' }}>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Masukkan password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <span className="eye-icon">
-                <img src={eyeIcon} alt="Show" style={{ width: '20px', height: '20px', opacity: '0.5' }} />
+              <span
+                className={`eye-icon ${!showPassword ? 'eye-slash' : ''}`}
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '15px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                <img
+                  src={eyeIcon}
+                  alt={showPassword ? "Sembunyikan" : "Tampilkan"}
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    opacity: showPassword ? '1' : '0.5',
+                    transition: 'opacity 0.2s',
+                    filter: 'brightness(0)'
+                  }}
+                />
               </span>
             </div>
 

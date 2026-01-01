@@ -199,7 +199,8 @@
   border: 1px solid #E89AC7;
   border-radius: 12px;
   padding: 20px;
-  margin-top: 15px;
+  margin-top: 0;
+  margin-bottom: 20px;
   box-shadow: 0 4px 12px rgba(232, 154, 199, 0.15);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

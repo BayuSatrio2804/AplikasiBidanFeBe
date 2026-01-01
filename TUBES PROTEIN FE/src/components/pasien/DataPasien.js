@@ -98,7 +98,14 @@ function DataPasien({
   const handleFilterSelect = (filterValue) => {
     setSelectedFilter(filterValue);
     setShowFilterDropdown(false);
-    // Implement filter logic here based on layanan
+
+    let sortedList = [...pasienList];
+    if (filterValue === 'az') {
+      sortedList.sort((a, b) => a.nama.localeCompare(b.nama));
+    } else if (filterValue === 'za') {
+      sortedList.sort((a, b) => b.nama.localeCompare(a.nama));
+    }
+    setPasienList(sortedList);
   };
 
   return (
@@ -163,40 +170,16 @@ function DataPasien({
                     {showFilterDropdown && (
                       <div className="dp-filter-dropdown">
                         <div
-                          className={`dp-filter-option ${selectedFilter === 'semua' ? 'active' : ''}`}
-                          onClick={() => handleFilterSelect('semua')}
+                          className={`dp-filter-option ${selectedFilter === 'az' ? 'active' : ''}`}
+                          onClick={() => handleFilterSelect('az')}
                         >
-                          Semua Layanan
+                          A - Z
                         </div>
                         <div
-                          className={`dp-filter-option ${selectedFilter === 'kb' ? 'active' : ''}`}
-                          onClick={() => handleFilterSelect('kb')}
+                          className={`dp-filter-option ${selectedFilter === 'za' ? 'active' : ''}`}
+                          onClick={() => handleFilterSelect('za')}
                         >
-                          Layanan KB
-                        </div>
-                        <div
-                          className={`dp-filter-option ${selectedFilter === 'persalinan' ? 'active' : ''}`}
-                          onClick={() => handleFilterSelect('persalinan')}
-                        >
-                          Layanan Persalinan
-                        </div>
-                        <div
-                          className={`dp-filter-option ${selectedFilter === 'anc' ? 'active' : ''}`}
-                          onClick={() => handleFilterSelect('anc')}
-                        >
-                          Layanan ANC
-                        </div>
-                        <div
-                          className={`dp-filter-option ${selectedFilter === 'imunisasi' ? 'active' : ''}`}
-                          onClick={() => handleFilterSelect('imunisasi')}
-                        >
-                          Layanan Imunisasi
-                        </div>
-                        <div
-                          className={`dp-filter-option ${selectedFilter === 'kunjungan' ? 'active' : ''}`}
-                          onClick={() => handleFilterSelect('kunjungan')}
-                        >
-                          Kunjungan Pasien
+                          Z - A
                         </div>
                       </div>
                     )}

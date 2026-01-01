@@ -182,7 +182,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
     setShowPasienModal(false);
     showNotifikasi({
       type: 'success',
-      message: 'Data Pasien Berhasil Dipilih!',
+      message: 'Data pasien berhasil dipilih!',
       autoClose: true,
       autoCloseDuration: 1500,
       onConfirm: hideNotifikasi
@@ -463,7 +463,9 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
   };
 
   const handleHeaderBack = () => {
-    if (showForm) {
+    if (showTrash) {
+      setShowTrash(false);
+    } else if (showForm) {
       handleBatal();
     } else {
       onBack();
@@ -479,7 +481,7 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
             <img src={pinkLogo} alt="Pink Logo" className="anc-header-logo-img" />
           </div>
           <h1 className="anc-header-title">
-            {showForm ? (editingId ? 'Edit Registrasi Layanan Antenatal Care (ANC)' : 'Formulir Registrasi Layanan Antenatal Care (ANC)') : 'Layanan Antenatal Care (ANC)'}
+            {showTrash ? 'Pemulihan Data Layanan Pasien' : (showForm ? (editingId ? 'Edit Registrasi Layanan Antenatal Care (ANC)' : 'Formulir Registrasi Layanan Antenatal Care (ANC)') : 'Layanan Antenatal Care (ANC)')}
           </h1>
         </div>
         <button className="btn-kembali-anc" onClick={handleHeaderBack}>Kembali</button>
@@ -680,16 +682,17 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
                       type="button"
                       onClick={() => setShowPasienModal(true)}
                       style={{
-                        backgroundColor: '#e91e63',
-                        color: 'white',
-                        border: 'none',
+                        backgroundColor: 'white',
+                        color: 'black',
+                        border: '1px solid #ddd',
                         padding: '8px 15px',
                         borderRadius: '5px',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '5px',
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
                       }}
                     >
                       <span>🔍</span> Cari Pasien

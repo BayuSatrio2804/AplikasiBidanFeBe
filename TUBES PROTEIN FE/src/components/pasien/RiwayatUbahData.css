@@ -218,7 +218,7 @@
   border: 1px solid #E89AC7;
   border-radius: 12px;
   padding: 20px;
-  margin-top: 15px;
+  /* margin-top: 15px; Removed */
   box-shadow: 0 4px 12px rgba(232, 154, 199, 0.15);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -273,4 +273,5 @@
 .btn-reset-filter:hover {
   background: linear-gradient(135deg, #D987BE 0%, #C94C8B 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(201, 76, 139, 0.3);}
+  box-shadow: 0 4px 8px rgba(201, 76, 139, 0.3);
+}

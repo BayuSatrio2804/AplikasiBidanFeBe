@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css';
+import bidanYeye from '../../assets/images/bidan-yeye.jpg';
+import pinkLogo from '../../assets/images/pink-logo.png';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -51,8 +53,10 @@ const LandingPage = () => {
         <div className="header-container">
           <div className="logo-section" onClick={() => navigate('/beranda')}>
             <div className="logo-icon">🏥</div>
-            <h1 className="logo-text">Rumah Muaffa Bidan Yeye</h1>
-            <p className="logo-subtitle">SISTEM INFORMASI BIDAN DIGITAL</p>
+            <div className="logo-details">
+              <h1 className="logo-text">Rumah Muaffa Bidan Yeye</h1>
+              <p className="logo-subtitle">SISTEM INFORMASI BIDAN DIGITAL</p>
+            </div>
           </div>
           <nav className="nav-menu">
             <button
@@ -95,10 +99,20 @@ const LandingPage = () => {
               Daftar
             </button>
           </div>
+
+
           <div className="hero-image">
-            <div className="image-placeholder">
-              <div className="image-icon">🩺</div>
-              <p>Rumah Muaffa<br />Bidan Yeye</p>
+            <div className="hero-image-wrapper">
+              <img src={bidanYeye} alt="Bidan Yeye" className="bidan-photo" />
+              <div className="hero-image-card">
+                <div className="card-logo">
+                  <img src={pinkLogo} alt="Logo" />
+                </div>
+                <div className="card-text">
+                  <span className="card-label">Rumah Muaffa</span>
+                  <span className="card-name">Bidan Yeye</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -138,24 +152,24 @@ const LandingPage = () => {
             <div className="clinic-info-card">
               <h3 className="info-label">ALAMAT</h3>
               <p className="info-content">
-                Jl. Cijerah Hilir No. 128, RT 02/RW 12,<br />
-                Kel. Cijerah, Kec. Buah Batu, Kota Bandung
+                Jl. Cijawura Hilir No. 123, RT.02/RW.12,<br />
+                Kel. Cujaura, Kec. Buah Batu, Kota Bandung
               </p>
             </div>
 
             <div className="clinic-info-card">
               <h3 className="info-label">JAM OPERASIONAL</h3>
               <p className="info-content">
-                Senin - Sabtu: 08.00 - 20.00<br />
-                Minggu: 08.00 - 14.00
+                Senin - Sabtu: 07.00 - 20.00<br />
+                Minggu: *Lihat halaman Tentang
               </p>
             </div>
 
             <div className="clinic-info-card">
               <h3 className="info-label">KONTAK</h3>
               <p className="info-content">
-                WhatsApp: 0853-1633-3969<br />
-                Email: klinikmuaffa@ayogmail.com
+                WhatsApp: 0853-1533-1983<br />
+                Email: fahrina1983yeye@gmail.com
               </p>
             </div>
           </div>

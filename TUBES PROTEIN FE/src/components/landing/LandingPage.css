@@ -41,6 +41,11 @@ html {
   cursor: pointer;
 }
 
+.logo-details {
+  display: flex;
+  flex-direction: column;
+}
+
 .logo-icon {
   font-size: 2rem;
   color: #d94c89;
@@ -120,22 +125,23 @@ html {
 
 .hero-subtitle {
   color: #d94c89;
-  font-size: 0.85rem;
-  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
   font-weight: 600;
   margin: 0;
   background-color: #fce4ec;
-  padding: 0.6rem 1.5rem;
+  padding: 0.5rem 1.2rem;
   display: inline-block;
-  border-radius: 25px;
+  border-radius: 20px;
   width: fit-content;
+  text-transform: uppercase;
 }
 
 .hero-title {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   color: #333;
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.2;
   font-weight: 700;
 }
 
@@ -144,56 +150,101 @@ html {
   font-size: 1rem;
   line-height: 1.6;
   margin: 0;
+  max-width: 90%;
 }
 
 .btn-daftar {
-  padding: 0.8rem 2rem;
-  background-color: #d94c89;
+  padding: 0.9rem 2.2rem;
+  background-color: #b05479;
+  /* Sesuai warna mockup yang agak gelap/muted pink */
   color: white;
   border: none;
-  border-radius: 25px;
-  font-size: 0.95rem;
+  border-radius: 8px;
+  /* Mockup button seems slightly more squared/small radius */
+  font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
   font-weight: 600;
   max-width: fit-content;
+  box-shadow: 0 4px 15px rgba(176, 84, 121, 0.3);
 }
 
 .btn-daftar:hover {
-  background-color: #c23d78;
+  background-color: #9c486a;
+  transform: translateY(-2px);
 }
 
 .hero-image {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
-.image-placeholder {
+.hero-image-wrapper {
+  position: relative;
+  border-radius: 24px;
+  overflow: visible;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  max-width: 450px;
   width: 100%;
-  max-width: 400px;
-  aspect-ratio: 1;
-  background: linear-gradient(135deg, #d94c89 0%, #f0b0d0 100%);
-  border-radius: 20px;
+}
+
+.bidan-photo {
+  width: 100%;
+  height: auto;
+  border-radius: 24px;
+  display: block;
+}
+
+.hero-image-card {
+  position: absolute;
+  bottom: 30px;
+  left: -40px;
+  background: white;
+  padding: 15px 25px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  z-index: 10;
+}
+
+.card-logo {
+  width: 50px;
+  height: 50px;
+  background: #fce4ec;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-logo img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.card-text {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-size: 4rem;
-  gap: 1rem;
-  box-shadow: 0 10px 30px rgba(217, 76, 137, 0.2);
+  gap: 2px;
 }
 
-.image-icon {
-  font-size: 4rem;
+.card-label {
+  font-size: 0.75rem;
+  color: #999;
+  font-weight: 500;
 }
 
-.image-placeholder p {
-  text-align: center;
-  font-size: 1rem;
-  margin: 0;
-  font-weight: 600;
+.card-name {
+  font-size: 1.1rem;
+  color: #d94c89;
+  font-weight: 700;
 }
 
 /* Modul Sistem Section */
@@ -275,17 +326,22 @@ html {
 
 /* Clinic Info Section */
 .clinic-info-section {
-  background: linear-gradient(135deg, #d94c89 0%, #e8749c 100%);
   padding: 4rem 2rem;
+  background-color: #ffffff;
+  /* Page background stays white */
 }
 
 .clinic-container {
   max-width: 1200px;
   margin: 0 auto;
+  background: linear-gradient(135deg, #d94c89 0%, #d06d9e 100%);
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  color: white;
 }
 
 .clinic-title {
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: white;
   text-align: center;
   margin: 0 0 3rem 0;
@@ -294,17 +350,20 @@ html {
 
 .clinic-info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
 }
 
 .clinic-info-card {
-  background-color: rgba(255, 255, 255, 0.15);
-  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 2.5rem 1.5rem;
   border-radius: 12px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: background-color 0.3s ease;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 150px;
 }
 
 .clinic-info-card:hover {
@@ -312,18 +371,20 @@ html {
 }
 
 .info-label {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  margin: 0 0 0.8rem 0;
+  text-transform: uppercase;
 }
 
 .info-content {
   color: white;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 /* Footer */
@@ -552,67 +613,71 @@ html {
 
 /* Schedule Section */
 .schedule-section {
-  background: linear-gradient(135deg, #d81b60 0%, #e91e63 100%);
-  border-radius: 24px;
+  background: linear-gradient(135deg, #d85c8e 0%, #e07aa3 100%);
+  border-radius: 20px;
   padding: 4rem 3rem;
   color: white;
+  margin-bottom: 4rem;
 }
 
 .schedule-title {
   text-align: center;
-  font-size: 2rem;
+  font-size: 1.8rem;
   margin-bottom: 3rem;
   font-weight: 700;
+  color: white;
 }
 
 .schedule-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .schedule-card {
   background-color: white;
-  border-radius: 16px;
-  padding: 2rem;
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
   text-align: center;
   color: #333;
-  min-height: 180px;
+  min-height: 160px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .schedule-card h3 {
-  color: #e91e63;
+  color: #d85c8e;
   font-size: 1.1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
   font-weight: 700;
 }
 
 .schedule-card .days {
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   font-size: 0.95rem;
-  color: #d81b60;
+  color: #c04d7a;
 }
 
 .schedule-card p {
   margin: 0.2rem 0;
   font-size: 0.9rem;
   color: #555;
+  font-weight: 500;
 }
 
 .schedule-card .xx-large {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #333;
 }
 
 .schedule-card .note {
   font-size: 0.8rem;
-  color: #888;
+  color: #777;
   margin-top: 0.5rem;
   font-style: italic;
 }

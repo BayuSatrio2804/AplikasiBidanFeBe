@@ -54,7 +54,7 @@ function DataSampah({
     const handleRestore = async (id, nama) => {
         showNotifikasi({
             type: 'confirm-save', // Reusing confirm dialog
-            message: `Pulihkan data pasien ${nama}?`,
+            message: `Apakah Anda ingin melakukan pemulihan (restore) terhadap data "${nama}"?`,
             onConfirm: async () => {
                 hideNotifikasi();
                 try {
@@ -88,19 +88,41 @@ function DataSampah({
         });
     };
 
-    const handlePermanentDelete = async (pasienId) => {
-        if (window.confirm('PERINGATAN: Tindakan ini tidak dapat dibatalkan! Apakah Anda yakin ingin menghapus data pasien ini secara PERMANEN?')) {
-            try {
-                const response = await pasienService.deletePasienPermanent(pasienId);
-                if (response.success) {
-                    alert('Data pasien berhasil dihapus secara permanen');
-                    fetchDeletedData(searchQuery);
+    const handlePermanentDelete = (pasienId) => {
+        showNotifikasi({
+            type: 'confirm-delete',
+            message: 'Penghapusan ini bersifat permanen. Apakah Anda yakin ingin melanjutkan?',
+            confirmText: 'Ya, hapus',
+            cancelText: 'Batal',
+            onConfirm: async () => {
+                hideNotifikasi();
+                try {
+                    const response = await pasienService.deletePasienPermanent(pasienId);
+                    if (response.success) {
+                        showNotifikasi({
+                            type: 'delete-success',
+                            autoClose: true,
+                            onConfirm: hideNotifikasi
+                        });
+                        fetchDeletedData(searchQuery);
+                    } else {
+                        showNotifikasi({
+                            type: 'error',
+                            message: response.message || 'Gagal menghapus data permanen',
+                            onConfirm: hideNotifikasi
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error deleting pasien permanently:', error);
+                    showNotifikasi({
+                        type: 'error',
+                        message: 'Terjadi kesalahan saat menghapus data permanen',
+                        onConfirm: hideNotifikasi
+                    });
                 }
-            } catch (error) {
-                console.error('Error deleting pasien permanently:', error);
-                alert('Gagal menghapus data pasien secara permanen');
-            }
-        }
+            },
+            onCancel: hideNotifikasi
+        });
     };
 
     return (
@@ -119,7 +141,7 @@ function DataSampah({
             {/* Content */}
             <div className="ds-content">
                 <Sidebar
-                    activePage="data-sampah" // Ensure Sidebar handles this active state if needed, or defaults nicely
+                    activePage="data-sampah"
                     onRiwayatDataMasuk={onToRiwayatDataMasuk}
                     onRiwayatMasukAkun={onToRiwayatMasukAkun}
                     onProfilSaya={onToProfil}
@@ -133,73 +155,75 @@ function DataSampah({
                 />
 
                 <main className="ds-main-area">
-                    <div className="ds-container">
-                        <h2 className="ds-section-title">Data Pasien Terhapus</h2>
-
-                        <div className="ds-search-bar">
-                            <input
-                                type="text"
-                                className="ds-search-input"
-                                placeholder="Cari Data Terhapus"
-                                value={searchQuery}
-                                onChange={handleSearch}
-                            />
+                    <div className="ds-card">
+                        <div className="ds-card-header">
+                            <div className="ds-search-bar">
+                                <input
+                                    type="text"
+                                    className="ds-search-input"
+                                    placeholder="Cari Data Pasien"
+                                    value={searchQuery}
+                                    onChange={handleSearch}
+                                />
+                            </div>
                         </div>
 
-                        <div className="ds-list">
-                            {isLoading ? (
-                                <div style={{ color: 'white', textAlign: 'center' }}>Memuat data...</div>
-                            ) : deletedPasien.length > 0 ? (
-                                deletedPasien.map(item => (
-                                    <div key={item.id_pasien} className="ds-item">
-                                        <div className="ds-item-info">
-                                            <h4>{item.nama}</h4>
-                                            <p>Dihapus: {item.deleted_at ? new Date(item.deleted_at).toLocaleDateString() : 'N/A'}</p>
+                        <div className="ds-card-body">
+                            <div className="ds-list">
+                                {isLoading ? (
+                                    <div className="ds-loading">Memuat data...</div>
+                                ) : deletedPasien.length > 0 ? (
+                                    deletedPasien.map(item => (
+                                        <div key={item.id_pasien} className="ds-item">
+                                            <div className="ds-item-info">
+                                                <h4>{item.nama}</h4>
+                                                <p>Dihapus: {item.deleted_at ? new Date(item.deleted_at).toLocaleDateString() : 'N/A'}</p>
+                                            </div>
+                                            <div className="ds-actions">
+                                                <button
+                                                    className="btn-restore"
+                                                    onClick={() => handleRestore(item.id_pasien, item.nama)}
+                                                    title="Pulihkan Data"
+                                                    style={{ marginRight: '10px' }}
+                                                >
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polyline points="1 4 1 10 7 10"></polyline>
+                                                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    className="btn-delete-permanent"
+                                                    onClick={() => handlePermanentDelete(item.id_pasien)}
+                                                    title="Hapus Permanen"
+                                                    style={{
+                                                        width: '40px',
+                                                        height: '40px',
+                                                        background: '#f44336',
+                                                        border: 'none',
+                                                        borderRadius: '50%',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)'
+                                                    }}
+                                                >
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="ds-actions">
-                                            <button
-                                                className="btn-restore"
-                                                onClick={() => handleRestore(item.id_pasien, item.nama)}
-                                                title="Pulihkan Data"
-                                                style={{ marginRight: '10px' }}
-                                            >
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <polyline points="1 4 1 10 7 10"></polyline>
-                                                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                                                </svg>
-                                            </button>
-                                            <button
-                                                className="btn-delete-permanent"
-                                                onClick={() => handlePermanentDelete(item.id_pasien)}
-                                                title="Hapus Permanen"
-                                                style={{
-                                                    width: '40px',
-                                                    height: '40px',
-                                                    background: '#f44336',
-                                                    border: 'none',
-                                                    borderRadius: '50%',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)'
-                                                }}
-                                            >
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                                                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                                                </svg>
-                                            </button>
-                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="ds-empty">
+                                        Data tidak ditemukan.
                                     </div>
-                                ))
-                            ) : (
-                                <div style={{ color: 'white', textAlign: 'center', opacity: 0.8 }}>
-                                    Tidak ada data terhapus ditemukan
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
                 </main>

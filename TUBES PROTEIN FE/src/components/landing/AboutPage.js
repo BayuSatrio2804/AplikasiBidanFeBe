@@ -151,10 +151,10 @@ const AboutPage = () => {
                             </div>
 
                             <div className="schedule-card">
-                                <h3>Perawatan Nifas</h3>
+                                <h3>Konsultasi Kesehatan</h3>
                                 <p className="days">Senin - Sabtu</p>
-                                <p>09.00 - 11.00 WIB</p>
-                                <p>16.00 - 18.00 WIB</p>
+                                <p>07.00 - 12.00 WIB</p>
+                                <p>14.00 - 20.00 WIB</p>
                             </div>
 
                             <div className="schedule-card">
@@ -177,7 +177,7 @@ const AboutPage = () => {
                             </div>
 
                             <div className="schedule-card">
-                                <h3>Konsultasi Kesehatan</h3>
+                                <h3>Perawatan Nifas</h3>
                                 <p className="xx-large">24 Jam</p>
                             </div>
                         </div>

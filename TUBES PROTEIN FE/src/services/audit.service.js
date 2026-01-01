@@ -14,6 +14,7 @@ export const getAccessLogs = async (filters = {}) => {
   if (filters.username) params.append('username', filters.username);
   if (filters.startDate) params.append('startDate', filters.startDate);
   if (filters.endDate) params.append('endDate', filters.endDate);
+  if (filters.type) params.append('type', filters.type);
 
   const query = params.toString() ? `?${params.toString()}` : '';
   return apiRequest(`/audit/akses${query}`, 'GET');

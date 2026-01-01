@@ -459,7 +459,9 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
   };
 
   const handleHeaderBack = () => {
-    if (showForm) {
+    if (showTrash) {
+      setShowTrash(false);
+    } else if (showForm) {
       handleBatal();
     } else {
       onBack();
@@ -474,7 +476,9 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
           <div className="kunjungan-header-logo">
             <img src={pinkLogo} alt="Pink Logo" className="kunjungan-header-logo-img" />
           </div>
-          <h1 className="kunjungan-header-title">Layanan Kunjungan Pasien</h1>
+          <h1 className="kunjungan-header-title">
+            {showTrash ? 'Pemulihan Data Layanan Pasien' : 'Layanan Kunjungan Pasien'}
+          </h1>
         </div>
         <button className="btn-kembali-kunjungan" onClick={handleHeaderBack}>Kembali</button>
       </div>

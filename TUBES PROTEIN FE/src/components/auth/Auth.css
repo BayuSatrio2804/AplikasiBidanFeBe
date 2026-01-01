@@ -197,6 +197,7 @@
     padding: 35px 25px;
   }
 }
+
 /* Slash effect for hidden password */
 .eye-icon.eye-slash::after {
   content: '';
@@ -211,3 +212,33 @@
   z-index: 10;
 }
 
+.auth-back-button {
+  position: absolute;
+  top: 40px;
+  right: 60px;
+  background: #C94C8B;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.auth-back-button:hover {
+  background: #B8417A;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 768px) {
+  .auth-back-button {
+    top: 20px;
+    right: 20px;
+    padding: 8px 20px;
+    font-size: 14px;
+  }
+}

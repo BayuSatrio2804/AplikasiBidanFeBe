@@ -11,7 +11,7 @@ function RiwayatMasukAkun({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, 
   const [filterStatus, setFilterStatus] = useState('');
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
-  const [showFilter, setShowFilter] = useState(false);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,10 +33,10 @@ function RiwayatMasukAkun({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, 
     try {
       setLoading(true);
       const response = await auditService.getAccessLogs({ type: 'login' });
-      
+
       // Extract data from response wrapper
       const logs = response && response.data ? response.data : response;
-      
+
       if (logs && Array.isArray(logs)) {
         const formattedData = logs.map((item, idx) => ({
           id: item.id_akses || idx,
@@ -141,6 +141,52 @@ function RiwayatMasukAkun({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, 
         <main className="rma-main-area">
           {/* Search Section */}
           <div className="rma-search-section">
+            {/* Filter Panel (Now at Top) */}
+            <div className="rma-filter-panel">
+              <div className="filter-group">
+                <label>Status</label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                >
+                  <option value="">Semua Status</option>
+                  <option value="BERHASIL">Login Berhasil</option>
+                  <option value="GAGAL">Login Gagal</option>
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Dari Tanggal</label>
+                <input
+                  type="date"
+                  value={filterStartDate}
+                  onChange={(e) => setFilterStartDate(e.target.value)}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label>Sampai Tanggal</label>
+                <input
+                  type="date"
+                  value={filterEndDate}
+                  onChange={(e) => setFilterEndDate(e.target.value)}
+                />
+              </div>
+
+              <button
+                className="btn-reset-filter"
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterStatus('');
+                  setFilterStartDate('');
+                  setFilterEndDate('');
+                }}
+              >
+                Reset Filter
+              </button>
+            </div>
+
+            {/* Search Bar (Now at Bottom) */}
             <div className="rma-search-bar">
               <input
                 type="text"
@@ -149,63 +195,7 @@ function RiwayatMasukAkun({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button 
-                className="rma-filter-btn"
-                onClick={() => setShowFilter(!showFilter)}
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
-                  <path d="M3 6h14M6 10h8M8 14h4" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </button>
             </div>
-
-            {/* Filter Panel */}
-            {showFilter && (
-              <div className="rma-filter-panel">
-                <div className="filter-group">
-                  <label>Status</label>
-                  <select 
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                  >
-                    <option value="">Semua Status</option>
-                    <option value="BERHASIL">Login Berhasil</option>
-                    <option value="GAGAL">Login Gagal</option>
-                  </select>
-                </div>
-
-                <div className="filter-group">
-                  <label>Dari Tanggal</label>
-                  <input
-                    type="date"
-                    value={filterStartDate}
-                    onChange={(e) => setFilterStartDate(e.target.value)}
-                  />
-                </div>
-
-                <div className="filter-group">
-                  <label>Sampai Tanggal</label>
-                  <input
-                    type="date"
-                    value={filterEndDate}
-                    onChange={(e) => setFilterEndDate(e.target.value)}
-                  />
-                </div>
-
-                <button 
-                  className="btn-reset-filter"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setFilterStatus('');
-                    setFilterStartDate('');
-                    setFilterEndDate('');
-                    setShowFilter(false);
-                  }}
-                >
-                  Reset Filter
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Table */}

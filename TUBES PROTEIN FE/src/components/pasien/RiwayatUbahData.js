@@ -12,7 +12,6 @@ function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, o
   const [filterKategori, setFilterKategori] = useState('');
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
-  const [showFilter, setShowFilter] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,10 +33,10 @@ function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, o
     try {
       setLoading(true);
       const response = await auditService.getDetailedDataLogs();
-      
+
       // Extract data from response wrapper
       const logs = response && response.data ? response.data : response;
-      
+
       if (logs && Array.isArray(logs)) {
         const formattedData = logs.map((item, idx) => ({
           id: item.id_audit || idx,
@@ -168,7 +167,73 @@ function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, o
         <main className="rud-main-area">
           {/* Search Section */}
           <div className="rud-search-section">
-            <div className="rud-search-bar">
+            {/* Filter Panel (Now First & Always Visible) */}
+            <div className="rud-filter-panel">
+              <div className="filter-group">
+                <label>Status</label>
+                <select
+                  value={filterAction}
+                  onChange={(e) => setFilterAction(e.target.value)}
+                >
+                  <option value="">Semua Status</option>
+                  <option value="CREATE">Dibuat</option>
+                  <option value="UPDATE">Diubah</option>
+                  <option value="DELETE">Dihapus</option>
+                  <option value="RECOVERY">Dipulihkan</option>
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Kategori</label>
+                <select
+                  value={filterKategori}
+                  onChange={(e) => setFilterKategori(e.target.value)}
+                >
+                  <option value="">Semua Kategori</option>
+                  <option value="pemeriksaan">Pemeriksaan</option>
+                  <option value="layanan_anc">Layanan ANC</option>
+                  <option value="layanan_kb">Layanan KB</option>
+                  <option value="layanan_imunisasi">Layanan Imunisasi</option>
+                  <option value="layanan_persalinan">Layanan Persalinan</option>
+                  <option value="layanan_kunjungan_pasien">Layanan Kunjungan Pasien</option>
+                  <option value="jadwal">Jadwal</option>
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Dari Tanggal</label>
+                <input
+                  type="date"
+                  value={filterStartDate}
+                  onChange={(e) => setFilterStartDate(e.target.value)}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label>Sampai Tanggal</label>
+                <input
+                  type="date"
+                  value={filterEndDate}
+                  onChange={(e) => setFilterEndDate(e.target.value)}
+                />
+              </div>
+
+              <button
+                className="btn-reset-filter"
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterAction('');
+                  setFilterKategori('');
+                  setFilterStartDate('');
+                  setFilterEndDate('');
+                }}
+              >
+                Reset Filter
+              </button>
+            </div>
+
+            {/* Search Bar (Now Second & No Filter Button) */}
+            <div className="rud-search-bar" style={{ marginTop: '20px' }}>
               <input
                 type="text"
                 className="rud-search-input"
@@ -176,82 +241,7 @@ function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, o
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button 
-                className="rud-filter-btn"
-                onClick={() => setShowFilter(!showFilter)}
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
-                  <path d="M3 6h14M6 10h8M8 14h4" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </button>
             </div>
-
-            {/* Filter Panel */}
-            {showFilter && (
-              <div className="rud-filter-panel">
-                <div className="filter-group">
-                  <label>Tipe Aksi</label>
-                  <select 
-                    value={filterAction}
-                    onChange={(e) => setFilterAction(e.target.value)}
-                  >
-                    <option value="">Semua Aksi</option>
-                    <option value="CREATE">Dibuat</option>
-                    <option value="UPDATE">Diubah</option>
-                    <option value="DELETE">Dihapus</option>
-                  </select>
-                </div>
-
-                <div className="filter-group">
-                  <label>Kategori</label>
-                  <select 
-                    value={filterKategori}
-                    onChange={(e) => setFilterKategori(e.target.value)}
-                  >
-                    <option value="">Semua Kategori</option>
-                    <option value="pemeriksaan">Pemeriksaan</option>
-                    <option value="layanan_anc">Layanan ANC</option>
-                    <option value="layanan_kb">Layanan KB</option>
-                    <option value="layanan_imunisasi">Layanan Imunisasi</option>
-                    <option value="layanan_persalinan">Layanan Persalinan</option>
-                    <option value="layanan_kunjungan_pasien">Layanan Kunjungan Pasien</option>
-                    <option value="jadwal">Jadwal</option>
-                  </select>
-                </div>
-
-                <div className="filter-group">
-                  <label>Dari Tanggal</label>
-                  <input
-                    type="date"
-                    value={filterStartDate}
-                    onChange={(e) => setFilterStartDate(e.target.value)}
-                  />
-                </div>
-
-                <div className="filter-group">
-                  <label>Sampai Tanggal</label>
-                  <input
-                    type="date"
-                    value={filterEndDate}
-                    onChange={(e) => setFilterEndDate(e.target.value)}
-                  />
-                </div>
-
-                <button 
-                  className="btn-reset-filter"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setFilterAction('');
-                    setFilterKategori('');
-                    setFilterStartDate('');
-                    setFilterEndDate('');
-                    setShowFilter(false);
-                  }}
-                >
-                  Reset Filter
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Table */}
@@ -280,19 +270,18 @@ function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, o
                       <td>{item.nomor_registrasi}</td>
                       <td>{item.kategori}</td>
                       <td>
-                        <span className={`rud-status ${
-                          item.action === 'UPDATE' ? 'status-diubah' : 
-                          (item.action === 'DELETE' || item.action === 'DELETE_PERMANENT' || item.action === 'DELETE_PERMANEN') ? 'status-dihapus' : 
-                          item.action === 'RESTORE' ? 'status-dibuat' : 'status-dibuat'
-                        }`}>
+                        <span className={`rud-status ${item.action === 'UPDATE' ? 'status-diubah' :
+                          (item.action === 'DELETE' || item.action === 'DELETE_PERMANENT' || item.action === 'DELETE_PERMANEN') ? 'status-dihapus' :
+                            item.action === 'RESTORE' ? 'status-dibuat' : 'status-dibuat'
+                          }`}>
                           {item.keterangan}
                         </span>
                       </td>
                       <td>
                         <div className="rud-user">
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="10" fill="#E5E5E5"/>
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#999"/>
+                            <circle cx="12" cy="12" r="10" fill="#E5E5E5" />
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#999" />
                           </svg>
                           <span>{item.diubah_oleh}</span>
                         </div>
