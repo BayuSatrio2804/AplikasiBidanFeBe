@@ -66,10 +66,26 @@ const createLaporan = async (req, res) => {
       jenis_layanan,
       periode,
       tanggal_dibuat,
-      jumlah_pasien,
-      jumlah_kunjungan,
+      jumlah_pasien: 0, // Default, akan dihitung ulang di bawah ini
+      jumlah_kunjungan: 0, // Default, akan dihitung ulang di bawah ini
       label
     };
+
+    // Perbaikan Bug #5: Hitung statistik secara otomatis agar data akurat
+    // Format periode diharapkan "MM/YYYY" (misal: "01/2025")
+    if (periode && periode.includes('/')) {
+      const [bulanStr, tahunStr] = periode.split('/');
+      const bulan = parseInt(bulanStr, 10);
+      const tahun = parseInt(tahunStr, 10);
+
+      if (!isNaN(bulan) && !isNaN(tahun)) {
+        const stats = await laporanService.calculateLaporanSummary(jenis_layanan, bulan, tahun);
+        data.jumlah_pasien = stats.jumlah_pasien;
+        data.jumlah_kunjungan = stats.jumlah_kunjungan;
+      }
+    }
+
+    // Fallback jika format periode berbeda (misal hanya tahun), biarkan 0 atau gunakan input pengguna (opsional, tapi lebih aman 0 agar tidak menyesatkan)
 
     const newLaporan = await laporanService.createLaporan(data);
 

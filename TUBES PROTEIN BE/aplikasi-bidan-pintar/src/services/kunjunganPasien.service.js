@@ -189,13 +189,16 @@ const updateKunjunganPasien = async (id, data, userId) => {
     );
 
     // Update record kunjungan
+    // Fix Bug #2: Jangan update master data pasien (nama, nik, umur) di sini
+    // Hanya update data spesifik kunjungan (bb, td, keluhan, dll)
     await connection.query(
       `UPDATE layanan_kunjungan_pasien 
-       SET tanggal = ?, no_reg = ?, jenis_kunjungan = ?, nama_pasien = ?, nik_pasien = ?, umur_pasien = ?, 
+       SET tanggal = ?, no_reg = ?, jenis_kunjungan = ?, 
+           -- nama_pasien = ?, nik_pasien = ?, umur_pasien = ?, -- Jangan update master 
            bb_pasien = ?, td_pasien = ?, nama_wali = ?, nik_wali = ?, umur_wali = ?, 
            keluhan = ?, diagnosa = ?, terapi_obat = ?, keterangan = ?
        WHERE id_kunjungan = ?`,
-      [tanggal, no_reg, jenis_kunjungan, nama_pasien, nik_pasien, umur_pasien, bb_pasien, td_pasien, nama_wali, nik_wali, umur_wali, keluhan, diagnosa, terapi_obat, keterangan, id]
+      [tanggal, no_reg, jenis_kunjungan, /* nama_pasien, nik_pasien, umur_pasien, */ bb_pasien, td_pasien, nama_wali, nik_wali, umur_wali, keluhan, diagnosa, terapi_obat, keterangan, id]
     );
 
     await connection.commit();

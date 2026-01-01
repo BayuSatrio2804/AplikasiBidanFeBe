@@ -254,11 +254,11 @@ const updateRegistrasiPersalinan = async (id_pemeriksaan, data, userId) => {
 
     const id_pasien = existingPemeriksaan[0].id_pasien;
 
-    // Update data pasien
-    await connection.query(
-      'UPDATE pasien SET nama = ?, nik = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
-      [nama_istri, nik_istri, umur_istri, alamat, no_hp || null, id_pasien]
-    );
+    // Fix Bug #2: Jangan update data master pasien saat edit layanan Persalinan
+    // await connection.query(
+    //   'UPDATE pasien SET nama = ?, nik = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
+    //   [nama_istri, nik_istri, umur_istri, alamat, no_hp || null, id_pasien]
+    // );
 
     // Update pemeriksaan
     const subjektif_final = `Persalinan Anak Ke-${anak_ke || '-'}, Jenis Partus: ${jenis_partus || '-'}`;
