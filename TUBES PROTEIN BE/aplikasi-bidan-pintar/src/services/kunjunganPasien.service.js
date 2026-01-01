@@ -93,6 +93,12 @@ const createRegistrasiKunjunganPasien = async (data, userId) => {
     subjektif, objektif, analisa, tatalaksana
   } = data;
 
+  // Fix Enum Mismatch: Map 'Bayi' or 'Anak' to 'Bayi/Anak'
+  let jenis_kunjungan_fixed = jenis_kunjungan;
+  if (jenis_kunjungan === 'Bayi' || jenis_kunjungan === 'Anak') {
+    jenis_kunjungan_fixed = 'Bayi/Anak';
+  }
+
   const connection = await db.getConnection();
 
   try {
@@ -125,7 +131,7 @@ const createRegistrasiKunjunganPasien = async (data, userId) => {
     await connection.query(
       `INSERT INTO layanan_kunjungan_pasien (id_kunjungan, id_pemeriksaan, tanggal, no_reg, jenis_kunjungan, nama_pasien, nik_pasien, umur_pasien, bb_pasien, td_pasien, nama_wali, nik_wali, umur_wali, keluhan, diagnosa, terapi_obat, keterangan)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id_kunjungan, id_pemeriksaan, tanggal, no_reg, jenis_kunjungan, nama_pasien, nik_pasien, umur_pasien, bb_pasien, td_pasien, nama_wali, nik_wali, umur_wali, keluhan, diagnosa, terapi_obat, keterangan]
+      [id_kunjungan, id_pemeriksaan, tanggal, no_reg, jenis_kunjungan_fixed, nama_pasien, nik_pasien, umur_pasien, bb_pasien, td_pasien, nama_wali, nik_wali, umur_wali, keluhan, diagnosa, terapi_obat, keterangan]
     );
 
     await connection.commit();

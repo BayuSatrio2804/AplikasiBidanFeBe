@@ -1,7 +1,7 @@
 // src/validators/kunjunganPasien.validator.js
 const Joi = require('joi');
 
-const JENIS_KUNJUNGAN = ["Bayi", "Anak", "Hamil", "Nifas", "KB", "Lansia"];
+const JENIS_KUNJUNGAN = ["Bayi", "Anak", "Bayi/Anak", "Hamil", "Nifas", "KB", "Lansia"];
 
 const RegistrasiKunjunganPasienSchema = Joi.object({
   // --- Informasi Layanan ---
