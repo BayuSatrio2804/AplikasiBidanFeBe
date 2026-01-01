@@ -11,6 +11,8 @@ COPY . .
 EXPOSE 3000
 
 # Set host to 0.0.0.0 to allow access from outside container
-ENV HOST=0.0.0.0
+# Install serve globally
+RUN npm install -g serve
 
-CMD ["npm", "start"]
+# Build the app at runtime to pick up environment variables, then serve it
+CMD ["/bin/sh", "-c", "npm run build && serve -s build -l 3000"]
