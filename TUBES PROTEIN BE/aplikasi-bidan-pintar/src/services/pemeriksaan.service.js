@@ -53,7 +53,7 @@ const getAllPemeriksaan = async (jenisLayanan = null, search = null) => {
     query += ` LEFT JOIN layanan_kunjungan_pasien kp ON p.id_pemeriksaan = kp.id_pemeriksaan`;
   }
 
-  query += ` WHERE 1=1`;
+  query += ` WHERE 1=1 AND p.deleted_at IS NULL AND pas.deleted_at IS NULL`;
   const params = [];
 
   // Filter jenis_layanan jika ada

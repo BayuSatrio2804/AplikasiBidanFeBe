@@ -33,7 +33,7 @@ export const getPemeriksaanByLayanan = async (jenisLayanan, search = '') => {
  * @returns {Promise<object>} Response data with KB list
  */
 export const getAllKB = async (search = '') => {
-  return getPemeriksaanByLayanan('KB', search);
+  return apiRequest(`/kb${search ? `?search=${encodeURIComponent(search)}` : ''}`);
 };
 
 /**
@@ -97,7 +97,7 @@ export const deleteKB = async (id) => {
  * @returns {Promise<object>} Response data with ANC list
  */
 export const getAllANC = async (search = '') => {
-  return getPemeriksaanByLayanan('ANC', search);
+  return apiRequest(`/anc${search ? `?search=${encodeURIComponent(search)}` : ''}`);
 };
 
 /**
@@ -161,7 +161,7 @@ export const getANCById = async (id) => {
  * @returns {Promise<object>} Response data with Imunisasi list
  */
 export const getAllImunisasi = async (search = '') => {
-  return getPemeriksaanByLayanan('Imunisasi', search);
+  return apiRequest(`/imunisasi${search ? `?search=${encodeURIComponent(search)}` : ''}`);
 };
 
 /**
