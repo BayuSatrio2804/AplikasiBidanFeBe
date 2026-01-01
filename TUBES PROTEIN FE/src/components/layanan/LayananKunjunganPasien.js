@@ -21,6 +21,7 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
   const { notifikasi, showNotifikasi, hideNotifikasi } = useNotifikasi();
   const [showPasienModal, setShowPasienModal] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
+  const [filterType, setFilterType] = useState('Semua Data');
 
   // State untuk popup jadwal
   const [showJadwalModal, setShowJadwalModal] = useState(false);
@@ -56,6 +57,48 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
+
+  const getFilteredData = () => {
+    if (!riwayatPelayanan) return [];
+    if (filterType === 'Semua Data') return riwayatPelayanan;
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    return riwayatPelayanan.filter(item => {
+      let dateStr = item.tanggal;
+      if (!dateStr) return false;
+
+      // Handle potential DD/MM/YYYY format if any
+      let itemDate = new Date(dateStr);
+      if (isNaN(itemDate.getTime()) && typeof dateStr === 'string' && dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        itemDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+      }
+
+      const itemDay = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
+
+      if (filterType === 'Hari Ini') {
+        return itemDay.getTime() === today.getTime();
+      }
+
+      if (filterType === 'Minggu Ini') {
+        const firstDay = new Date(today);
+        firstDay.setDate(today.getDate() - today.getDay());
+        const lastDay = new Date(today);
+        lastDay.setDate(today.getDate() + (6 - today.getDay()));
+        return itemDay >= firstDay && itemDay <= lastDay;
+      }
+
+      if (filterType === 'Bulan Ini') {
+        return itemDay.getMonth() === today.getMonth() && itemDay.getFullYear() === today.getFullYear();
+      }
+
+      return true;
+    });
+  };
+
+  const filteredRiwayat = getFilteredData();
 
   useEffect(() => {
     fetchRiwayatPelayanan();
@@ -508,10 +551,10 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                     </button>
                     {showFilterDropdown && (
                       <div className="kunjungan-filter-dropdown">
-                        <div className="kunjungan-filter-option">Semua Data</div>
-                        <div className="kunjungan-filter-option">Hari Ini</div>
-                        <div className="kunjungan-filter-option">Minggu Ini</div>
-                        <div className="kunjungan-filter-option">Bulan Ini</div>
+                        <div className="kunjungan-filter-option" onClick={() => { setFilterType('Semua Data'); setShowFilterDropdown(false); }}>Semua Data</div>
+                        <div className="kunjungan-filter-option" onClick={() => { setFilterType('Hari Ini'); setShowFilterDropdown(false); }}>Hari Ini</div>
+                        <div className="kunjungan-filter-option" onClick={() => { setFilterType('Minggu Ini'); setShowFilterDropdown(false); }}>Minggu Ini</div>
+                        <div className="kunjungan-filter-option" onClick={() => { setFilterType('Bulan Ini'); setShowFilterDropdown(false); }}>Bulan Ini</div>
                       </div>
                     )}
                   </div>
@@ -526,13 +569,13 @@ function LayananKunjunganPasien({ onBack, userData, onToRiwayatDataMasuk, onToRi
                 <div className="kunjungan-riwayat-list">
                   {isLoading ? (
                     <div style={{ textAlign: 'center', padding: '20px' }}>Memuat data...</div>
-                  ) : riwayatPelayanan.length === 0 ? (
+                  ) : filteredRiwayat.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Belum ada data riwayat</div>
                   ) : (
-                    riwayatPelayanan.map((item) => (
+                    filteredRiwayat.map((item) => (
                       <div key={item.id} className="kunjungan-riwayat-item">
                         <span className="kunjungan-riwayat-text">
-                          {item.nama_pasien} - {item.tanggal}
+                          {item.nama_pasien} - {new Date(item.tanggal).toLocaleDateString('id-ID')}
                         </span>
                         <div className="kunjungan-riwayat-actions">
                           <button
