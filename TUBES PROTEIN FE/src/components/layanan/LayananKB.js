@@ -34,6 +34,49 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
     jam_mulai: '',
     jam_selesai: ''
   });
+  const [filterType, setFilterType] = useState('Semua Data');
+
+  const getFilteredData = () => {
+    if (!riwayatPelayanan) return [];
+    if (filterType === 'Semua Data') return riwayatPelayanan;
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    return riwayatPelayanan.filter(item => {
+      let dateStr = item.tanggal; // item.tanggal is mapped from item.tanggal_pemeriksaan in fetch
+      if (!dateStr) return false;
+
+      // Handle potential DD/MM/YYYY format if any (standard is YYYY-MM-DD or ISO from backend)
+      let itemDate = new Date(dateStr);
+      if (isNaN(itemDate.getTime()) && typeof dateStr === 'string' && dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        itemDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+      }
+
+      const itemDay = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
+
+      if (filterType === 'Hari Ini') {
+        return itemDay.getTime() === today.getTime();
+      }
+
+      if (filterType === 'Minggu Ini') {
+        const firstDay = new Date(today);
+        firstDay.setDate(today.getDate() - today.getDay()); // Sunday
+        const lastDay = new Date(today);
+        lastDay.setDate(today.getDate() + (6 - today.getDay())); // Saturday
+        return itemDay >= firstDay && itemDay <= lastDay;
+      }
+
+      if (filterType === 'Bulan Ini') {
+        return itemDay.getMonth() === today.getMonth() && itemDay.getFullYear() === today.getFullYear();
+      }
+
+      return true;
+    });
+  };
+
+  const filteredRiwayat = getFilteredData();
 
   const [formData, setFormData] = useState({
     jenis_layanan: 'KB',
@@ -68,7 +111,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
     try {
       const response = await layananService.getAllKB(search);
       if (response.success && response.data) {
-        // Map API response to display format
+        // Petakan respons API ke format tampilan
         const mappedData = response.data.map(item => ({
           id: item.id_pemeriksaan,
           nama_pasien: item.nama_pasien || 'Pasien',
@@ -218,7 +261,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate required fields
+    // Validasi field yang wajib diisi
     if (!formData.tanggal || !formData.metode || !formData.nama_ibu || !formData.nik_ibu || !formData.umur_ibu || !formData.nama_ayah || !formData.nik_ayah || !formData.alamat || !formData.nomor_hp) {
       showNotifikasi({
         type: 'error',
@@ -290,7 +333,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
         } catch (error) {
           console.error('Error saving KB registration:', error);
 
-          // Log detailed error information for debugging
+          // Log informasi error detail untuk debugging
           if (error.data && error.data.errors) {
             console.error('Validation errors:', error.data.errors);
             const errorDetails = error.data.errors.map(e => `${e.field}: ${e.message}`).join('\n');
@@ -347,9 +390,9 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
 
   const handleEdit = async (id) => {
     try {
-      console.log(`🔍 Fetching KB data for ID: ${id}`);
+      console.log(`🔍 Mengambil data KB untuk ID: ${id}`);
       const response = await layananService.getKBById(id);
-      console.log('📦 Response received:', response);
+      console.log('📦 Respons diterima:', response);
 
       if (response && response.success) {
         const data = response.data;
@@ -381,13 +424,13 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
         setEditingId(id);
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        console.log('✅ Form data updated successfully');
+        console.log('✅ Data form berhasil diperbarui');
       } else {
-        console.error('❌ Response not successful:', response);
-        alert('Gagal mengambil data untuk diedit: ' + (response?.message || 'Unknown error'));
+        console.error('❌ Respons tidak berhasil:', response);
+        alert('Gagal mengambil data untuk diedit: ' + (response?.message || 'Error tidak diketahui'));
       }
     } catch (error) {
-      console.error('❌ Error fetching data:', error);
+      console.error('❌ Gagal mengambil data:', error);
       console.error('   Error type:', error.type);
       console.error('   Error status:', error.status);
       console.error('   Error data:', error.data);
@@ -402,12 +445,12 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
       onConfirm: async () => {
         hideNotifikasi();
         try {
-          console.log(`🗑️ Deleting KB data for ID: ${id}`);
+          console.log(`🗑️ Menghapus data KB untuk ID: ${id}`);
           const response = await layananService.deleteKB(id);
-          console.log('📦 Delete response:', response);
+          console.log('📦 Respons hapus:', response);
 
           if (response && response.success) {
-            console.log('✅ Delete successful');
+            console.log('✅ Berhasil dihapus');
             showNotifikasi({
               type: 'success',
               message: 'Data berhasil dihapus!',
@@ -417,7 +460,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
             });
             fetchRiwayatPelayanan();
           } else {
-            console.error('❌ Delete failed:', response);
+            console.error('❌ Gagal menghapus:', response);
             showNotifikasi({
               type: 'error',
               message: response?.message || 'Gagal menghapus data',
@@ -426,7 +469,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
             });
           }
         } catch (error) {
-          console.error('❌ Error deleting:', error);
+          console.error('❌ Error saat menghapus:', error);
           console.error('   Error type:', error.type);
           console.error('   Error status:', error.status);
           console.error('   Error data:', error.data);
@@ -465,7 +508,7 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
         <button className="btn-kembali-kb" onClick={handleHeaderBack}>Kembali</button>
       </div>
 
-      {/* Main Content */}
+      {/* Konten Utama */}
       <div className="kb-content">
         {/* Sidebar */}
         <Sidebar
@@ -482,11 +525,11 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
           onToImunisasi={onToImunisasi}
         />
 
-        {/* Main Area */}
+        {/* Area Utama */}
         <main className="kb-main-area">
           {!showForm ? (
             <>
-              {/* Welcome Message & Action Buttons */}
+              {/* Pesan Selamat Datang & Tombol Aksi */}
               <div className="kb-welcome-section">
                 <p className="kb-welcome-text">Selamat datang, {userData?.username || 'username'}!</p>
 
@@ -533,10 +576,10 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                     </button>
                     {showFilterDropdown && (
                       <div className="kb-filter-dropdown">
-                        <div className="kb-filter-option">Semua Data</div>
-                        <div className="kb-filter-option">Hari Ini</div>
-                        <div className="kb-filter-option">Minggu Ini</div>
-                        <div className="kb-filter-option">Bulan Ini</div>
+                        <div className="kb-filter-option" onClick={() => { setFilterType('Semua Data'); setShowFilterDropdown(false); }}>Semua Data</div>
+                        <div className="kb-filter-option" onClick={() => { setFilterType('Hari Ini'); setShowFilterDropdown(false); }}>Hari Ini</div>
+                        <div className="kb-filter-option" onClick={() => { setFilterType('Minggu Ini'); setShowFilterDropdown(false); }}>Minggu Ini</div>
+                        <div className="kb-filter-option" onClick={() => { setFilterType('Bulan Ini'); setShowFilterDropdown(false); }}>Bulan Ini</div>
                       </div>
                     )}
                   </div>
@@ -545,8 +588,8 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
                 <div className="kb-riwayat-list">
                   {isLoading ? (
                     <div className="kb-riwayat-loading">Memuat data...</div>
-                  ) : riwayatPelayanan.length > 0 ? (
-                    riwayatPelayanan.map((item) => (
+                  ) : filteredRiwayat.length > 0 ? (
+                    filteredRiwayat.map((item) => (
                       <div key={item.id} className="kb-riwayat-item">
                         <span className="kb-riwayat-text">
                           {item.nama_pasien} - {new Date(item.tanggal).toLocaleDateString('id-ID')}

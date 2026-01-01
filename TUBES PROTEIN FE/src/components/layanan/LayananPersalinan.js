@@ -34,6 +34,48 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
     jam_mulai: '',
     jam_selesai: ''
   });
+  const [filterType, setFilterType] = useState('Semua Data');
+
+  const getFilteredData = () => {
+    if (!riwayatPelayanan) return [];
+    if (filterType === 'Semua Data') return riwayatPelayanan;
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    return riwayatPelayanan.filter(item => {
+      let dateStr = item.tanggal;
+      if (!dateStr) return false;
+
+      let itemDate = new Date(dateStr);
+      if (isNaN(itemDate.getTime()) && typeof dateStr === 'string' && dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        itemDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+      }
+
+      const itemDay = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
+
+      if (filterType === 'Hari Ini') {
+        return itemDay.getTime() === today.getTime();
+      }
+
+      if (filterType === 'Minggu Ini') {
+        const firstDay = new Date(today);
+        firstDay.setDate(today.getDate() - today.getDay()); // Minggu
+        const lastDay = new Date(today);
+        lastDay.setDate(today.getDate() + (6 - today.getDay())); // Sabtu
+        return itemDay >= firstDay && itemDay <= lastDay;
+      }
+
+      if (filterType === 'Bulan Ini') {
+        return itemDay.getMonth() === today.getMonth() && itemDay.getFullYear() === today.getFullYear();
+      }
+
+      return true;
+    });
+  };
+
+  const filteredRiwayat = getFilteredData();
 
   const [formData, setFormData] = useState({
     jenis_layanan: 'Persalinan',
@@ -116,7 +158,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
           umur_istri: fullPasien.umur,
           alamat: fullPasien.alamat,
           no_hp: fullPasien.no_hp,
-          // Auto-fill Suami
+          // Isi otomatis data Suami
           nama_suami: husband.nama_suami || '',
           nik_suami: husband.nik_suami || '',
           umur_suami: husband.umur_suami || ''
@@ -124,7 +166,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
       }
     } catch (error) {
       console.error('Error auto-filling patient data:', error);
-      // Fallback manual jika gagal fetch detail
+      // Alternatif manual jika gagal mengambil detail
       setFormData(prev => ({
         ...prev,
         nama_istri: pasien.nama,
@@ -224,7 +266,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate required fields
+    // Validasi field yang wajib diisi
     if (!formData.tanggal || !formData.jenis_partus || !formData.nama_istri || !formData.nik_istri || !formData.umur_istri) {
       showNotifikasi({
         type: 'error',
@@ -440,7 +482,7 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
         <button className="btn-kembali-persalinan" onClick={handleHeaderBack}>Kembali</button>
       </div>
 
-      {/* Main Content */}
+      {/* Konten Utama */}
       <div className="persalinan-content">
         {/* Sidebar */}
         <Sidebar
@@ -457,11 +499,11 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
           onToImunisasi={onToImunisasi}
         />
 
-        {/* Main Area */}
+        {/* Area Utama */}
         <main className="persalinan-main-area">
           {!showForm ? (
             <>
-              {/* Welcome Message & Action Buttons */}
+              {/* Pesan Selamat Datang & Tombol Aksi */}
               <div className="persalinan-welcome-section">
                 <p className="persalinan-welcome-text">Selamat datang, {userData?.username || 'username'}!</p>
 
@@ -508,10 +550,10 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                     </button>
                     {showFilterDropdown && (
                       <div className="persalinan-filter-dropdown">
-                        <div className="persalinan-filter-option">Semua Data</div>
-                        <div className="persalinan-filter-option">Hari Ini</div>
-                        <div className="persalinan-filter-option">Minggu Ini</div>
-                        <div className="persalinan-filter-option">Bulan Ini</div>
+                        <div className="persalinan-filter-option" onClick={() => { setFilterType('Semua Data'); setShowFilterDropdown(false); }}>Semua Data</div>
+                        <div className="persalinan-filter-option" onClick={() => { setFilterType('Hari Ini'); setShowFilterDropdown(false); }}>Hari Ini</div>
+                        <div className="persalinan-filter-option" onClick={() => { setFilterType('Minggu Ini'); setShowFilterDropdown(false); }}>Minggu Ini</div>
+                        <div className="persalinan-filter-option" onClick={() => { setFilterType('Bulan Ini'); setShowFilterDropdown(false); }}>Bulan Ini</div>
                       </div>
                     )}
                   </div>
@@ -520,8 +562,8 @@ function LayananPersalinan({ onBack, userData, onToRiwayatDataMasuk, onToRiwayat
                 <div className="persalinan-riwayat-list">
                   {isLoading ? (
                     <div className="persalinan-riwayat-loading">Memuat data...</div>
-                  ) : riwayatPelayanan.length > 0 ? (
-                    riwayatPelayanan.map((item) => (
+                  ) : filteredRiwayat.length > 0 ? (
+                    filteredRiwayat.map((item) => (
                       <div key={item.id} className="persalinan-riwayat-item">
                         <span className="persalinan-riwayat-text">
                           {item.nama_pasien} - {item.tanggal}
