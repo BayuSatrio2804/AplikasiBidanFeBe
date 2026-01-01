@@ -73,8 +73,10 @@ function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, o
         return 'Diubah';
       case 'DELETE':
         return 'Dihapus';
+      case 'RESTORE':
+        return 'Dipulihkan';
       default:
-        return 'Unknown';
+        return 'Dipulihkan';
     }
   };
 
