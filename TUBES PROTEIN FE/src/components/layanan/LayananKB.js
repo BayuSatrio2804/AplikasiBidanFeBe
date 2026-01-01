@@ -97,18 +97,38 @@ function LayananKB({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAku
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handlePasienSelect = (pasien) => {
-    setFormData(prev => ({
-      ...prev,
-      nama_ibu: pasien.nama,
-      nik_ibu: pasien.nik || pasien.NIK,
-      umur_ibu: pasien.umur,
-      alamat: pasien.alamat,
-      nomor_hp: pasien.no_hp,
-      nama_ayah: pasien.nama_suami || prev.nama_ayah,
-      nik_ayah: pasien.nik_suami || prev.nik_ayah,
-      umur_ayah: pasien.umur_suami || prev.umur_ayah,
-    }));
+  const handlePasienSelect = async (pasien) => {
+    try {
+      const response = await pasienService.getPasienById(pasien.id_pasien);
+      if (response.success && response.data) {
+        const fullPasien = response.data;
+        const husband = fullPasien.latest_husband_data || {};
+
+        setFormData(prev => ({
+          ...prev,
+          nama_ibu: fullPasien.nama,
+          nik_ibu: fullPasien.nik,
+          umur_ibu: fullPasien.umur,
+          alamat: fullPasien.alamat,
+          nomor_hp: fullPasien.no_hp,
+          // Auto-fill Suami (sebagai Ayah di form KB)
+          nama_ayah: husband.nama_suami || '',
+          nik_ayah: husband.nik_suami || '',
+          umur_ayah: husband.umur_suami || ''
+        }));
+      }
+    } catch (error) {
+      console.error('Error auto-filling patient data:', error);
+      setFormData(prev => ({
+        ...prev,
+        nama_ibu: pasien.nama,
+        nik_ibu: pasien.nik || pasien.NIK,
+        umur_ibu: pasien.umur,
+        alamat: pasien.alamat,
+        nomor_hp: pasien.no_hp
+      }));
+    }
+
     setShowPasienModal(false);
     showNotifikasi({
       type: 'success',

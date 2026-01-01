@@ -101,18 +101,40 @@ function LayananANC({ onBack, userData, onToRiwayatDataMasuk, onToRiwayatMasukAk
     setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
-  const handlePasienSelect = (pasien) => {
-    setFormData(prev => ({
-      ...prev,
-      nama_istri: pasien.nama,
-      nik_istri: pasien.nik || pasien.NIK,
-      umur_istri: pasien.umur,
-      alamat: pasien.alamat,
-      no_hp: pasien.no_hp,
-      nama_suami: pasien.nama_suami || prev.nama_suami,
-      nik_suami: pasien.nik_suami || prev.nik_suami,
-      umur_suami: pasien.umur_suami || prev.umur_suami,
-    }));
+  const handlePasienSelect = async (pasien) => {
+    try {
+      // Ambil detail pasien lengkap (termasuk data suami terakhir)
+      const response = await pasienService.getPasienById(pasien.id_pasien);
+      if (response.success && response.data) {
+        const fullPasien = response.data;
+        const husband = fullPasien.latest_husband_data || {};
+
+        setFormData(prev => ({
+          ...prev,
+          nama_istri: fullPasien.nama,
+          nik_istri: fullPasien.nik,
+          umur_istri: fullPasien.umur,
+          alamat: fullPasien.alamat,
+          no_hp: fullPasien.no_hp,
+          // Auto-fill Suami
+          nama_suami: husband.nama_suami || '',
+          nik_suami: husband.nik_suami || '',
+          umur_suami: husband.umur_suami || ''
+        }));
+      }
+    } catch (error) {
+      console.error('Error auto-filling patient data:', error);
+      // Fallback manual
+      setFormData(prev => ({
+        ...prev,
+        nama_istri: pasien.nama,
+        nik_istri: pasien.nik || pasien.NIK,
+        umur_istri: pasien.umur,
+        alamat: pasien.alamat,
+        no_hp: pasien.no_hp
+      }));
+    }
+
     setShowPasienModal(false);
     showNotifikasi({
       type: 'success',
