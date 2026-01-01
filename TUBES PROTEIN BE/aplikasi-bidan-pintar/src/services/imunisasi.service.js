@@ -175,7 +175,7 @@ const getAllImunisasi = async (search = '') => {
     FROM pemeriksaan p
     LEFT JOIN pasien pas ON p.id_pasien = pas.id_pasien
     LEFT JOIN layanan_imunisasi im ON p.id_pemeriksaan = im.id_pemeriksaan
-    WHERE p.jenis_layanan = 'Imunisasi' AND p.deleted_at IS NULL AND pas.deleted_at IS NULL
+    WHERE p.jenis_layanan = 'Imunisasi' AND p.deleted_at IS NULL
   `;
 
   const params = [];

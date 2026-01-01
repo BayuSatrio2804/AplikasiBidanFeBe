@@ -171,9 +171,9 @@ const findOrCreatePasien = async (data, connection) => {
 
   if (existingPasien.length > 0) {
     id_pasien = existingPasien[0].id_pasien;
-    // Update data pasien yang ada
+    // Update data pasien yang ada dan restore jika terhapus
     await connection.query(
-      'UPDATE pasien SET nama = ?, umur = ?, alamat = ?, no_hp = ? WHERE id_pasien = ?',
+      'UPDATE pasien SET nama = ?, umur = ?, alamat = ?, no_hp = ?, deleted_at = NULL WHERE id_pasien = ?',
       [nama, umur, alamat, no_hp || null, id_pasien]
     );
   } else {

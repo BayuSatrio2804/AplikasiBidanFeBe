@@ -258,7 +258,7 @@ const getAllKB = async (search = '') => {
       FROM pemeriksaan pm
       LEFT JOIN layanan_kb kb ON pm.id_pemeriksaan = kb.id_pemeriksaan
       LEFT JOIN pasien p ON pm.id_pasien = p.id_pasien
-      WHERE pm.jenis_layanan = 'KB' AND pm.deleted_at IS NULL AND p.deleted_at IS NULL
+      WHERE pm.jenis_layanan = 'KB' AND pm.deleted_at IS NULL
     `;
 
     const params = [];

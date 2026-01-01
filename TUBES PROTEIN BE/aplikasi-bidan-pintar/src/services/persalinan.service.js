@@ -202,7 +202,7 @@ const getAllPersalinan = async (search = '') => {
     FROM pemeriksaan p
     LEFT JOIN pasien pas ON p.id_pasien = pas.id_pasien
     LEFT JOIN layanan_persalinan pers ON p.id_pemeriksaan = pers.id_pemeriksaan
-    WHERE p.jenis_layanan = 'Persalinan' AND p.deleted_at IS NULL AND pas.deleted_at IS NULL
+    WHERE p.jenis_layanan = 'Persalinan' AND p.deleted_at IS NULL
   `;
 
   const params = [];
