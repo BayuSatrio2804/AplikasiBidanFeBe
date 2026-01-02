@@ -12,7 +12,7 @@ module.exports = {
   SALT_ROUNDS: parseInt(process.env.SALT_ROUNDS, 10) || 10,
 
   // Konfigurasi OTP
-  OTP_EXPIRY_MINUTES: parseInt(process.env.OTP_EXPIRY, 10) || 10,
+  OTP_EXPIRY_MINUTES: parseInt(process.env.OTP_EXPIRY, 10) || 3,
 
   // Konfigurasi Email
   EMAIL_USER: process.env.EMAIL_USER,
