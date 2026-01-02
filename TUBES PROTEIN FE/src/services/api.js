@@ -3,7 +3,7 @@
  * Provides centralized API configuration and request handling
  */
 
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://bidanku.site/api';
 
 /**
  * Get authentication token from localStorage

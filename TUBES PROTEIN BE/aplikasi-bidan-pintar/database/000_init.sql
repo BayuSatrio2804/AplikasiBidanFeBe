@@ -640,8 +640,3 @@ DELIMITER ;
 -- =============================================================================
 -- SEED DATA: Users
 -- =============================================================================
-INSERT INTO users (id_user, nama_lengkap, username, email, password, is_verified) 
-VALUES (UUID(), 'Bayu Satrio', 'bayu', 'bayusatrio0235@gmail.com', '$2b$10$Eda01NAfAVz7SQOUpP3iJeBYVvWcFGMQZSYTR8laPYYBYzwYiOnYqW', 1);
-
-INSERT INTO users (id_user, nama_lengkap, username, email, password, is_verified) 
-VALUES (UUID(), 'Ihab Hasanain', 'ihab', 'ihabb.hasanain@gmail.com', '$2b$10$Eda01NAfAVz7SQOUpP3iJeBYVvWcFGMQZSYTR8laPYYBYzwYiOnYqW', 1);

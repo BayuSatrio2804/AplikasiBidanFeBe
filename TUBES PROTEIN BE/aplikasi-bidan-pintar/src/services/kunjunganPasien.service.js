@@ -1,5 +1,5 @@
 /**
- * Service Kunjungan Pasien
+  * Service Kunjungan Pasien
  * Menangani semua operasi database kunjungan pasien umum
  */
 
@@ -227,7 +227,7 @@ const updateKunjunganPasien = async (id, data, userId) => {
            bb_pasien = ?, td_pasien = ?, nama_wali = ?, nik_wali = ?, umur_wali = ?, 
            keluhan = ?, diagnosa = ?, terapi_obat = ?, keterangan = ?
        WHERE id_kunjungan = ?`,
-      [tanggal, no_reg_sanitized, jenis_kunjungan, /* nama_pasien, nik_pasien, umur_pasien, */ bb_pasien_sanitized, td_pasien_sanitized, nama_wali_sanitized, nik_wali_sanitized, umur_wali_sanitized, keluhan, diagnosa, terapi_obat_sanitized, keterangan_sanitized, id]
+      [tanggal, no_reg, jenis_kunjungan, bb_pasien, td_pasien, nama_wali, nik_wali, umur_wali, keluhan, diagnosa, terapi_obat, keterangan, id]
     );
 
     await connection.commit();

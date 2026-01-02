@@ -1,3 +1,7 @@
 nul
 test-kb-create.js
 TUBES PROTEIN BE/aplikasi-bidan-pintar/debug_log.txt
+.env
+.env.docker
+*.log
+Debugging Patient Visit Error.md
