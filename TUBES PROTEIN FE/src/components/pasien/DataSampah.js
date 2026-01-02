@@ -155,75 +155,60 @@ function DataSampah({
                 />
 
                 <main className="ds-main-area">
-                    <div className="ds-card">
-                        <div className="ds-card-header">
-                            <div className="ds-search-bar">
-                                <input
-                                    type="text"
-                                    className="ds-search-input"
-                                    placeholder="Cari Data Pasien"
-                                    value={searchQuery}
-                                    onChange={handleSearch}
-                                />
-                            </div>
+                    <div className="ds-section-card">
+                        <h2 className="ds-section-title">Riwayat Data Pasien Dihapus</h2>
+                        
+                        <div className="ds-search-row">
+                            <input
+                                type="text"
+                                className="ds-search-input"
+                                placeholder="Cari Data Pasien"
+                                value={searchQuery}
+                                onChange={handleSearch}
+                            />
                         </div>
 
-                        <div className="ds-card-body">
-                            <div className="ds-list">
-                                {isLoading ? (
-                                    <div className="ds-loading">Memuat data...</div>
-                                ) : deletedPasien.length > 0 ? (
-                                    deletedPasien.map(item => (
-                                        <div key={item.id_pasien} className="ds-item">
-                                            <div className="ds-item-info">
-                                                <h4>{item.nama}</h4>
-                                                <p>Dihapus: {item.deleted_at ? new Date(item.deleted_at).toLocaleDateString() : 'N/A'}</p>
-                                            </div>
-                                            <div className="ds-actions">
-                                                <button
-                                                    className="btn-restore"
-                                                    onClick={() => handleRestore(item.id_pasien, item.nama)}
-                                                    title="Pulihkan Data"
-                                                    style={{ marginRight: '10px' }}
-                                                >
-                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <polyline points="1 4 1 10 7 10"></polyline>
-                                                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    className="btn-delete-permanent"
-                                                    onClick={() => handlePermanentDelete(item.id_pasien)}
-                                                    title="Hapus Permanen"
-                                                    style={{
-                                                        width: '40px',
-                                                        height: '40px',
-                                                        background: '#f44336',
-                                                        border: 'none',
-                                                        borderRadius: '50%',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)'
-                                                    }}
-                                                >
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                                                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                                                    </svg>
-                                                </button>
-                                            </div>
+                        <div className="ds-list">
+                            {isLoading ? (
+                                <div className="ds-loading">Memuat data...</div>
+                            ) : deletedPasien.length > 0 ? (
+                                deletedPasien.map(item => (
+                                    <div key={item.id_pasien} className="ds-item">
+                                        <div className="ds-item-info">
+                                            <h4>{item.nama}</h4>
+                                            <p>Dihapus: {item.deleted_at ? new Date(item.deleted_at).toLocaleDateString('id-ID') : 'N/A'}</p>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="ds-empty">
-                                        Data tidak ditemukan.
+                                        <div className="ds-actions">
+                                            <button
+                                                className="btn-restore"
+                                                onClick={() => handleRestore(item.id_pasien, item.nama)}
+                                                title="Pulihkan Data"
+                                            >
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polyline points="1 4 1 10 7 10"></polyline>
+                                                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                                                </svg>
+                                            </button>
+                                            <button
+                                                className="btn-delete-perm"
+                                                onClick={() => handlePermanentDelete(item.id_pasien)}
+                                                title="Hapus Permanen"
+                                            >
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
+                                ))
+                            ) : (
+                                <div className="ds-empty">
+                                    Data tidak ditemukan.
+                                </div>
+                            )}
                         </div>
                     </div>
                 </main>

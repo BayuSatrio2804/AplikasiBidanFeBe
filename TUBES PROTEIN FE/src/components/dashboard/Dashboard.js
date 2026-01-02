@@ -63,7 +63,16 @@ function Dashboard({
     fetchRekapLayanan();
   }, []);
 
-  const pieColors = ['#E91E8C', '#F06FA8', '#F59BC4', '#FAC7E0', '#FDE3F0'];
+  const pieColors = {
+    'ANC': '#E91E8C',
+    'Persalinan': '#F06FA8',
+    'KB': '#F59BC4',
+    'Imunisasi': '#FAC7E0',
+    'Kunjungan Pasien': '#FDE3F0'
+  };
+
+  // Filter data to only show categories with patients
+  const activeRekapData = rekapData.data.filter(item => item.jumlah_pasien > 0);
 
   return (
     <div className="dashboard-container">
@@ -140,40 +149,48 @@ function Dashboard({
               <h2 className="chart-title">Rekap Pasien Per Kategori Layanan</h2>
               
               <div className="chart-content">
-                <div className="pie-chart">
-                  <svg viewBox="0 0 200 200" className="pie-svg">
-                    {rekapData.data.map((item, index) => {
-                      const startAngle = rekapData.data
-                        .slice(0, index)
-                        .reduce((sum, d) => sum + (d.persentase * 3.6), 0);
-                      const angle = item.persentase * 3.6;
-                      
-                      return (
-                        <PieSlice
-                          key={index}
-                          startAngle={startAngle}
-                          angle={angle}
-                          color={pieColors[index]}
-                          percentage={item.persentase}
-                        />
-                      );
-                    })}
-                  </svg>
-                </div>
-
-                <div className="chart-legend">
-                  {rekapData.data.map((item, index) => (
-                    <div key={index} className="legend-item">
-                      <span 
-                        className="legend-color" 
-                        style={{ backgroundColor: pieColors[index] }}
-                      ></span>
-                      <span className="legend-label">
-                        {item.layanan}: <span className="legend-value">{item.jumlah_pasien} Pasien</span>
-                      </span>
+                {rekapData.total > 0 ? (
+                  <>
+                    <div className="pie-chart">
+                      <svg viewBox="0 0 200 200" className="pie-svg">
+                        {activeRekapData.map((item, index) => {
+                          const startAngle = activeRekapData
+                            .slice(0, index)
+                            .reduce((sum, d) => sum + (d.persentase * 3.6), 0);
+                          const angle = item.persentase * 3.6;
+                          
+                          return (
+                            <PieSlice
+                              key={index}
+                              startAngle={startAngle}
+                              angle={angle}
+                              color={pieColors[item.layanan] || '#pink'}
+                              percentage={item.persentase}
+                            />
+                          );
+                        })}
+                      </svg>
                     </div>
-                  ))}
-                </div>
+
+                    <div className="chart-legend">
+                      {activeRekapData.map((item, index) => (
+                        <div key={index} className="legend-item">
+                          <span 
+                            className="legend-color" 
+                            style={{ backgroundColor: pieColors[item.layanan] }}
+                          ></span>
+                          <span className="legend-label">
+                            {item.layanan}: <span className="legend-value">{item.jumlah_pasien} Pasien</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="empty-chart-state">
+                    <p>Data tidak ditemukan</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -189,6 +206,25 @@ function PieSlice({ startAngle, angle, color, percentage }) {
   const cx = 100;
   const cy = 100;
   
+  if (percentage >= 100) {
+    return (
+      <g>
+        <circle cx={cx} cy={cy} r={radius} fill={color} />
+        <text 
+          x={cx} 
+          y={cy} 
+          textAnchor="middle" 
+          dominantBaseline="middle"
+          fill="white"
+          fontSize="16"
+          fontWeight="bold"
+        >
+          100%
+        </text>
+      </g>
+    );
+  }
+
   const startRad = (startAngle - 90) * Math.PI / 180;
   const endRad = (startAngle + angle - 90) * Math.PI / 180;
   

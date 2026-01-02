@@ -174,10 +174,12 @@ function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, o
                                     className="rud-filter-select"
                                 >
                                     <option value="">Semua Kategori</option>
+                                    <option value="pasien">Pasien</option>
                                     <option value="Layanan ANC">Layanan ANC</option>
                                     <option value="Layanan Persalinan">Layanan Persalinan</option>
                                     <option value="Layanan Imunisasi">Layanan Imunisasi</option>
-                                    <option value="Jadwal">Jadwal</option>
+                                    <option value="Layanan KB">Layanan KB</option>
+                                    <option value="Layanan Kunjungan Pasien">Layanan Kunjungan Pasien</option>
                                 </select>
                             </div>
                         </div>

@@ -169,6 +169,9 @@ const deletePasien = async (id, userId) => {
   const [result] = await db.query('UPDATE pasien SET deleted_at = NOW() WHERE id_pasien = ?', [id]);
 
   if (result.affectedRows > 0) {
+    // Cascading soft delete to pemeriksaan
+    await db.query('UPDATE pemeriksaan SET deleted_at = NOW() WHERE id_pasien = ?', [id]);
+    
     try {
       await auditService.recordDataLog(userId, 'DELETE', 'pasien', id);
     } catch (auditError) {
@@ -190,6 +193,9 @@ const restorePasien = async (id, userId) => {
   const [result] = await db.query('UPDATE pasien SET deleted_at = NULL WHERE id_pasien = ?', [id]);
 
   if (result.affectedRows > 0) {
+    // Cascading restore to pemeriksaan (only if not already permanent deleted)
+    await db.query('UPDATE pemeriksaan SET deleted_at = NULL WHERE id_pasien = ? AND is_permanent_deleted = 0', [id]);
+    
     try {
       await auditService.recordDataLog(userId, 'RESTORE', 'pasien', id);
     } catch (auditError) {
@@ -228,6 +234,12 @@ const deletePasienPermanent = async (id, userId) => {
   const [result] = await db.query(query, [scrambledNik, id]);
 
   if (result.affectedRows > 0) {
+    // Cascading fake permanent delete to pemeriksaan
+    await db.query(
+      'UPDATE pemeriksaan SET is_permanent_deleted = 1, deleted_at = NOW() WHERE id_pasien = ?',
+      [id]
+    );
+
     await auditService.recordDataLog(userId, 'DELETE_PERMANENT', 'pasien', id);
 
     // Opsional: Hapus data sensitif lain jika perlu (alamat, hp), tapi Nama tetap disimpan

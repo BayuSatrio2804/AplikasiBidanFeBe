@@ -195,13 +195,12 @@ function RiwayatUbahData({ onBack, onToRiwayatDataMasuk, onToRiwayatMasukAkun, o
                   onChange={(e) => setFilterKategori(e.target.value)}
                 >
                   <option value="">Semua Kategori</option>
-                  <option value="pemeriksaan">Pemeriksaan</option>
+                  <option value="pasien">Pasien</option>
                   <option value="layanan_anc">Layanan ANC</option>
                   <option value="layanan_kb">Layanan KB</option>
                   <option value="layanan_imunisasi">Layanan Imunisasi</option>
                   <option value="layanan_persalinan">Layanan Persalinan</option>
                   <option value="layanan_kunjungan_pasien">Layanan Kunjungan Pasien</option>
-                  <option value="jadwal">Jadwal</option>
                 </select>
               </div>
 

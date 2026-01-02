@@ -16,10 +16,15 @@ const getRekapLayanan = async (tahun) => {
 
   let query = `
     SELECT 
-      jenis_layanan,
-      COUNT(id_pasien) AS jumlah_kunjungan
-    FROM pemeriksaan
-    WHERE jenis_layanan IN (?)
+      per.jenis_layanan,
+      COUNT(DISTINCT per.id_pasien) AS jumlah_kunjungan
+    FROM pemeriksaan per
+    JOIN pasien pas ON per.id_pasien = pas.id_pasien
+    WHERE per.jenis_layanan IN (?)
+    AND per.deleted_at IS NULL
+    AND per.is_permanent_deleted = 0
+    AND pas.deleted_at IS NULL
+    AND pas.is_permanent_deleted = 0
   `;
 
   if (tahun) {
